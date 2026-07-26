@@ -1,0 +1,15 @@
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+*.log
+*.bak
+*.tmp
+*.orig
+*.rej
+vendor/
+node_modules/
+coverage/
+.phpunit.cache/
+.cache/

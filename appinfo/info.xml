@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<info xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="https://apps.nextcloud.com/schema/apps/info.xsd">
+    <id>recruitment</id>
+    <name>Recruitment</name>
+    <summary>Strukturierte Bewerbungs- und Interviewprozesse.</summary>
+    <description>Verwaltet Stellen, Personen, Bewerbungen und versionierte Interviews in Nextcloud.</description>
+    <version>0.2.2</version>
+    <licence>agpl</licence>
+    <author>Simon</author>
+    <namespace>Recruitment</namespace>
+    <category>organization</category>
+    <navigations>
+        <navigation>
+            <name>Recruitment</name>
+            <route>recruitment.page.index</route>
+            <order>45</order>
+        </navigation>
+    </navigations>
+    <dependencies>
+        <php min-version="8.3"/>
+        <nextcloud min-version="34" max-version="34"/>
+    </dependencies>
+</info>
