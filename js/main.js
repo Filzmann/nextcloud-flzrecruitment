@@ -55,6 +55,7 @@
     }
 
     function showError(error) {
+        content.removeAttribute('aria-busy')
         errorBox.hidden = false
         if (error?.status === 403) {
             errorBox.textContent = 'Ihre Berechtigung reicht für diese Aktion nicht aus.'
