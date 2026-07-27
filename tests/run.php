@@ -2,33 +2,14 @@
 
 declare(strict_types=1);
 
-$root = dirname(__DIR__);
-$iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root));
-$failures = [];
+require_once __DIR__ . '/../../localbase/tests/Support/PhpTestRunner.php';
 
-foreach ($iterator as $file) {
-    if (!$file->isFile() || $file->getExtension() !== 'php' || str_contains($file->getPathname(), '/.git/')) {
-        continue;
-    }
+use OCA\LocalBase\Tests\Support\PhpTestRunner;
 
-    $command = sprintf('php -l %s 2>&1', escapeshellarg($file->getPathname()));
-    exec($command, $output, $exitCode);
-    if ($exitCode !== 0) {
-        $failures[] = implode("\n", $output);
-    }
-    $output = [];
-}
-
-foreach (glob(__DIR__ . '/*Test.php') ?: [] as $testFile) {
-    require $testFile;
-}
-
-$testFailures = \RecruitmentTests\TestRunner::failures();
-array_push($failures, ...$testFailures);
-
-if ($failures !== []) {
-    fwrite(STDERR, implode("\n", $failures) . "\n");
-    exit(1);
-}
-
-fwrite(STDOUT, "Recruitment PHP tests passed\n");
+PhpTestRunner::run(
+    root: dirname(__DIR__),
+    lintDirectories: ['appinfo', 'lib', 'templates', 'tests'],
+    testDirectories: ['tests'],
+    testSuffixes: ['Test.php'],
+    successMessage: 'AD Recruitment PHP tests passed',
+);
