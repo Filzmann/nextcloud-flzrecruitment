@@ -26,7 +26,7 @@ $assert = static function (bool $condition, string $message): void {
 
 $db = \OCP\Server::get(IDBConnection::class);
 $repository = \OCP\Server::get(RecruitmentRepository::class);
-$recruitment = \OCP\Server::get(RecruitmentService::class);
+$adrecruitment = \OCP\Server::get(RecruitmentService::class);
 $templates = \OCP\Server::get(TemplateService::class);
 $interviews = \OCP\Server::get(InterviewService::class);
 $statuses = \OCP\Server::get(ApplicationStatusService::class);
@@ -64,23 +64,23 @@ try {
         'Ein abgewiesener Schreibzugriff hat Daten verändert.',
     );
 
-    $ids['job'] = $recruitment->createJob(
+    $ids['job'] = $adrecruitment->createJob(
         $repository,
         'Synthetische Teststelle',
         '',
         true,
         [],
         [],
-        'recruitment-smoke-' . $suffix,
+        'adrecruitment-smoke-' . $suffix,
     );
-    $ids['person'] = $recruitment->createPerson(
+    $ids['person'] = $adrecruitment->createPerson(
         $repository,
         'Alex',
         'Beispiel',
         "alex-{$suffix}@example.invalid",
         '',
     );
-    $ids['application'] = $recruitment->createApplication(
+    $ids['application'] = $adrecruitment->createApplication(
         $repository,
         $ids['person'],
         $ids['job'],
@@ -151,7 +151,7 @@ try {
         'Vorlagen-Snapshot enthält die Antwort-Bubble nicht.',
     );
 
-    echo "Recruitment DDEV vertical slice: OK\n";
+    echo "AD Recruitment DDEV vertical slice: OK\n";
 } finally {
     if ($ids['application'] !== null) {
         $delete('rec_status_log', 'application_id', $ids['application']);

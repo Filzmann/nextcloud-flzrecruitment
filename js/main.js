@@ -4,10 +4,10 @@
     const api = root.RecruitmentApi
     const { appendBubbleText } = root.RecruitmentBubbleText
     const { csvList, statusLabel } = root.RecruitmentUiData
-    const content = document.getElementById('recruitment-content')
-    const tabs = document.getElementById('recruitment-tabs')
-    const status = document.getElementById('recruitment-status')
-    const errorBox = document.getElementById('recruitment-error')
+    const content = document.getElementById('adrecruitment-content')
+    const tabs = document.getElementById('adrecruitment-tabs')
+    const status = document.getElementById('adrecruitment-status')
+    const errorBox = document.getElementById('adrecruitment-error')
     const state = { data: null, capabilities: {}, activeTab: 'applications' }
 
     function element(tag, options = {}, children = []) {
@@ -26,7 +26,7 @@
     }
 
     function field(labelText, control, hint = '') {
-        const label = element('label', { className: 'recruitment-field' }, [
+        const label = element('label', { className: 'adrecruitment-field' }, [
             element('span', { text: labelText }),
             control,
         ])
@@ -104,10 +104,10 @@
             ['templates', 'Interviewvorlagen'],
         ]
         for (const [id, label] of definitions) {
-            const tab = button(label, 'button', 'recruitment-tab')
-            tab.id = `recruitment-tab-${id}`
+            const tab = button(label, 'button', 'adrecruitment-tab')
+            tab.id = `adrecruitment-tab-${id}`
             tab.setAttribute('role', 'tab')
-            tab.setAttribute('aria-controls', `recruitment-panel-${id}`)
+            tab.setAttribute('aria-controls', `adrecruitment-panel-${id}`)
             tab.setAttribute('aria-selected', String(state.activeTab === id))
             tab.tabIndex = state.activeTab === id ? 0 : -1
             tab.addEventListener('click', () => showTab(id))
@@ -118,7 +118,7 @@
                 const offset = event.key === 'ArrowRight' ? 1 : -1
                 const next = definitions[(index + offset + definitions.length) % definitions.length][0]
                 showTab(next)
-                document.getElementById(`recruitment-tab-${next}`)?.focus()
+                document.getElementById(`adrecruitment-tab-${next}`)?.focus()
             })
             tabs.append(tab)
         }
@@ -134,21 +134,21 @@
 
     function panel(id, title) {
         return element('section', {
-            id: `recruitment-panel-${id}`,
-            className: 'recruitment-panel',
+            id: `adrecruitment-panel-${id}`,
+            className: 'adrecruitment-panel',
             role: 'tabpanel',
-            'aria-labelledby': `recruitment-tab-${id}`,
+            'aria-labelledby': `adrecruitment-tab-${id}`,
         }, [element('h2', { text: title })])
     }
 
     function emptyState(text) {
-        return element('p', { className: 'recruitment-empty', text })
+        return element('p', { className: 'adrecruitment-empty', text })
     }
 
     function renderJobs() {
         const view = panel('jobs', 'Stellen und Ausschreibungen')
         if (state.capabilities.manage_catalog) {
-            const form = element('form', { className: 'recruitment-form recruitment-card' }, [
+            const form = element('form', { className: 'adrecruitment-form adrecruitment-card' }, [
                 element('h3', { text: 'Stelle anlegen' }),
                 field('Interne Bezeichnung', input('internalTitle', 'text', true)),
                 field('Öffentliche Bezeichnung', input('publicTitle')),
@@ -176,9 +176,9 @@
         if (jobs.length === 0) {
             view.append(emptyState('Noch keine Stellen vorhanden.'))
         } else {
-            const list = element('div', { className: 'recruitment-grid' })
+            const list = element('div', { className: 'adrecruitment-grid' })
             for (const job of jobs) {
-                list.append(element('article', { className: 'recruitment-card' }, [
+                list.append(element('article', { className: 'adrecruitment-card' }, [
                     element('h3', { text: job.internalTitle }),
                     job.publicTitle ? element('p', { text: job.publicTitle }) : null,
                     element('p', { text: job.active ? 'Aktiv' : 'Deaktiviert' }),
@@ -198,8 +198,8 @@
     function renderApplications() {
         const view = panel('applications', 'Bewerbungen')
         if (state.capabilities.edit_applications) {
-            const forms = element('div', { className: 'recruitment-grid recruitment-grid--forms' })
-            const personForm = element('form', { className: 'recruitment-form recruitment-card' }, [
+            const forms = element('div', { className: 'adrecruitment-grid adrecruitment-grid--forms' })
+            const personForm = element('form', { className: 'adrecruitment-form adrecruitment-card' }, [
                 element('h3', { text: 'Person anlegen' }),
                 field('Vorname', input('givenName', 'text', true)),
                 field('Nachname', input('familyName', 'text', true)),
@@ -225,7 +225,7 @@
                     label: job.internalTitle,
                 })),
             )
-            const applicationForm = element('form', { className: 'recruitment-form recruitment-card' }, [
+            const applicationForm = element('form', { className: 'adrecruitment-form adrecruitment-card' }, [
                 element('h3', { text: 'Bewerbung anlegen' }),
                 field('Person', select('personId', personOptions, '', true)),
                 field('Stelle', select('jobId', jobOptions, '', true)),
@@ -253,7 +253,7 @@
         if (applications.length === 0) {
             view.append(emptyState('Noch keine Bewerbungen vorhanden.'))
         } else {
-            const tableWrap = element('div', { className: 'recruitment-table-wrap' })
+            const tableWrap = element('div', { className: 'adrecruitment-table-wrap' })
             const table = element('table')
             table.append(element('thead', {}, element('tr', {}, [
                 element('th', { text: 'Person' }),
@@ -296,13 +296,13 @@
     }
 
     function renderApplicationDetail(detail) {
-        const view = element('section', { className: 'recruitment-panel' })
-        const back = button('← Zurück zu Bewerbungen', 'button', 'recruitment-secondary')
+        const view = element('section', { className: 'adrecruitment-panel' })
+        const back = button('← Zurück zu Bewerbungen', 'button', 'adrecruitment-secondary')
         back.addEventListener('click', () => showTab('applications'))
         view.append(back, element('h2', {
             text: `${detail.person.givenName} ${detail.person.familyName} · ${detail.job.internalTitle}`,
         }))
-        view.append(element('dl', { className: 'recruitment-facts' }, [
+        view.append(element('dl', { className: 'adrecruitment-facts' }, [
             element('div', {}, [element('dt', { text: 'Status' }), element('dd', { text: statusLabel(detail.application.status) })]),
             element('div', {}, [element('dt', { text: 'Eingang' }), element('dd', { text: detail.application.receivedOn })]),
             element('div', {}, [element('dt', { text: 'Kanal' }), element('dd', { text: detail.application.source })]),
@@ -310,7 +310,7 @@
         ]))
 
         if (state.capabilities.edit_applications && detail.allowedStatuses.length) {
-            const statusForm = element('form', { className: 'recruitment-inline-form recruitment-card' }, [
+            const statusForm = element('form', { className: 'adrecruitment-inline-form adrecruitment-card' }, [
                 field('Neuer Status', select('status', detail.allowedStatuses.map((value) => ({
                     value,
                     label: statusLabel(value),
@@ -330,7 +330,7 @@
         }
 
         if (state.capabilities.interview && state.data.templates.some((template) => template.active)) {
-            const interviewForm = element('form', { className: 'recruitment-inline-form recruitment-card' }, [
+            const interviewForm = element('form', { className: 'adrecruitment-inline-form adrecruitment-card' }, [
                 field('Interviewvorlage', select('templateId', state.data.templates
                     .filter((template) => template.active)
                     .map((template) => ({ value: template.id, label: `${template.name} (Revision ${template.revision})` })))),
@@ -361,7 +361,7 @@
         if (detail.statusHistory.length === 0) {
             view.append(emptyState('Noch keine Statusänderung protokolliert.'))
         } else {
-            const list = element('ol', { className: 'recruitment-history' })
+            const list = element('ol', { className: 'adrecruitment-history' })
             for (const item of detail.statusHistory) {
                 list.append(element('li', {
                     text: `${statusLabel(item.fromStatus)} → ${statusLabel(item.toStatus)} · ${item.changedAt} · ${item.actorUid}`,
@@ -373,18 +373,18 @@
     }
 
     function renderInterview(interview, applicationId) {
-        const article = element('article', { className: 'recruitment-card recruitment-interview' }, [
+        const article = element('article', { className: 'adrecruitment-card adrecruitment-interview' }, [
             element('h4', { text: `${interview.snapshot.name} · Revision ${interview.templateRevision}` }),
             element('p', { text: `Status: ${statusLabel(interview.status)}` }),
         ])
-        const form = element('form', { className: 'recruitment-form' })
+        const form = element('form', { className: 'adrecruitment-form' })
         for (const question of interview.snapshot.questions || []) {
             if (!question.active) continue
             form.append(renderAnswer(question, interview.answers[String(question.id)], interview.status === 'completed'))
         }
         if (interview.status !== 'completed' && state.capabilities.interview) {
-            const actions = element('div', { className: 'recruitment-actions' }, [
-                button('Entwurf speichern', 'button', 'recruitment-secondary'),
+            const actions = element('div', { className: 'adrecruitment-actions' }, [
+                button('Entwurf speichern', 'button', 'adrecruitment-secondary'),
                 button('Interview abschließen', 'submit'),
             ])
             actions.firstElementChild.addEventListener('click', () => {
@@ -411,7 +411,7 @@
     }
 
     function renderAnswer(question, answer, readonly) {
-        const wrapper = element('fieldset', { className: 'recruitment-question' })
+        const wrapper = element('fieldset', { className: 'adrecruitment-question' })
         const legend = element('legend', { text: question.prompt + (question.required ? ' *' : '') })
         wrapper.append(legend)
         if (question.hint) wrapper.append(element('small', { text: question.hint }))
@@ -445,9 +445,9 @@
         wrapper.append(control)
 
         if (!readonly && ['text', 'textarea'].includes(question.type) && question.bubbles?.length) {
-            const bubbles = element('div', { className: 'recruitment-bubbles', role: 'group', 'aria-label': 'Antwortbausteine' })
+            const bubbles = element('div', { className: 'adrecruitment-bubbles', role: 'group', 'aria-label': 'Antwortbausteine' })
             for (const bubble of question.bubbles.filter((item) => item.active)) {
-                const bubbleButton = button(bubble.label, 'button', 'recruitment-bubble')
+                const bubbleButton = button(bubble.label, 'button', 'adrecruitment-bubble')
                 bubbleButton.addEventListener('click', () => {
                     control.value = appendBubbleText(control.value, bubble.insertText)
                     control.focus()
@@ -472,7 +472,7 @@
     function renderTemplates() {
         const view = panel('templates', 'Interviewvorlagen')
         if (state.capabilities.manage_catalog) {
-            const form = element('form', { className: 'recruitment-form recruitment-card' }, [
+            const form = element('form', { className: 'adrecruitment-form adrecruitment-card' }, [
                 element('h3', { text: 'Vorlage anlegen' }),
                 field('Name', input('name', 'text', true)),
                 field('Interviewtyp', select('type', [
@@ -498,11 +498,11 @@
         if (state.data.templates.length === 0) {
             view.append(emptyState('Noch keine Interviewvorlagen vorhanden.'))
         } else {
-            const list = element('div', { className: 'recruitment-grid' })
+            const list = element('div', { className: 'adrecruitment-grid' })
             for (const template of state.data.templates) {
                 const open = button('Vorlage bearbeiten', 'button')
                 open.addEventListener('click', () => openTemplate(template.id))
-                list.append(element('article', { className: 'recruitment-card' }, [
+                list.append(element('article', { className: 'adrecruitment-card' }, [
                     element('h3', { text: template.name }),
                     element('p', { text: `${template.type} · Revision ${template.revision}` }),
                     element('p', { text: template.active ? 'Aktiv' : 'Deaktiviert' }),
@@ -526,8 +526,8 @@
     }
 
     function renderTemplateDetail(template) {
-        const view = element('section', { className: 'recruitment-panel' })
-        const back = button('← Zurück zu Vorlagen', 'button', 'recruitment-secondary')
+        const view = element('section', { className: 'adrecruitment-panel' })
+        const back = button('← Zurück zu Vorlagen', 'button', 'adrecruitment-secondary')
         back.addEventListener('click', () => showTab('templates'))
         view.append(back, element('h2', { text: `${template.name} · Revision ${template.revision}` }))
 
@@ -556,7 +556,7 @@
     }
 
     function questionForm(question = null) {
-        const form = element('form', { className: 'recruitment-form recruitment-card' }, [
+        const form = element('form', { className: 'adrecruitment-form adrecruitment-card' }, [
             field('Fragetext', input('prompt', 'text', true, question?.prompt || '')),
             field('Hinweis', input('hint', 'text', false, question?.hint || '')),
             field('Fragetyp', select('type', [
@@ -574,7 +574,7 @@
                 { value: 'external', label: 'Extern' },
             ], question?.visibility || 'internal')),
         ])
-        const checks = element('div', { className: 'recruitment-checks' })
+        const checks = element('div', { className: 'adrecruitment-checks' })
         const required = input('required', 'checkbox')
         required.checked = question?.required || false
         checks.append(field('Pflichtfrage', required))
@@ -602,7 +602,7 @@
     }
 
     function renderQuestionEditor(question, templateId) {
-        const article = element('article', { className: 'recruitment-question-editor' })
+        const article = element('article', { className: 'adrecruitment-question-editor' })
         const form = questionForm(question)
         form.addEventListener('submit', (event) => {
             event.preventDefault()
@@ -614,7 +614,7 @@
         })
         article.append(form)
 
-        const bubbles = element('div', { className: 'recruitment-card' }, [
+        const bubbles = element('div', { className: 'adrecruitment-card' }, [
             element('h4', { text: 'Antwort-Bubbles' }),
         ])
         if (!['text', 'textarea'].includes(question.type)) {
@@ -627,7 +627,7 @@
                 }
                 bubbles.append(list)
             }
-            const bubbleForm = element('form', { className: 'recruitment-form' }, [
+            const bubbleForm = element('form', { className: 'adrecruitment-form' }, [
                 field('Beschriftung', input('label', 'text', true)),
                 field('Einfügetext', element('textarea', { name: 'insertText', rows: 3, required: true })),
                 field('Reihenfolge', input('sortOrder', 'number', true, 10)),
@@ -661,7 +661,7 @@
             showTab(state.activeTab)
             setReady()
         } catch (error) {
-            content.replaceChildren(emptyState('Recruitment konnte nicht geladen werden.'))
+            content.replaceChildren(emptyState('AD Recruitment konnte nicht geladen werden.'))
             showError(error)
         }
     }

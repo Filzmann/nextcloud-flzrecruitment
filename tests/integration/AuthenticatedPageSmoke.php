@@ -22,20 +22,20 @@ $assert = static function (bool $condition, string $message): void {
 $users = \OCP\Server::get(IUserManager::class);
 $groups = \OCP\Server::get(IGroupManager::class);
 $db = \OCP\Server::get(IDBConnection::class);
-$uid = 'recruitment-page-smoke-' . bin2hex(random_bytes(5));
+$uid = 'adrecruitment-page-smoke-' . bin2hex(random_bytes(5));
 $password = bin2hex(random_bytes(24));
 $user = $users->createUser($uid, $password);
 if ($user === null) {
     throw new RuntimeException('Das synthetische Browser-Smoke-Konto konnte nicht angelegt werden.');
 }
 
-$groupId = 'recruitment-editors';
+$groupId = 'adrecruitment-editors';
 $group = $groups->get($groupId);
 $createdGroup = $group === null;
 $group ??= $groups->createGroup($groupId);
 if ($group === null) {
     $user->delete();
-    throw new RuntimeException('Die temporäre Recruitment-Rollengruppe konnte nicht bereitgestellt werden.');
+    throw new RuntimeException('Die temporäre AD-Recruitment-Rollengruppe konnte nicht bereitgestellt werden.');
 }
 $group->addUser($user);
 $personId = null;
@@ -83,7 +83,7 @@ try {
     $assert($authenticatedStatus === 200, "Die synthetische Nextcloud-Anmeldung antwortet mit HTTP {$authenticatedStatus}.");
 
     curl_setopt_array($curl, [
-        CURLOPT_URL => 'https://nextcloud-dev.ddev.site/index.php/apps/recruitment/',
+        CURLOPT_URL => 'https://nextcloud-dev.ddev.site/index.php/apps/adrecruitment/',
         CURLOPT_POST => false,
         CURLOPT_HTTPGET => true,
         CURLOPT_HTTPHEADER => [],
@@ -97,9 +97,9 @@ try {
     $assert($body !== false, 'Der authentifizierte HTTPS-Aufruf ist fehlgeschlagen: ' . $error);
     $assert($status === 200, "Die authentifizierte App-URL antwortet mit HTTP {$status}.");
     $assert(str_starts_with($contentType, 'text/html'), 'Die App-URL liefert kein HTML.');
-    $assert(str_contains($body, 'id="recruitment-app"'), 'Der sichtbare Recruitment-App-Root fehlt.');
-    $assert(str_contains($body, '/custom_apps/recruitment/css/style.css'), 'Das Recruitment-CSS ist nicht eingebunden.');
-    $assert(str_contains($body, '/custom_apps/recruitment/js/main.js'), 'Das Recruitment-JavaScript ist nicht eingebunden.');
+    $assert(str_contains($body, 'id="adrecruitment-app"'), 'Der sichtbare AD-Recruitment-App-Root fehlt.');
+    $assert(str_contains($body, '/custom_apps/adrecruitment/css/style.css'), 'Das AD-Recruitment-CSS ist nicht eingebunden.');
+    $assert(str_contains($body, '/custom_apps/adrecruitment/js/main.js'), 'Das AD-Recruitment-JavaScript ist nicht eingebunden.');
 
     $assert(
         preg_match('/<head[^>]*data-requesttoken="([^"]+)"/i', $body, $tokenMatch) === 1,
@@ -107,7 +107,7 @@ try {
     );
     $requestToken = html_entity_decode($tokenMatch[1], ENT_QUOTES | ENT_HTML5);
     curl_setopt_array($curl, [
-        CURLOPT_URL => 'https://nextcloud-dev.ddev.site/index.php/apps/recruitment/api/people',
+        CURLOPT_URL => 'https://nextcloud-dev.ddev.site/index.php/apps/adrecruitment/api/people',
         CURLOPT_POST => true,
         CURLOPT_HTTPHEADER => [
             'Accept: application/json',
@@ -133,7 +133,7 @@ try {
     $personId = isset($writePayload['id']) ? (int)$writePayload['id'] : null;
     $assert($personId !== null && $personId > 0, 'Der Schreibrequest hat keine Personen-ID geliefert.');
 
-    fwrite(STDOUT, "Recruitment authenticated page HTTPS smoke: OK\n");
+    fwrite(STDOUT, "AD Recruitment authenticated page HTTPS smoke: OK\n");
 } finally {
     if ($personId !== null) {
         $qb = $db->getQueryBuilder();

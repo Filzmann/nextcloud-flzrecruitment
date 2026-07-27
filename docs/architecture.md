@@ -1,4 +1,13 @@
-# Architektur des ersten Recruitment-Durchstichs
+# Architektur des ersten AD-Recruitment-Durchstichs
+
+## Technische Identität
+
+Die Nextcloud-App-ID, Route, Asset-ID, DDEV-Mount und Rollengruppen verwenden
+`adrecruitment`. Der bestehende PHP-Namespace `OCA\Recruitment` und die
+app-eigenen Tabellen mit Präfix `rec_` bleiben bewusst stabil. Dadurch kann
+eine bereits angelegte lokale Installation unter der neuen App-ID dieselben
+Fachdaten idempotent weiterverwenden, ohne Tabellen zu kopieren oder
+umzubenennen.
 
 ## Schichten
 
@@ -27,13 +36,13 @@ Nextcloud-Gruppen vorgesehen:
 
 | Gruppe | Recht im ersten Durchstich |
 | --- | --- |
-| `recruitment-admin` | alle App-Rechte |
-| `recruitment-managers` | Stellen und Vorlagen verwalten |
-| `recruitment-editors` | Personen und Bewerbungen bearbeiten |
-| `recruitment-interviewers` | Interviews durchführen |
-| `recruitment-readers` | ausschließlich lesen |
-| `recruitment-documents` | für spätere besonders geschützte Dokumente reserviert |
-| `recruitment-communication` | für spätere Kommunikationsfreigabe reserviert |
+| `adrecruitment-admin` | alle App-Rechte |
+| `adrecruitment-managers` | Stellen und Vorlagen verwalten |
+| `adrecruitment-editors` | Personen und Bewerbungen bearbeiten |
+| `adrecruitment-interviewers` | Interviews durchführen |
+| `adrecruitment-readers` | ausschließlich lesen |
+| `adrecruitment-documents` | für spätere besonders geschützte Dokumente reserviert |
+| `adrecruitment-communication` | für spätere Kommunikationsfreigabe reserviert |
 
 Die beiden reservierten Gruppen erhalten noch keine ausführbare Funktion.
 Jeder API-Pfad prüft das für den Anwendungsfall erforderliche Recht
@@ -41,9 +50,11 @@ serverseitig.
 
 ## Migration
 
-Die erste Migration erstellt ausschließlich neue, app-eigene Tabellen. Es
-gibt kein Altschema und keine Transformation von Bestandsdaten. Die Migration
-ist additiv und wiederholbar, weil jede Tabelle vor der Anlage geprüft wird.
+Die erste Migration erstellt ausschließlich app-eigene Tabellen. Bei einer
+frischen Installation legt sie diese neu an; bei der Umbenennung von
+`recruitment` auf `adrecruitment` erkennt sie die bestehenden `rec_`-Tabellen
+und übernimmt sie ohne Transformation. Die Migration ist additiv und
+wiederholbar, weil jede Tabelle vor der Anlage geprüft wird.
 Ein Rollback nach produktiver Datennutzung ist nicht automatisch möglich; die
 Tabellen dürfen nur nach gesonderter Datenexport- und Löschentscheidung
 entfernt werden.

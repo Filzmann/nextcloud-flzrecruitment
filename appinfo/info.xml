@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <info xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:noNamespaceSchemaLocation="https://apps.nextcloud.com/schema/apps/info.xsd">
-    <id>recruitment</id>
-    <name>Recruitment</name>
+    <id>adrecruitment</id>
+    <name>AD Recruitment</name>
     <summary>Strukturierte Bewerbungs- und Interviewprozesse.</summary>
     <description>Verwaltet Stellen, Personen, Bewerbungen und versionierte Interviews in Nextcloud.</description>
     <version>0.2.2</version>
@@ -12,8 +12,8 @@
     <category>organization</category>
     <navigations>
         <navigation>
-            <name>Recruitment</name>
-            <route>recruitment.page.index</route>
+            <name>AD Recruitment</name>
+            <route>adrecruitment.page.index</route>
             <order>45</order>
         </navigation>
     </navigations>

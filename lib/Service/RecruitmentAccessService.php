@@ -23,19 +23,19 @@ final class RecruitmentAccessService {
     /** @var array<string,list<string>> */
     private const CAPABILITY_GROUPS = [
         self::VIEW => [
-            'recruitment-admin',
-            'recruitment-managers',
-            'recruitment-editors',
-            'recruitment-interviewers',
-            'recruitment-readers',
-            'recruitment-documents',
-            'recruitment-communication',
+            'adrecruitment-admin',
+            'adrecruitment-managers',
+            'adrecruitment-editors',
+            'adrecruitment-interviewers',
+            'adrecruitment-readers',
+            'adrecruitment-documents',
+            'adrecruitment-communication',
         ],
-        self::MANAGE_CATALOG => ['recruitment-admin', 'recruitment-managers'],
-        self::EDIT_APPLICATIONS => ['recruitment-admin', 'recruitment-editors'],
-        self::INTERVIEW => ['recruitment-admin', 'recruitment-interviewers', 'recruitment-editors'],
-        self::MANAGE_DOCUMENTS => ['recruitment-admin', 'recruitment-documents'],
-        self::COMMUNICATE => ['recruitment-admin', 'recruitment-communication'],
+        self::MANAGE_CATALOG => ['adrecruitment-admin', 'adrecruitment-managers'],
+        self::EDIT_APPLICATIONS => ['adrecruitment-admin', 'adrecruitment-editors'],
+        self::INTERVIEW => ['adrecruitment-admin', 'adrecruitment-interviewers', 'adrecruitment-editors'],
+        self::MANAGE_DOCUMENTS => ['adrecruitment-admin', 'adrecruitment-documents'],
+        self::COMMUNICATE => ['adrecruitment-admin', 'adrecruitment-communication'],
     ];
 
     public function __construct(

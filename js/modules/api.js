@@ -22,7 +22,7 @@
             headers['X-Requested-With'] = 'XMLHttpRequest'
         }
 
-        const response = await fetch(root.OC.generateUrl('/apps/recruitment' + path), {
+        const response = await fetch(root.OC.generateUrl('/apps/adrecruitment' + path), {
             method,
             headers,
             credentials: 'same-origin',
