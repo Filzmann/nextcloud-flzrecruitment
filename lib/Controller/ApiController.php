@@ -9,12 +9,8 @@ use OCA\Recruitment\Exception\AccessDeniedException;
 use OCA\Recruitment\Exception\ConflictException;
 use OCA\Recruitment\Exception\NotFoundException;
 use OCA\Recruitment\Exception\ValidationException;
-use OCA\Recruitment\Repository\RecruitmentRepository;
-use OCA\Recruitment\Service\ApplicationStatusService;
-use OCA\Recruitment\Service\InterviewService;
 use OCA\Recruitment\Service\RecruitmentAccessService;
-use OCA\Recruitment\Service\RecruitmentService;
-use OCA\Recruitment\Service\TemplateService;
+use OCA\Recruitment\Service\RecruitmentUseCaseService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -30,11 +26,7 @@ final class ApiController extends Controller {
     public function __construct(
         IRequest $request,
         private RecruitmentAccessService $access,
-        private RecruitmentRepository $repository,
-        private RecruitmentService $recruitment,
-        private TemplateService $templates,
-        private InterviewService $interviews,
-        private ApplicationStatusService $statuses,
+        private RecruitmentUseCaseService $useCases,
         private LoggerInterface $logger,
     ) {
         parent::__construct(Application::APP_ID, $request);
@@ -46,7 +38,7 @@ final class ApiController extends Controller {
         return $this->respond(function (): array {
             $this->access->require(RecruitmentAccessService::VIEW);
             return [
-                'data' => $this->recruitment->overview($this->repository),
+                'data' => $this->useCases->overview(),
                 'capabilities' => $this->access->capabilities(),
             ];
         });
@@ -57,11 +49,7 @@ final class ApiController extends Controller {
     public function applicationDetail(int $id): JSONResponse {
         return $this->respond(function () use ($id): array {
             $this->access->require(RecruitmentAccessService::VIEW);
-            $detail = $this->recruitment->applicationDetail($this->repository, $id);
-            $detail['allowedStatuses'] = $this->statuses->allowedTargets(
-                (string)$detail['application']['status'],
-            );
-            return $detail;
+            return $this->useCases->applicationDetail($id);
         });
     }
 
@@ -70,7 +58,7 @@ final class ApiController extends Controller {
     public function templateDetail(int $id): JSONResponse {
         return $this->respond(function () use ($id): array {
             $this->access->require(RecruitmentAccessService::VIEW);
-            return $this->repository->templateSnapshot($id);
+            return $this->useCases->templateDetail($id);
         });
     }
 
@@ -92,8 +80,7 @@ final class ApiController extends Controller {
             $assignmentKey,
         ): array {
             $this->access->require(RecruitmentAccessService::MANAGE_CATALOG);
-            return ['id' => $this->recruitment->createJob(
-                $this->repository,
+            return ['id' => $this->useCases->createJob(
                 $internalTitle,
                 $publicTitle,
                 $active,
@@ -113,8 +100,7 @@ final class ApiController extends Controller {
     ): JSONResponse {
         return $this->respond(function () use ($givenName, $familyName, $email, $phone): array {
             $this->access->require(RecruitmentAccessService::EDIT_APPLICATIONS);
-            return ['id' => $this->recruitment->createPerson(
-                $this->repository,
+            return ['id' => $this->useCases->createPerson(
                 $givenName,
                 $familyName,
                 $email,
@@ -133,8 +119,7 @@ final class ApiController extends Controller {
     ): JSONResponse {
         return $this->respond(function () use ($personId, $jobId, $source, $receivedOn, $assigneeUid): array {
             $this->access->require(RecruitmentAccessService::EDIT_APPLICATIONS);
-            return ['id' => $this->recruitment->createApplication(
-                $this->repository,
+            return ['id' => $this->useCases->createApplication(
                 $personId,
                 $jobId,
                 $source,
@@ -153,8 +138,7 @@ final class ApiController extends Controller {
     ): JSONResponse {
         return $this->respond(function () use ($name, $type, $description, $audience): array {
             $this->access->require(RecruitmentAccessService::MANAGE_CATALOG);
-            return ['id' => $this->templates->create(
-                $this->repository,
+            return ['id' => $this->useCases->createTemplate(
                 $name,
                 $type,
                 $description,
@@ -185,8 +169,7 @@ final class ApiController extends Controller {
             $visibility,
         ): array {
             $this->access->require(RecruitmentAccessService::MANAGE_CATALOG);
-            return ['id' => $this->templates->addQuestion(
-                $this->repository,
+            return ['id' => $this->useCases->createQuestion(
                 $templateId,
                 $prompt,
                 $hint,
@@ -223,8 +206,7 @@ final class ApiController extends Controller {
             $active,
         ): array {
             $this->access->require(RecruitmentAccessService::MANAGE_CATALOG);
-            $this->templates->updateQuestion(
-                $this->repository,
+            $this->useCases->updateQuestion(
                 $id,
                 $prompt,
                 $hint,
@@ -249,8 +231,7 @@ final class ApiController extends Controller {
     ): JSONResponse {
         return $this->respond(function () use ($questionId, $label, $insertText, $sortOrder, $active): array {
             $this->access->require(RecruitmentAccessService::MANAGE_CATALOG);
-            return ['id' => $this->templates->addBubble(
-                $this->repository,
+            return ['id' => $this->useCases->createBubble(
                 $questionId,
                 $label,
                 $insertText,
@@ -264,8 +245,7 @@ final class ApiController extends Controller {
     public function createInterview(int $applicationId, int $templateId): JSONResponse {
         return $this->respond(function () use ($applicationId, $templateId): array {
             $this->access->require(RecruitmentAccessService::INTERVIEW);
-            return ['id' => $this->interviews->instantiate(
-                $this->repository,
+            return ['id' => $this->useCases->createInterview(
                 $applicationId,
                 $templateId,
                 $this->access->currentUid(),
@@ -277,7 +257,7 @@ final class ApiController extends Controller {
     public function saveInterviewDraft(int $id, array $answers, int $version): JSONResponse {
         return $this->respond(function () use ($id, $answers, $version): array {
             $this->access->require(RecruitmentAccessService::INTERVIEW);
-            return $this->interviews->saveDraft($this->repository, $id, $answers, $version);
+            return $this->useCases->saveInterviewDraft($id, $answers, $version);
         });
     }
 
@@ -285,7 +265,7 @@ final class ApiController extends Controller {
     public function completeInterview(int $id, array $answers, int $version): JSONResponse {
         return $this->respond(function () use ($id, $answers, $version): array {
             $this->access->require(RecruitmentAccessService::INTERVIEW);
-            return $this->interviews->complete($this->repository, $id, $answers, $version);
+            return $this->useCases->completeInterview($id, $answers, $version);
         });
     }
 
@@ -293,8 +273,7 @@ final class ApiController extends Controller {
     public function transitionStatus(int $id, string $status, int $version): JSONResponse {
         return $this->respond(function () use ($id, $status, $version): array {
             $this->access->require(RecruitmentAccessService::EDIT_APPLICATIONS);
-            return $this->statuses->transition(
-                $this->repository,
+            return $this->useCases->transitionStatus(
                 $id,
                 $status,
                 $version,
@@ -315,7 +294,7 @@ final class ApiController extends Controller {
         } catch (ValidationException $error) {
             return new JSONResponse(['message' => $error->getMessage()], Http::STATUS_UNPROCESSABLE_ENTITY);
         } catch (\Throwable $error) {
-            $this->logger->error('Recruitment-Anfrage fehlgeschlagen.', ['exceptionClass' => $error::class]);
+            $this->logger->error('AD-Recruitment-Anfrage fehlgeschlagen.', ['exceptionClass' => $error::class]);
             return new JSONResponse(
                 ['message' => 'Die Anfrage konnte technisch nicht verarbeitet werden.'],
                 Http::STATUS_INTERNAL_SERVER_ERROR,
