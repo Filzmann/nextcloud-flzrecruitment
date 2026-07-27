@@ -35,8 +35,10 @@ namespace RecruitmentTests {
     final class TestRunner {
         /** @var list<string> */
         private static array $failures = [];
+        private static bool $shutdownRegistered = false;
 
         public static function test(string $name, callable $test): void {
+            self::registerFailureExit();
             try {
                 $test();
                 fwrite(STDOUT, "ok - {$name}\n");
@@ -48,6 +50,20 @@ namespace RecruitmentTests {
         /** @return list<string> */
         public static function failures(): array {
             return self::$failures;
+        }
+
+        private static function registerFailureExit(): void {
+            if (self::$shutdownRegistered) {
+                return;
+            }
+            self::$shutdownRegistered = true;
+            register_shutdown_function(static function (): void {
+                if (self::$failures === []) {
+                    return;
+                }
+                fwrite(STDERR, implode("\n", self::$failures) . "\n");
+                exit(1);
+            });
         }
     }
 

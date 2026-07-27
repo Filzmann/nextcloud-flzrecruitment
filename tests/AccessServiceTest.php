@@ -55,7 +55,7 @@ TestRunner::test('anonymous and unassigned users are denied server-side', static
 TestRunner::test('group capabilities are least-privilege and Nextcloud admins retain access', static function (): void {
     $reader = new RecruitmentAccessService(
         new TestSession(new TestUser('reader-user')),
-        new TestGroups(['recruitment-readers' => ['reader-user']]),
+        new TestGroups(['adrecruitment-readers' => ['reader-user']]),
     );
     assertTrue($reader->can(RecruitmentAccessService::VIEW));
     assertSame(false, $reader->can(RecruitmentAccessService::EDIT_APPLICATIONS));

@@ -17,7 +17,7 @@ TestRunner::test('app shell exposes accessible tabs, status and error regions', 
 
     assertTrue(str_contains($template, 'role="status"'));
     assertTrue(str_contains($template, 'role="alert"'));
-    assertTrue(str_contains($template, 'aria-label="Recruitment-Bereiche"'));
+    assertTrue(str_contains($template, 'aria-label="AD-Recruitment-Bereiche"'));
     assertTrue(str_contains($css, 'overflow-y: auto'));
     assertTrue(str_contains($css, ':focus-visible'));
 });
