@@ -12,6 +12,10 @@ Nextcloud-App-ID:
 
     adrecruitment
 
+Die priorisierte Produktplanung und offene Entscheidungen stehen in
+`ROADMAP.md`; verbindliche Fach-, Sicherheits- und Architekturregeln bleiben
+in dieser Datei.
+
 ## Fachvertrag
 
 - Person und Bewerbung sind getrennte Entitäten; eine Person kann mehrere Bewerbungen besitzen.
