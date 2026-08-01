@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace OCA\Recruitment\AppInfo;
 
+use OCA\Recruitment\Listener\StandaloneNavigationListener;
 use OCP\AppFramework\App;
 use OCP\AppFramework\Bootstrap\IBootContext;
 use OCP\AppFramework\Bootstrap\IBootstrap;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
+use OCP\Navigation\Events\LoadAdditionalEntriesEvent;
 
 final class Application extends App implements IBootstrap {
     public const APP_ID = 'adrecruitment';
@@ -17,6 +19,7 @@ final class Application extends App implements IBootstrap {
     }
 
     public function register(IRegistrationContext $context): void {
+        $context->registerEventListener(LoadAdditionalEntriesEvent::class, StandaloneNavigationListener::class);
     }
 
     public function boot(IBootContext $context): void {

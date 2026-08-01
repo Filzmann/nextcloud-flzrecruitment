@@ -6,23 +6,6 @@ Architekturregeln stehen in `AGENTS.md`.
 
 ## Freigegebene Umsetzungsaufgaben
 
-### RECR-AD-CATALOG – Recruitment an den Produktkatalog anbinden
-
-Status: bereit nach `LB-AD-CATALOG`
-
-- Stabile App-ID `adrecruitment`, Produkttyp, Reihenfolge und technische
-  Einstiegsroute durch einen Consumer-Contract gegen den LocalBase-Katalog
-  absichern.
-- Standalone-Navigation und OrgSuite-Menüintegration gemäß den
-  Katalogeigenschaften charakterisieren; sichtbare Labels appbezogen
-  lokalisieren.
-- Die Katalogaufnahme erweitert ohne separate Entscheidung weder
-  Fachberechtigungen noch bestehende AD-Produkt- oder Suitearchive.
-- Aktivierte/deaktivierte App, Standalone, OrgSuite, ungültige Route,
-  fehlender Katalogprovider und direkte serverseitige Zielberechtigung testen.
-- Gemeinsam mit `PARENT-AD-CATALOG`, `LB-AD-CATALOG`,
-  `ORGS-AD-CATALOG` und `ADS-AD-CATALOG-DOCS` abnehmen.
-
 ### RECR-L10N – AD Recruitment vollständig lokalisieren
 
 Status: bereit nach festgelegtem l10n-Pilotvertrag
@@ -39,6 +22,8 @@ Status: bereit nach festgelegtem l10n-Pilotvertrag
 
 ## Weitere geplante Arbeiten
 
+- Die manuellen Prüfungen werden im ausfüllbaren
+  [`docs/manual-acceptance.md`](docs/manual-acceptance.md) dokumentiert.
 - Den bestehenden Stellen-, Personen-, Bewerbungs- und Interviewprozess auf
   einem realitätsnahen Staging fachlich, sicherheitlich und
   datenschutzbezogen abnehmen.

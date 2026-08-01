@@ -5,18 +5,14 @@
     <name>AD Recruitment</name>
     <summary>Strukturierte Bewerbungs- und Interviewprozesse.</summary>
     <description>Verwaltet Stellen, Personen, Bewerbungen und versionierte Interviews in Nextcloud.</description>
-    <version>0.2.2</version>
+    <version>0.2.3</version>
     <licence>agpl</licence>
     <author>Simon</author>
+    <website>https://github.com/Filzmann/ad-suite</website>
+    <bugs>https://github.com/Filzmann/nextcloud-recruitment/issues</bugs>
+    <repository type="git">https://github.com/Filzmann/nextcloud-recruitment</repository>
     <namespace>Recruitment</namespace>
     <category>organization</category>
-    <navigations>
-        <navigation>
-            <name>AD Recruitment</name>
-            <route>adrecruitment.page.index</route>
-            <order>45</order>
-        </navigation>
-    </navigations>
     <dependencies>
         <php min-version="8.3"/>
         <nextcloud min-version="34" max-version="34"/>
