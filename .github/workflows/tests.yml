@@ -114,3 +114,4 @@ jobs:
     uses: Filzmann/br-nextcloud-apps/.github/workflows/deploy-staging.yml@main
     with:
       app-id: adrecruitment
+    secrets: inherit
