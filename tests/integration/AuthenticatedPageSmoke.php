@@ -28,6 +28,7 @@ $groups = \OCP\Server::get(IGroupManager::class);
 $db = \OCP\Server::get(IDBConnection::class);
 $appConfig = \OCP\Server::get(IAppConfig::class);
 $organization = \OCP\Server::get(AdOrganizationSettingsService::class);
+$baseUrl = rtrim(getenv('RECR_BASE_URL') ?: 'https://nextcloud-dev.ddev.site', '/');
 $previousOrganization = $appConfig->getValueString('localbase', 'ad_organization_definition', '');
 $temporaryOrganization = !$organization->state()['valid'];
 if ($temporaryOrganization) {
@@ -62,7 +63,7 @@ $group->addUser($user);
 $personId = null;
 
 try {
-    $curl = curl_init('https://nextcloud-dev.ddev.site/index.php/apps/adrecruitment/');
+    $curl = curl_init($baseUrl . '/index.php/apps/adrecruitment/');
     if ($curl === false) {
         throw new RuntimeException('Der HTTPS-Smoke konnte nicht initialisiert werden.');
     }
@@ -95,7 +96,7 @@ try {
     );
     $requestToken = html_entity_decode($tokenMatch[1], ENT_QUOTES | ENT_HTML5);
     curl_setopt_array($curl, [
-        CURLOPT_URL => 'https://nextcloud-dev.ddev.site/index.php/apps/adrecruitment/api/bootstrap',
+        CURLOPT_URL => $baseUrl . '/index.php/apps/adrecruitment/api/bootstrap',
         CURLOPT_HTTPGET => true,
         CURLOPT_HTTPHEADER => ['Accept: application/json'],
     ]);
@@ -114,7 +115,7 @@ try {
     );
 
     curl_setopt_array($curl, [
-        CURLOPT_URL => 'https://nextcloud-dev.ddev.site/index.php/apps/adrecruitment/api/people',
+        CURLOPT_URL => $baseUrl . '/index.php/apps/adrecruitment/api/people',
         CURLOPT_POST => true,
         CURLOPT_HTTPHEADER => [
             'Accept: application/json',
