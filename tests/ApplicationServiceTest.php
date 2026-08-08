@@ -80,12 +80,18 @@ final class MemoryRecruitmentStore implements RecruitmentStore, ApplicationStatu
         string $toStatus,
         int $expectedVersion,
         string $actorUid,
+        ?string $areaKey = null,
+        bool $enableFirstGuideAccess = false,
     ): array {
         $application = $this->applicationDetail($id);
         if ($application['status'] !== $fromStatus || $application['version'] !== $expectedVersion) {
             throw new ConflictException('Konkurrierende Änderung.');
         }
         $this->applications[$id]['status'] = $toStatus;
+        if ($areaKey !== null) {
+            $this->applications[$id]['areaKey'] = $areaKey;
+            $this->applications[$id]['firstGuideAccess'] = $enableFirstGuideAccess;
+        }
         $this->applications[$id]['version']++;
         $this->statusLog[] = compact('id', 'fromStatus', 'toStatus', 'actorUid');
         return $this->applications[$id];
@@ -106,6 +112,75 @@ TestRunner::test('person and application stay separate while one person owns mul
     assertSame(2, count($store->applications));
     assertSame($person, $store->applications[$first]['personId']);
     assertSame($person, $store->applications[$second]['personId']);
+});
+
+TestRunner::test('jobs explicitly declare whether basis qualification is required', static function (): void {
+    $store = new MemoryRecruitmentStore();
+    $service = new RecruitmentService();
+
+    $assistantJob = $service->createJob($store, 'Assistenz', '', true, [], [], 'assistance', true);
+    $otherJob = $service->createJob($store, 'Fachkraft', '', true, [], [], 'specialist', false);
+
+    assertSame(true, $store->jobs[$assistantJob]['basisQualificationRequired']);
+    assertSame(false, $store->jobs[$otherJob]['basisQualificationRequired']);
+});
+
+TestRunner::test('hire approval writes area and first-guide release in the same guarded transition', static function (): void {
+    $store = new MemoryRecruitmentStore();
+    $store->applications[1] = [
+        'id' => 1,
+        'status' => 'decision_pending',
+        'version' => 4,
+        'areaKey' => '',
+        'firstGuideAccess' => false,
+    ];
+    $status = new ApplicationStatusService();
+
+    $changed = $status->transition(
+        $store,
+        1,
+        'approved_for_hire',
+        4,
+        'hr-user',
+        'west',
+        ['west', 'south'],
+    );
+
+    assertSame('approved_for_hire', $changed['status']);
+    assertSame('west', $changed['areaKey']);
+    assertSame(true, $changed['firstGuideAccess']);
+});
+
+TestRunner::test('BQ hire approval requires an explicit suitable result', static function (): void {
+    $store = new MemoryRecruitmentStore();
+    $store->applications[1] = [
+        'id' => 1,
+        'status' => 'basis_qualification',
+        'basisQualification' => ['id' => 8, 'result' => 'pending'],
+        'version' => 3,
+        'areaKey' => '',
+        'firstGuideAccess' => false,
+    ];
+    $status = new ApplicationStatusService();
+
+    assertThrows(
+        static fn () => $status->transition($store, 1, 'approved_for_hire', 3, 'hr-user', 'west', ['west']),
+        ValidationException::class,
+    );
+    assertSame('basis_qualification', $store->applications[1]['status']);
+    assertSame([], $store->statusLog);
+
+    $status->transition($store, 1, 'decision_pending', 3, 'hr-user');
+    assertThrows(
+        static fn () => $status->transition($store, 1, 'approved_for_hire', 4, 'hr-user', 'west', ['west']),
+        ValidationException::class,
+    );
+    assertSame('decision_pending', $store->applications[1]['status']);
+
+    $store->applications[1]['basisQualification']['result'] = 'suitable';
+    $changed = $status->transition($store, 1, 'approved_for_hire', 4, 'hr-user', 'west', ['west']);
+    assertSame('approved_for_hire', $changed['status']);
+    assertSame(true, $changed['firstGuideAccess']);
 });
 
 TestRunner::test('application creation rejects foreign identifiers without mutation', static function (): void {
@@ -139,4 +214,76 @@ TestRunner::test('status transition persists application and audit log atomicall
         ValidationException::class,
     );
     assertSame(1, count($store->statusLog));
+});
+
+TestRunner::test('application keeps an approximate desired-hours value or range separate from contract hours', static function (): void {
+    $store = new MemoryRecruitmentStore();
+    $service = new RecruitmentService();
+    $job = $service->createJob($store, 'Assistenz', '', true, [], [], 'assistance', true, 'assistance');
+    $person = $service->createPerson($store, 'Ari', 'Beispiel', 'ari@example.invalid', '');
+
+    $application = $service->createApplication(
+        $store,
+        $person,
+        $job,
+        'manual',
+        '2026-08-01',
+        '',
+        20.5,
+        30.0,
+    );
+
+    assertSame(20.5, $store->applications[$application]['desiredWeeklyHours']);
+    assertSame(30.0, $store->applications[$application]['desiredWeeklyHoursMax']);
+
+    $singleValue = $service->createApplication(
+        $store,
+        $person,
+        $job,
+        'manual',
+        '2026-08-02',
+        '',
+        25.0,
+        25.0,
+    );
+    assertSame(25.0, $store->applications[$singleValue]['desiredWeeklyHours']);
+    assertSame(null, $store->applications[$singleValue]['desiredWeeklyHoursMax']);
+
+    assertThrows(
+        static fn () => $service->createApplication($store, $person, $job, 'manual', '2026-08-01', '', 0.0),
+        ValidationException::class,
+    );
+    assertThrows(
+        static fn () => $service->createApplication($store, $person, $job, 'manual', '2026-08-01', '', 80.5),
+        ValidationException::class,
+    );
+    assertThrows(
+        static fn () => $service->createApplication($store, $person, $job, 'manual', '2026-08-01', '', null, 30.0),
+        ValidationException::class,
+    );
+    assertThrows(
+        static fn () => $service->createApplication($store, $person, $job, 'manual', '2026-08-01', '', 30.0, 20.0),
+        ValidationException::class,
+    );
+    assertThrows(
+        static fn () => $service->createApplication($store, $person, $job, 'manual', '2026-08-01', '', 20.0, 80.5),
+        ValidationException::class,
+    );
+    assertSame(2, count($store->applications));
+});
+
+TestRunner::test('job category is explicit and BQ remains limited to assistance', static function (): void {
+    $store = new MemoryRecruitmentStore();
+    $service = new RecruitmentService();
+
+    $job = $service->createJob($store, 'Assistenz', '', true, [], [], 'assistance', true, 'assistance');
+    assertSame('assistance', $store->jobs[$job]['professionCategory']);
+    assertThrows(
+        static fn () => $service->createJob($store, 'Verwaltung', '', true, [], [], 'office', true, 'administration'),
+        ValidationException::class,
+    );
+    assertThrows(
+        static fn () => $service->createJob($store, 'Unbekannt', '', true, [], [], 'unknown', false, 'invented'),
+        ValidationException::class,
+    );
 });

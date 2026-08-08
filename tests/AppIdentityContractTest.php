@@ -36,6 +36,6 @@ TestRunner::test('technical app identity is consistently adrecruitment', static 
     assertTrue(str_contains($listener, "addCatalogProductWhenStandalone('adrecruitment'"), 'Standalone navigation does not consume the product catalog');
     assertTrue(str_contains($template, "Util::addStyle('adrecruitment', 'style');"), 'Template assets use the old app ID');
     assertTrue(str_contains($api, "generateUrl('/apps/adrecruitment' + path)"), 'API client uses the old app route');
-    assertTrue(str_contains($access, "'adrecruitment-admin'"), 'Access groups do not use the new app prefix');
-    assertTrue(!str_contains($access, "'recruitment-"), 'Access groups still use the old app prefix');
+    assertTrue(str_contains($access, 'AdOrganizationSnapshotService'), 'Access does not consume the shared LocalBase organization contract');
+    assertTrue(!str_contains($access, "'adrecruitment-admin'"), 'Access still maintains a parallel app-specific role hierarchy');
 });

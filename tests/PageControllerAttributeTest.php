@@ -21,5 +21,5 @@ TestRunner::test('read-only app page is explicitly CSRF-free while retaining ser
     assertTrue(str_contains($source, 'use OCP\\AppFramework\\Http\\Attribute\\NoCSRFRequired;'));
     assertTrue(str_contains($attributeBlock, '#[NoCSRFRequired]'));
     assertTrue(str_contains($attributeBlock, '#[NoAdminRequired]'));
-    assertTrue(str_contains($source, '$this->access->require(RecruitmentAccessService::VIEW);'));
+    assertTrue(str_contains($source, '$this->access->requireAnyAccess();'));
 });

@@ -8,6 +8,9 @@ Util::addStyle('adrecruitment', 'style');
 Util::addScript('adrecruitment', 'modules/bubble-text');
 Util::addScript('adrecruitment', 'modules/ui-data');
 Util::addScript('adrecruitment', 'modules/api');
+Util::addScript('adrecruitment', 'modules/application-workbench');
+Util::addScript('adrecruitment', 'modules/dialog-overlay');
+Util::addScript('adrecruitment', 'modules/pdf-lightbox');
 Util::addScript('adrecruitment', 'main');
 ?>
 <main id="adrecruitment-app" class="adrecruitment-app" aria-labelledby="adrecruitment-title">

@@ -108,6 +108,11 @@
     min-width: 0;
 }
 
+.adrecruitment-field input[type="checkbox"] {
+    width: auto;
+    justify-self: start;
+}
+
 .adrecruitment-inline-form {
     display: flex;
     flex-wrap: wrap;
@@ -129,6 +134,94 @@
 .adrecruitment-table-wrap table {
     width: 100%;
     border-collapse: collapse;
+}
+
+.adrecruitment-workbench {
+    display: grid;
+    gap: 16px;
+    margin-block: 18px;
+}
+
+.adrecruitment-workbench__toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    gap: 12px;
+}
+
+.adrecruitment-workbench__toolbar .adrecruitment-field {
+    flex: 1 1 220px;
+}
+
+.adrecruitment-view-switch [aria-pressed="true"] {
+    background: var(--color-primary-element);
+    color: var(--color-primary-element-text);
+}
+
+.adrecruitment-board {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(min(300px, calc(100vw - 64px)), 1fr);
+    gap: 16px;
+    max-width: 100%;
+    padding-block-end: 8px;
+    overflow-x: auto;
+}
+
+.adrecruitment-board__column {
+    min-width: 0;
+    padding: 12px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-large);
+    background: var(--color-background-hover);
+}
+
+.adrecruitment-board__column--drop {
+    border-color: var(--color-primary-element);
+    box-shadow: inset 0 0 0 2px var(--color-primary-element);
+}
+
+.adrecruitment-application-card[draggable="true"] {
+    cursor: grab;
+}
+
+.adrecruitment-application-card[draggable="true"]:active {
+    cursor: grabbing;
+}
+
+.adrecruitment-card-move {
+    display: grid;
+    gap: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--color-border);
+}
+
+.adrecruitment-table-actions {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    min-width: 18rem;
+}
+
+.adrecruitment-table-actions .adrecruitment-card-move {
+    min-width: 13rem;
+}
+
+.adrecruitment-board__empty {
+    color: var(--color-text-maxcontrast);
+}
+
+.adrecruitment-board__column > h3 {
+    margin-block: 0 12px;
+}
+
+.adrecruitment-board__cards {
+    display: grid;
+    gap: 10px;
+}
+
+.adrecruitment-application-card {
+    background: var(--color-main-background);
 }
 
 .adrecruitment-table-wrap th,
@@ -161,7 +254,8 @@
 }
 
 .adrecruitment-interview,
-.adrecruitment-question-editor {
+.adrecruitment-question-editor,
+.adrecruitment-hiring-record {
     margin-block: 16px;
 }
 
@@ -200,6 +294,63 @@
     gap: 8px;
 }
 
+.adrecruitment-overlay {
+    box-sizing: border-box;
+    width: min(680px, calc(100vw - 32px));
+    max-width: none;
+    max-height: calc(100vh - 32px);
+    padding: 0;
+    overflow: auto;
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-large);
+    background: var(--color-main-background);
+    color: var(--color-main-text);
+    box-shadow: 0 12px 40px rgb(0 0 0 / 35%);
+}
+
+.adrecruitment-overlay:not([open]) {
+    display: none;
+}
+
+.adrecruitment-overlay::backdrop {
+    background: rgb(0 0 0 / 55%);
+}
+
+.adrecruitment-overlay__header {
+    position: sticky;
+    z-index: 1;
+    top: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 16px 18px;
+    border-bottom: 1px solid var(--color-border);
+    background: var(--color-main-background);
+}
+
+.adrecruitment-overlay__header h2 {
+    margin: 0;
+    font-size: 1.25rem;
+}
+
+.adrecruitment-overlay__body {
+    display: grid;
+    gap: 14px;
+    padding: 18px;
+}
+
+.adrecruitment-overlay__body > p {
+    margin: 0;
+    color: var(--color-text-maxcontrast);
+}
+
+.adrecruitment-overlay .adrecruitment-card {
+    padding: 0;
+    border: 0;
+    background: transparent;
+}
+
 .adrecruitment-bubble {
     border-radius: 999px;
 }
@@ -214,6 +365,195 @@
     border-radius: var(--border-radius-large);
     color: var(--color-text-maxcontrast);
     text-align: center;
+}
+
+.adrecruitment-mail-body {
+    max-height: 24rem;
+    overflow: auto;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    font: inherit;
+    background: var(--color-background-dark, #f5f5f5);
+    padding: 1rem;
+    border-radius: var(--border-radius-large, 10px);
+}
+
+.adrecruitment-document-review {
+    margin-block: 1rem;
+    border: 1px solid var(--color-border, #d0d0d0);
+    border-radius: var(--border-radius-large, 10px);
+    padding: .75rem;
+}
+
+.adrecruitment-document-review > summary {
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.adrecruitment-document-preview {
+    width: 100%;
+    min-height: min(70vh, 52rem);
+    margin-block: 1rem;
+    border: 1px solid var(--color-border, #d0d0d0);
+    background: #fff;
+}
+
+.adrecruitment-pdf-lightbox {
+    width: min(98vw, 120rem);
+    height: min(96vh, 80rem);
+    max-width: none;
+    max-height: none;
+    padding: 1rem;
+    border: 0;
+    border-radius: var(--border-radius-large, 10px);
+    background: var(--color-main-background, #fff);
+    color: var(--color-main-text, #222);
+}
+
+.adrecruitment-pdf-lightbox::backdrop {
+    background: rgb(0 0 0 / 65%);
+}
+
+.adrecruitment-pdf-lightbox-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(20rem, 1fr);
+    gap: 1rem;
+    min-height: 0;
+    height: calc(100% - 3rem);
+}
+
+.adrecruitment-pdf-viewer-column {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+}
+
+.adrecruitment-pdf-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .5rem;
+    padding-block: .5rem;
+}
+
+.adrecruitment-pdf-status {
+    flex: 1 1 14rem;
+    margin: 0;
+}
+
+.adrecruitment-pdf-pages {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    padding: 1rem;
+    background: var(--color-background-dark, #e9e9e9);
+}
+
+.adrecruitment-pdf-page {
+    --user-unit: 1;
+    --total-scale-factor: calc(var(--scale-factor, 1) * var(--user-unit));
+    position: relative;
+    margin: 0 auto 1rem;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgb(0 0 0 / 22%);
+    background: #fff;
+}
+
+.adrecruitment-pdf-page canvas {
+    position: absolute;
+    inset: 0;
+    display: block;
+}
+
+.adrecruitment-pdf-text-layer {
+    --min-font-size: 1;
+    --text-scale-factor: calc(var(--total-scale-factor) * var(--min-font-size));
+    --min-font-size-inv: calc(1 / var(--min-font-size));
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    overflow: clip;
+    color-scheme: only light;
+    text-align: initial;
+    line-height: 1;
+    letter-spacing: normal;
+    word-spacing: normal;
+    text-size-adjust: none;
+    forced-color-adjust: none;
+    transform-origin: 0 0;
+    caret-color: CanvasText;
+}
+
+.adrecruitment-pdf-text-layer :is(span, br) {
+    position: absolute;
+    color: transparent;
+    white-space: pre;
+    cursor: text;
+    transform-origin: 0 0;
+    user-select: text;
+}
+
+.adrecruitment-pdf-text-layer > :not(.markedContent),
+.adrecruitment-pdf-text-layer .markedContent span:not(.markedContent) {
+    --font-height: 0;
+    --scale-x: 1;
+    --rotate: 0deg;
+    z-index: 1;
+    font-size: calc(var(--text-scale-factor) * var(--font-height));
+    transform: rotate(var(--rotate)) scaleX(var(--scale-x)) scale(var(--min-font-size-inv));
+}
+
+.adrecruitment-pdf-text-layer .markedContent {
+    display: contents;
+}
+
+.adrecruitment-pdf-text-layer ::selection {
+    background: rgb(0 90 255 / 35%);
+    color: transparent;
+}
+
+.adrecruitment-pdf-stored-mark,
+.adrecruitment-pdf-active-mark {
+    position: absolute;
+    z-index: 3;
+    pointer-events: none;
+    border: 2px solid var(--color-primary-element, #00679e);
+    background: rgb(255 221 0 / 28%);
+}
+
+.adrecruitment-pdf-active-mark {
+    background: rgb(0 103 158 / 20%);
+}
+
+.adrecruitment-pdf-pages.is-marking .adrecruitment-pdf-page {
+    cursor: crosshair;
+}
+
+.adrecruitment-pdf-pages.is-marking .adrecruitment-pdf-text-layer {
+    pointer-events: none;
+}
+
+.adrecruitment-pdf-side-panel {
+    min-width: 0;
+    overflow: auto;
+    padding: .5rem;
+    border-left: 1px solid var(--color-border, #d0d0d0);
+}
+
+.adrecruitment-pdf-selection-summary {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.adrecruitment-field-link-list {
+    display: grid;
+    gap: .5rem;
+    padding-left: 1.25rem;
+}
+
+.adrecruitment-document-comments {
+    margin-block: 1rem;
 }
 
 .adrecruitment-history {
@@ -233,5 +573,15 @@
 
     .adrecruitment-inline-form {
         align-items: stretch;
+    }
+
+    .adrecruitment-pdf-lightbox-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .adrecruitment-pdf-side-panel {
+        max-height: 45vh;
+        border-top: 1px solid var(--color-border, #d0d0d0);
+        border-left: 0;
     }
 }

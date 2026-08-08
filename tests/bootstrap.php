@@ -27,6 +27,19 @@ namespace OCP {
             public function get(string $gid): ?IGroup;
         }
     }
+
+    if (!interface_exists(IAppConfig::class)) {
+        interface IAppConfig {
+            public function getValueString(string $appId, string $key, string $default = ''): string;
+            public function setValueString(string $appId, string $key, string $value): void;
+        }
+    }
+
+    if (!interface_exists(IUserManager::class)) {
+        interface IUserManager {
+            public function userExists(string $uid): bool;
+        }
+    }
 }
 
 namespace RecruitmentTests {
