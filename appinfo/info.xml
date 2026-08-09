@@ -8,11 +8,11 @@
     <version>0.9.0</version>
     <licence>agpl</licence>
     <author>Simon</author>
+    <namespace>Recruitment</namespace>
+    <category>organization</category>
     <website>https://github.com/Filzmann/ad-suite</website>
     <bugs>https://github.com/Filzmann/nextcloud-recruitment/issues</bugs>
     <repository type="git">https://github.com/Filzmann/nextcloud-recruitment</repository>
-    <namespace>Recruitment</namespace>
-    <category>organization</category>
     <dependencies>
         <php min-version="8.3"/>
         <nextcloud min-version="34" max-version="34"/>
