@@ -8,11 +8,12 @@ durchgängige Sollprozess stehen in
 setzen dieses Zielbild um; die Reihenfolge darf nach Abhängigkeiten angepasst,
 der fachliche Umfang aber nicht still entfernt werden.
 
-## Freigegebene Umsetzungsaufgaben
+## Zukunftsplanung – nicht freigegeben
 
 ### RECR-L10N – AD Recruitment vollständig lokalisieren
 
-Status: bereit nach festgelegtem l10n-Pilotvertrag
+Status: später, nicht freigegeben; Pilot-App, Reihenfolge und Rohtext-Gate
+werden vor jeder Umsetzung appübergreifend separat freigegeben
 
 - Oberfläche, Interviewvorlagenverwaltung, Status-, Validierungs- und
   Fehlermeldungen auf aktive Nextcloud-Locale und Nextcloud-l10n umstellen.
