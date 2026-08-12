@@ -27,6 +27,28 @@ final class RecruitmentRepository implements RecruitmentStore, ApplicationStatus
     public function __construct(private IDBConnection $db) {
     }
 
+    /** @return list<array<string,mixed>> */
+    public function personalDataForNextcloudUid(string $uid,int $limit):array {
+        $result=[];
+        foreach([
+            ['rec_applications',['id','status','updated_at'],['assignee_uid'],'application_assignment','updated_at'],
+            ['rec_status_log',['id','application_id','from_status','to_status','changed_at'],['actor_uid'],'status_change','changed_at'],
+            ['rec_interviews',['id','application_id','status','updated_at'],['actor_uid'],'interview','updated_at'],
+            ['rec_permission_audit',['id','application_id','action','actor_uid','subject_uid','created_at'],['actor_uid','subject_uid'],'permission_audit','created_at'],
+            ['rec_bq_runs',['id','label','updated_at'],['actor_uid'],'bq_run','updated_at'],
+            ['rec_bq_assignments',['id','application_id','result','updated_at'],['actor_uid'],'bq_assignment','updated_at'],
+            ['rec_message_audit',['id','from_state','to_state','changed_at'],['actor_uid'],'message_audit','changed_at'],
+            ['rec_document_comments',['id','created_at'],['actor_uid'],'document_comment','created_at'],
+            ['rec_document_field_links',['id','application_id','created_at'],['actor_uid'],'document_field_link','created_at'],
+        ] as [$table,$columns,$uidColumns,$kind,$dateColumn]){
+            $qb=$this->db->getQueryBuilder();$conditions=[];foreach($uidColumns as $column)$conditions[]=$qb->expr()->eq($column,$qb->createNamedParameter($uid,IQueryBuilder::PARAM_STR));
+            $rows=$qb->select(...$columns)->from($table)->where($qb->expr()->orX(...$conditions))->orderBy($dateColumn,'ASC')->setMaxResults($limit)->executeQuery()->fetchAllAssociative();
+            foreach($rows as $row){$item=['kind'=>$kind,'id'=>(int)$row['id'],'occurred_at'=>$row[$dateColumn]];if(isset($row['application_id'])&&$row['application_id']!==null)$item['application_id']=(int)$row['application_id'];if(isset($row['label']))$item['label']=(string)$row['label'];if(isset($row['status']))$item['status']=(string)$row['status'];if(isset($row['result']))$item['action']=(string)$row['result'];if(isset($row['action']))$item['action']=(string)$row['action'];if(isset($row['from_status']))$item['action']=(string)$row['from_status'].' → '.(string)$row['to_status'];if(isset($row['from_state']))$item['action']=(string)$row['from_state'].' → '.(string)$row['to_state'];if($kind==='permission_audit')$item['role']=(string)$row['subject_uid']===$uid?'subject':'actor';$result[]=$item;}
+        }
+        $jobs=$this->all('rec_jobs',['id','internal_title','responsible_users','created_at'],['id'=>'ASC']);foreach($jobs as $job)if(in_array($uid,$this->decode((string)$job['responsible_users']),true))$result[]=['kind'=>'job_responsibility','id'=>(int)$job['id'],'label'=>(string)$job['internal_title'],'occurred_at'=>$job['created_at']];
+        usort($result,static fn(array $a,array $b):int=>strcmp((string)$a['occurred_at'],(string)$b['occurred_at']));return array_slice($result,0,$limit);
+    }
+
     public function createJob(array $job): int {
         $assignmentKey = (string)$job['assignmentKey'];
         return $this->insert('rec_jobs', [

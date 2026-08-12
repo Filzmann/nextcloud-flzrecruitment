@@ -7,16 +7,6 @@ namespace OCA\Recruitment\AppInfo { final class Application { public const APP_I
 
 namespace {
     require_once __DIR__ . '/bootstrap.php';
-    require_once dirname(__DIR__, 2) . '/localbase/lib/Organization/AdOrganizationDefinition.php';
-    require_once dirname(__DIR__, 2) . '/localbase/lib/Organization/AdOrganizationSettingsService.php';
-    require_once dirname(__DIR__, 2) . '/localbase/lib/Organization/AdOrganizationSnapshot.php';
-    require_once dirname(__DIR__, 2) . '/localbase/lib/Organization/AdOrganizationSnapshotService.php';
-    require_once dirname(__DIR__) . '/lib/Exception/AccessDeniedException.php';
-    require_once dirname(__DIR__) . '/lib/Exception/ConflictException.php';
-    require_once dirname(__DIR__) . '/lib/Exception/ValidationException.php';
-    require_once dirname(__DIR__) . '/lib/Service/RecruitmentPermissionPolicy.php';
-    require_once dirname(__DIR__) . '/lib/Service/RecruitmentPermissionSettingsService.php';
-    require_once dirname(__DIR__) . '/lib/Service/RecruitmentAccessService.php';
 
     use OCA\LocalBase\Organization\AdOrganizationSettingsService;
     use OCA\LocalBase\Organization\AdOrganizationSnapshotService;

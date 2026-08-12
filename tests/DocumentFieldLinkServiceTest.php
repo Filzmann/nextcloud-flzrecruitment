@@ -15,10 +15,6 @@ TestRunner::test('document selections link to applicant fields and preserve free
     foreach (['lib/Contract/DocumentFieldLinkStore.php', 'lib/Service/DocumentFieldLinkService.php'] as $file) {
         assertTrue(is_file($root . '/' . $file), "Document field-link component is missing: {$file}");
     }
-    require_once $root . '/lib/Exception/ConflictException.php';
-    require_once $root . '/lib/Exception/ValidationException.php';
-    require_once $root . '/lib/Contract/DocumentFieldLinkStore.php';
-    require_once $root . '/lib/Service/DocumentFieldLinkService.php';
 
     $store = new class implements \OCA\Recruitment\Contract\DocumentFieldLinkStore {
         public array $links = [];
@@ -67,10 +63,6 @@ TestRunner::test('document selections link to applicant fields and preserve free
 TestRunner::test('document field links reject unassigned files, invalid targets, values and coordinates without mutation', static function (): void {
     $root = dirname(__DIR__);
     if (!is_file($root . '/lib/Service/DocumentFieldLinkService.php')) return;
-    require_once $root . '/lib/Exception/ConflictException.php';
-    require_once $root . '/lib/Exception/ValidationException.php';
-    require_once $root . '/lib/Contract/DocumentFieldLinkStore.php';
-    require_once $root . '/lib/Service/DocumentFieldLinkService.php';
 
     $store = new class implements \OCA\Recruitment\Contract\DocumentFieldLinkStore {
         public array $links = [];

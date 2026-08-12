@@ -3,8 +3,6 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/bootstrap.php';
-require_once dirname(__DIR__) . '/lib/Exception/ValidationException.php';
-require_once dirname(__DIR__) . '/lib/Service/HiringMasterDataService.php';
 
 use OCA\Recruitment\Exception\ValidationException;
 use OCA\Recruitment\Service\HiringMasterDataService;

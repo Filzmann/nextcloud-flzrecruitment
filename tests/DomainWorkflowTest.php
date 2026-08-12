@@ -3,10 +3,6 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/bootstrap.php';
-require_once dirname(__DIR__) . '/lib/Exception/ConflictException.php';
-require_once dirname(__DIR__) . '/lib/Exception/ValidationException.php';
-require_once dirname(__DIR__) . '/lib/Service/ApplicationStatusService.php';
-require_once dirname(__DIR__) . '/lib/Service/InterviewWorkflow.php';
 
 use OCA\Recruitment\Exception\ConflictException;
 use OCA\Recruitment\Exception\ValidationException;

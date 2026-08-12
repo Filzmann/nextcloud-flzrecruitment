@@ -15,11 +15,6 @@ TestRunner::test('document review reads an immutable PDF and appends anchored or
     foreach (['lib/Contract/DocumentReviewStore.php', 'lib/Service/DocumentReviewService.php'] as $file) {
         assertTrue(is_file($root . '/' . $file), "Document review component is missing: {$file}");
     }
-    require_once $root . '/lib/Exception/NotFoundException.php';
-    require_once $root . '/lib/Exception/ValidationException.php';
-    require_once $root . '/lib/Contract/MailAttachmentStorage.php';
-    require_once $root . '/lib/Contract/DocumentReviewStore.php';
-    require_once $root . '/lib/Service/DocumentReviewService.php';
 
     $store = new class implements \OCA\Recruitment\Contract\DocumentReviewStore {
         public array $comments = [];
@@ -52,11 +47,6 @@ TestRunner::test('document review reads an immutable PDF and appends anchored or
 TestRunner::test('document review rejects invalid anchors and empty text without persistence', static function (): void {
     $root = dirname(__DIR__);
     if (!is_file($root . '/lib/Service/DocumentReviewService.php')) return;
-    require_once $root . '/lib/Exception/NotFoundException.php';
-    require_once $root . '/lib/Exception/ValidationException.php';
-    require_once $root . '/lib/Contract/MailAttachmentStorage.php';
-    require_once $root . '/lib/Contract/DocumentReviewStore.php';
-    require_once $root . '/lib/Service/DocumentReviewService.php';
     $store = new class implements \OCA\Recruitment\Contract\DocumentReviewStore {
         public array $comments = [];
         public function attachmentContext(int $id): array { return ['id' => $id, 'storagePath' => 'mail-inbox/message-1/' . str_repeat('a', 64) . '.pdf', 'contentHash' => hash('sha256', '%PDF-1.4'), 'originalName' => 'Dokument.pdf', 'mimeType' => 'application/pdf', 'applicationId' => 7]; }

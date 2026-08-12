@@ -3,11 +3,6 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/bootstrap.php';
-require_once dirname(__DIR__) . '/lib/Exception/ConflictException.php';
-require_once dirname(__DIR__) . '/lib/Exception/ValidationException.php';
-require_once dirname(__DIR__) . '/lib/Contract/HiringDataStore.php';
-require_once dirname(__DIR__) . '/lib/Service/HiringMasterDataService.php';
-require_once dirname(__DIR__) . '/lib/Service/HiringWorkflowService.php';
 
 use OCA\Recruitment\Contract\HiringDataStore;
 use OCA\Recruitment\Exception\ConflictException;

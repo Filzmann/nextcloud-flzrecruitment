@@ -227,11 +227,7 @@ namespace OCA\Recruitment\Service {
 }
 
 namespace {
-    require __DIR__ . '/../lib/Exception/AccessDeniedException.php';
-    require __DIR__ . '/../lib/Exception/ConflictException.php';
-    require __DIR__ . '/../lib/Exception/NotFoundException.php';
-    require __DIR__ . '/../lib/Exception/ValidationException.php';
-    require __DIR__ . '/../lib/Controller/ApiController.php';
+    require_once __DIR__ . '/bootstrap.php';
 
     use OCA\Recruitment\Controller\ApiController;
     use OCA\Recruitment\Service\RecruitmentAccessService;

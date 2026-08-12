@@ -3,8 +3,6 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/bootstrap.php';
-require_once dirname(__DIR__, 2) . '/localbase/lib/Organization/AdOrganizationSnapshot.php';
-require_once dirname(__DIR__) . '/lib/Service/RecruitmentPermissionPolicy.php';
 
 use OCA\LocalBase\Organization\AdOrganizationSnapshot;
 use OCA\Recruitment\Service\RecruitmentPermissionPolicy;

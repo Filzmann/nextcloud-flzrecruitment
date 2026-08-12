@@ -9,6 +9,8 @@ use OCA\Recruitment\Contract\MailInboxStore;
 use OCA\Recruitment\Contract\DocumentFieldLinkStore;
 use OCA\Recruitment\Contract\DocumentReviewStore;
 use OCA\Recruitment\Listener\StandaloneNavigationListener;
+use OCA\Recruitment\Privacy\RecruitmentPrivacyProviderListener;
+use OCA\LocalBase\Privacy\PersonalDataProviderRegistryEvent;
 use OCA\Recruitment\Repository\RecruitmentRepository;
 use OCA\Recruitment\Service\AppDataMailAttachmentStorage;
 use OCP\AppFramework\App;
@@ -26,6 +28,7 @@ final class Application extends App implements IBootstrap {
 
     public function register(IRegistrationContext $context): void {
         $context->registerEventListener(LoadAdditionalEntriesEvent::class, StandaloneNavigationListener::class);
+        $context->registerEventListener(PersonalDataProviderRegistryEvent::class, RecruitmentPrivacyProviderListener::class);
         $context->registerServiceAlias(MailInboxStore::class, RecruitmentRepository::class);
         $context->registerServiceAlias(MailAttachmentStorage::class, AppDataMailAttachmentStorage::class);
         $context->registerServiceAlias(DocumentReviewStore::class, RecruitmentRepository::class);

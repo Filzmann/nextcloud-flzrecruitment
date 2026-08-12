@@ -3,12 +3,6 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/bootstrap.php';
-require_once dirname(__DIR__) . '/lib/Exception/ConflictException.php';
-require_once dirname(__DIR__) . '/lib/Exception/ValidationException.php';
-require_once dirname(__DIR__) . '/lib/Contract/MailAttachmentStorage.php';
-require_once dirname(__DIR__) . '/lib/Contract/MailInboxStore.php';
-require_once dirname(__DIR__) . '/lib/Service/ApplicationMailFieldExtractor.php';
-require_once dirname(__DIR__) . '/lib/Service/MailInboxService.php';
 
 use OCA\Recruitment\Contract\MailAttachmentStorage;
 use OCA\Recruitment\Contract\MailInboxStore;

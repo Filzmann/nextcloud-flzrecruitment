@@ -117,7 +117,6 @@ namespace OCA\Recruitment\Service {
 
 namespace {
     require_once __DIR__ . '/bootstrap.php';
-    require_once dirname(__DIR__) . '/lib/Service/RecruitmentDemoDataService.php';
 
     use OCA\Recruitment\Service\RecruitmentDemoDataService;
     use OCA\Recruitment\Service\RecruitmentUseCaseService;

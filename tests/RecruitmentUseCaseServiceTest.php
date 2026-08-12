@@ -42,7 +42,7 @@ namespace OCA\Recruitment\Service {
 }
 
 namespace {
-    require __DIR__ . '/../lib/Service/RecruitmentUseCaseService.php';
+    require_once __DIR__ . '/bootstrap.php';
 
     use OCA\Recruitment\Repository\RecruitmentRepository;
     use OCA\Recruitment\Service\ApplicationStatusService;

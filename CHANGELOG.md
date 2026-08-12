@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.10.0-rc.1
+
+- Subjectgebundene persönliche Datenauskunft für sämtliche internen Nextcloud-UID-Bezüge in Recruiting-Aktivitäten ergänzt.
+- Bewerberakten ohne sicher authentifizierte Zuordnung bewusst ausgeschlossen; eine bloße E-Mail-Übereinstimmung wird nicht als Identitätsnachweis verwendet.
+- PHP-Tests auf einen zentralen app-lokalen Autoload-Bootstrap umgestellt.
+
 ## 0.9.0
 
 - Eingebettete Browser-PDF-Vorschau durch eine große, tastaturbedienbare

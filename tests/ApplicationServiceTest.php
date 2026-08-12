@@ -3,13 +3,6 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/bootstrap.php';
-require_once dirname(__DIR__) . '/lib/Exception/ConflictException.php';
-require_once dirname(__DIR__) . '/lib/Exception/NotFoundException.php';
-require_once dirname(__DIR__) . '/lib/Exception/ValidationException.php';
-require_once dirname(__DIR__) . '/lib/Contract/RecruitmentStore.php';
-require_once dirname(__DIR__) . '/lib/Contract/ApplicationStatusStore.php';
-require_once dirname(__DIR__) . '/lib/Service/RecruitmentService.php';
-require_once dirname(__DIR__) . '/lib/Service/ApplicationStatusService.php';
 
 use OCA\Recruitment\Contract\ApplicationStatusStore;
 use OCA\Recruitment\Contract\RecruitmentStore;

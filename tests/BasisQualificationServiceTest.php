@@ -4,10 +4,6 @@ declare(strict_types=1);
 
 namespace {
     require_once __DIR__ . '/bootstrap.php';
-    require_once dirname(__DIR__) . '/lib/Contract/BasisQualificationStore.php';
-    require_once dirname(__DIR__) . '/lib/Exception/ConflictException.php';
-    require_once dirname(__DIR__) . '/lib/Exception/ValidationException.php';
-    require_once dirname(__DIR__) . '/lib/Service/BasisQualificationService.php';
 
     use OCA\Recruitment\Contract\BasisQualificationStore;
     use OCA\Recruitment\Exception\ConflictException;

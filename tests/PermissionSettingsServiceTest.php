@@ -19,10 +19,6 @@ namespace OCA\Recruitment\AppInfo {
 
 namespace {
     require_once __DIR__ . '/bootstrap.php';
-    require_once dirname(__DIR__) . '/lib/Exception/ConflictException.php';
-    require_once dirname(__DIR__) . '/lib/Exception/ValidationException.php';
-    require_once dirname(__DIR__) . '/lib/Service/RecruitmentPermissionPolicy.php';
-    require_once dirname(__DIR__) . '/lib/Service/RecruitmentPermissionSettingsService.php';
 
     use OCA\Recruitment\Exception\ConflictException;
     use OCA\Recruitment\Exception\ValidationException;
