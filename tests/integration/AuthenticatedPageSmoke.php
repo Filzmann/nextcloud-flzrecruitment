@@ -2,12 +2,16 @@
 
 declare(strict_types=1);
 
+if (!defined('OC_CONSOLE')) define('OC_CONSOLE', true);
 require dirname(__DIR__, 4) . '/lib/base.php';
 
 use OCP\IGroupManager;
 use OCP\IUserManager;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
+use OCP\IAppConfig;
+use OCA\LocalBase\Organization\AdOrganizationDefinition;
+use OCA\LocalBase\Organization\AdOrganizationSettingsService;
 
 /**
  * Authentifizierter HTTPS-Smoke mit synthetischem, garantiert bereinigtem Konto.
@@ -22,26 +26,44 @@ $assert = static function (bool $condition, string $message): void {
 $users = \OCP\Server::get(IUserManager::class);
 $groups = \OCP\Server::get(IGroupManager::class);
 $db = \OCP\Server::get(IDBConnection::class);
+$appConfig = \OCP\Server::get(IAppConfig::class);
+$organization = \OCP\Server::get(AdOrganizationSettingsService::class);
+$baseUrl = rtrim(getenv('RECR_BASE_URL') ?: 'https://nextcloud-dev.ddev.site', '/');
+$previousOrganization = $appConfig->getValueString('localbase', 'ad_organization_definition', '');
+$temporaryOrganization = !$organization->state()['valid'];
+if ($temporaryOrganization) {
+    $organization->save(AdOrganizationDefinition::defaults()->toArray());
+}
+$restoreOrganization = static function () use ($temporaryOrganization, $previousOrganization, $appConfig): void {
+    if (!$temporaryOrganization) return;
+    if ($previousOrganization === '') {
+        $appConfig->deleteKey('localbase', 'ad_organization_definition');
+    } else {
+        $appConfig->setValueString('localbase', 'ad_organization_definition', $previousOrganization);
+    }
+};
 $uid = 'adrecruitment-page-smoke-' . bin2hex(random_bytes(5));
 $password = bin2hex(random_bytes(24));
 $user = $users->createUser($uid, $password);
 if ($user === null) {
+    $restoreOrganization();
     throw new RuntimeException('Das synthetische Browser-Smoke-Konto konnte nicht angelegt werden.');
 }
 
-$groupId = 'adrecruitment-editors';
+$groupId = (string)$organization->definition()->roleGroupId('staff_hr');
 $group = $groups->get($groupId);
 $createdGroup = $group === null;
 $group ??= $groups->createGroup($groupId);
 if ($group === null) {
     $user->delete();
+    $restoreOrganization();
     throw new RuntimeException('Die temporäre AD-Recruitment-Rollengruppe konnte nicht bereitgestellt werden.');
 }
 $group->addUser($user);
 $personId = null;
 
 try {
-    $curl = curl_init('https://nextcloud-dev.ddev.site/index.php/login');
+    $curl = curl_init($baseUrl . '/index.php/apps/adrecruitment/');
     if ($curl === false) {
         throw new RuntimeException('Der HTTPS-Smoke konnte nicht initialisiert werden.');
     }
@@ -52,42 +74,7 @@ try {
         CURLOPT_SSL_VERIFYHOST => false,
         CURLOPT_TIMEOUT => 15,
         CURLOPT_COOKIEFILE => '',
-    ]);
-    $loginBody = curl_exec($curl);
-    $loginStatus = curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
-    $loginError = curl_error($curl);
-    $assert($loginBody !== false, 'Die Nextcloud-Anmeldeseite ist nicht erreichbar: ' . $loginError);
-    $assert($loginStatus === 200, "Die Nextcloud-Anmeldeseite antwortet mit HTTP {$loginStatus}.");
-    $assert(
-        preg_match('/<head[^>]*data-requesttoken="([^"]+)"/i', $loginBody, $loginTokenMatch) === 1,
-        'Der CSRF-Token fehlt auf der Nextcloud-Anmeldeseite.',
-    );
-    $loginToken = html_entity_decode($loginTokenMatch[1], ENT_QUOTES | ENT_HTML5);
-
-    curl_setopt_array($curl, [
-        CURLOPT_URL => 'https://nextcloud-dev.ddev.site/index.php/login',
-        CURLOPT_POST => true,
-        CURLOPT_HTTPHEADER => ['Content-Type: application/x-www-form-urlencoded'],
-        CURLOPT_POSTFIELDS => http_build_query([
-            'user' => $uid,
-            'password' => $password,
-            'requesttoken' => $loginToken,
-            'timezone' => 'Europe/Berlin',
-            'timezone_offset' => '-2',
-        ]),
-    ]);
-    $authenticatedBody = curl_exec($curl);
-    $authenticatedStatus = curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
-    $authenticatedError = curl_error($curl);
-    $assert($authenticatedBody !== false, 'Die synthetische Nextcloud-Anmeldung ist fehlgeschlagen: ' . $authenticatedError);
-    $assert($authenticatedStatus === 200, "Die synthetische Nextcloud-Anmeldung antwortet mit HTTP {$authenticatedStatus}.");
-
-    curl_setopt_array($curl, [
-        CURLOPT_URL => 'https://nextcloud-dev.ddev.site/index.php/apps/adrecruitment/',
-        CURLOPT_POST => false,
-        CURLOPT_HTTPGET => true,
-        CURLOPT_HTTPHEADER => [],
-        CURLOPT_POSTFIELDS => null,
+        CURLOPT_USERPWD => $uid . ':' . $password,
     ]);
     $body = curl_exec($curl);
     $status = curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
@@ -100,6 +87,8 @@ try {
     $assert(str_contains($body, 'id="adrecruitment-app"'), 'Der sichtbare AD-Recruitment-App-Root fehlt.');
     $assert(str_contains($body, '/custom_apps/adrecruitment/css/style.css'), 'Das AD-Recruitment-CSS ist nicht eingebunden.');
     $assert(str_contains($body, '/custom_apps/adrecruitment/js/main.js'), 'Das AD-Recruitment-JavaScript ist nicht eingebunden.');
+    $assert(str_contains($body, '/custom_apps/adrecruitment/js/modules/dialog-overlay.js'), 'Das Dialog-Overlay-Modul ist nicht eingebunden.');
+    $assert(str_contains($body, '/custom_apps/adrecruitment/js/modules/application-workbench.js'), 'Das Bewerbungs-Workbench-Modul ist nicht eingebunden.');
 
     $assert(
         preg_match('/<head[^>]*data-requesttoken="([^"]+)"/i', $body, $tokenMatch) === 1,
@@ -107,7 +96,26 @@ try {
     );
     $requestToken = html_entity_decode($tokenMatch[1], ENT_QUOTES | ENT_HTML5);
     curl_setopt_array($curl, [
-        CURLOPT_URL => 'https://nextcloud-dev.ddev.site/index.php/apps/adrecruitment/api/people',
+        CURLOPT_URL => $baseUrl . '/index.php/apps/adrecruitment/api/bootstrap',
+        CURLOPT_HTTPGET => true,
+        CURLOPT_HTTPHEADER => ['Accept: application/json'],
+    ]);
+    $bootstrapBody = curl_exec($curl);
+    $bootstrapStatus = curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
+    $bootstrapError = curl_error($curl);
+    $assert($bootstrapBody !== false, 'Der authentifizierte Bootstrap-Aufruf ist fehlgeschlagen: ' . $bootstrapError);
+    $assert($bootstrapStatus === 200, "Der authentifizierte Bootstrap-Aufruf antwortet mit HTTP {$bootstrapStatus}: {$bootstrapBody}");
+    $bootstrapPayload = json_decode($bootstrapBody, true, 512, JSON_THROW_ON_ERROR);
+    $assert(isset($bootstrapPayload['data']['jobs'], $bootstrapPayload['data']['people'], $bootstrapPayload['data']['applications']), 'Der Bootstrap liefert keinen vollständigen Bewerbungsarbeitsplatz.');
+    $assert(
+        isset($bootstrapPayload['data']['applicationStatuses'])
+            && in_array('received', $bootstrapPayload['data']['applicationStatuses'], true)
+            && in_array('approved_for_hire', $bootstrapPayload['data']['applicationStatuses'], true),
+        'Der Bootstrap liefert keine geordnete Statuskonfiguration für Board und Tastaturalternative.',
+    );
+
+    curl_setopt_array($curl, [
+        CURLOPT_URL => $baseUrl . '/index.php/apps/adrecruitment/api/people',
         CURLOPT_POST => true,
         CURLOPT_HTTPHEADER => [
             'Accept: application/json',
@@ -149,4 +157,5 @@ try {
     if ($createdGroup) {
         $group->delete();
     }
+    $restoreOrganization();
 }

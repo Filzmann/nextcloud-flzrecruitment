@@ -60,7 +60,9 @@ const window = {
         },
     },
     RecruitmentBubbleText: { appendBubbleText: () => '' },
-    RecruitmentUiData: { csvList: () => [], statusLabel: (value) => value },
+    RecruitmentUiData: { csvList: () => [], sourceLabel: (value) => value, statusLabel: (value) => value },
+    RecruitmentDialogOverlay: { createController: () => ({ open() {}, close() {} }) },
+    RecruitmentApplicationWorkbench: { filterApplications: () => [], groupApplicationsByStatus: () => ({}) },
 }
 window.window = window
 

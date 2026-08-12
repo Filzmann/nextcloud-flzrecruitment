@@ -27,6 +27,12 @@ namespace OCP\AppFramework\Http {
         public function getData(): array { return $this->data; }
         public function getStatus(): int { return $this->status; }
     }
+    final class DataDisplayResponse {
+        public function __construct(private string $data = '', private int $status = 200, private array $headers = []) {}
+        public function getData(): string { return $this->data; }
+        public function getStatus(): int { return $this->status; }
+        public function getHeaders(): array { return $this->headers; }
+    }
 }
 
 namespace OCP\AppFramework\Http\Attribute {
@@ -45,20 +51,43 @@ namespace OCA\Recruitment\AppInfo {
 }
 
 namespace OCA\Recruitment\Service {
+    final class RecruitmentPermissionPolicy {
+        public const DELEGATABLE_CAPABILITIES = ['view', 'interview'];
+    }
+
     final class RecruitmentAccessService {
         public const VIEW = 'view';
         public const MANAGE_CATALOG = 'manage_catalog';
         public const EDIT_APPLICATIONS = 'edit_applications';
         public const INTERVIEW = 'interview';
+        public const EDIT_HIRING_DATA = 'edit_hiring_data';
+        public const VIEW_HIRING_DATA = 'view_hiring_data';
+        public const MANAGE_DOCUMENTS = 'manage_documents';
+        public const COMMUNICATE = 'communicate';
+        public const MANAGE_FIRST_GUIDE_ACCESS = 'manage_first_guide_access';
+        public const MANAGE_BASIS_QUALIFICATION = 'manage_basis_qualification';
+        public const MANAGE_DELEGATIONS = 'manage_delegations';
         /** @var list<string> */
         public array $allowed = [];
         /** @var list<string> */
         public array $required = [];
-        public function require(string $capability): void {
+        public bool $isAdmin = false;
+        public bool $manageInbox = false;
+        public function require(string $capability, ?array $application = null): void {
             $this->required[] = $capability;
             if (!in_array($capability, $this->allowed, true)) {
                 throw new \OCA\Recruitment\Exception\AccessDeniedException('Keine Berechtigung.');
             }
+        }
+        public function requireAnyAccess(): void {
+            $this->required[] = 'any';
+            if ($this->allowed === []) throw new \OCA\Recruitment\Exception\AccessDeniedException('Keine Berechtigung.');
+        }
+        public function requireSomewhere(string $capability): void { $this->require($capability); }
+        public function canSomewhere(string $capability): bool { return in_array($capability, $this->allowed, true); }
+        public function requireManageUnassignedInbox(): void {
+            $this->required[] = 'manage_unassigned_inbox';
+            if (!$this->manageInbox) throw new \OCA\Recruitment\Exception\AccessDeniedException('Keine Berechtigung.');
         }
         public function capabilities(): array {
             return [
@@ -66,8 +95,24 @@ namespace OCA\Recruitment\Service {
                 self::MANAGE_CATALOG => in_array(self::MANAGE_CATALOG, $this->allowed, true),
                 self::EDIT_APPLICATIONS => in_array(self::EDIT_APPLICATIONS, $this->allowed, true),
                 self::INTERVIEW => in_array(self::INTERVIEW, $this->allowed, true),
+                self::EDIT_HIRING_DATA => in_array(self::EDIT_HIRING_DATA, $this->allowed, true),
+                self::VIEW_HIRING_DATA => in_array(self::VIEW_HIRING_DATA, $this->allowed, true),
+                self::MANAGE_DOCUMENTS => false,
+                self::COMMUNICATE => false,
+                self::MANAGE_FIRST_GUIDE_ACCESS => in_array(self::MANAGE_FIRST_GUIDE_ACCESS, $this->allowed, true),
+                self::MANAGE_BASIS_QUALIFICATION => in_array(self::MANAGE_BASIS_QUALIFICATION, $this->allowed, true),
+                self::MANAGE_DELEGATIONS => in_array(self::MANAGE_DELEGATIONS, $this->allowed, true),
+                'manage_unassigned_inbox' => $this->manageInbox,
             ];
         }
+        public function filterOverview(array $overview): array { return $overview; }
+        public function filterHiringData(array $items): array { return $items; }
+        public function organization(): object { return new class {
+            public function toArray(): array { return ['areas' => []]; }
+            public function areaKeys(): array { return []; }
+        }; }
+        public function permissionSettings(): array { return []; }
+        public function isNextcloudAdmin(): bool { return $this->isAdmin; }
         public function currentUid(): string { return 'editor-user'; }
     }
 
@@ -86,6 +131,21 @@ namespace OCA\Recruitment\Service {
                 'allowedStatuses' => ['screening'],
             ];
         }
+        public function applicationSummary(int $id): array { return ['id' => $id, 'status' => 'received', 'areaKey' => '']; }
+        public function applicationForInterview(int $id): array { return ['id' => 7, 'status' => 'received', 'areaKey' => '']; }
+        public function payrollList(): array { return []; }
+        public function basisQualificationRuns(): array {
+            $this->record('basisQualificationRuns', []);
+            return [['id' => 3, 'label' => 'BQ 09/26']];
+        }
+        public function basisQualificationAssignments(int $applicationId): array {
+            $this->record('basisQualificationAssignments', [$applicationId]);
+            return [['id' => 4, 'applicationId' => $applicationId, 'result' => 'pending']];
+        }
+        public function hiringData(int $id): array {
+            $this->record('hiringData', [$id]);
+            return ['data' => ['city' => 'Beispielstadt'], 'version' => 2];
+        }
         public function templateDetail(int $id): array {
             $this->record('templateDetail', [$id]);
             return ['id' => $id, 'revision' => 2];
@@ -97,6 +157,13 @@ namespace OCA\Recruitment\Service {
                 'saveInterviewDraft' => ['id' => $arguments[0], 'status' => 'draft'],
                 'completeInterview' => ['id' => $arguments[0], 'status' => 'completed'],
                 'transitionStatus' => ['id' => $arguments[0], 'status' => $arguments[1]],
+                'saveHiringData' => ['data' => $arguments[1], 'version' => $arguments[2] + 1],
+                'setFirstGuideAccess' => ['id' => $arguments[0], 'firstGuideAccess' => $arguments[1]],
+                'saveRepresentatives' => ['representatives' => $arguments[0], 'revision' => $arguments[1] + 1],
+                'saveFirstGuideGroup' => ['firstGuideGroupId' => $arguments[0], 'revision' => $arguments[1] + 1],
+                'assignBasisQualification' => ['id' => 4, 'applicationId' => $arguments[0], 'result' => 'pending'],
+                'recordBasisQualificationResult' => ['id' => $arguments[0], 'result' => $arguments[1]],
+                'setJobBasisQualificationRequired' => ['id' => $arguments[0], 'basisQualificationRequired' => $arguments[1]],
                 default => 12,
             };
         }
@@ -105,18 +172,69 @@ namespace OCA\Recruitment\Service {
             $this->calls[] = [$method, $arguments];
         }
     }
+
+    final class MailInboxService {
+        /** @var list<array{0:string,1:array}> */
+        public array $calls = [];
+        public function messages(): array { $this->calls[] = ['messages', []]; return [['id' => 21, 'applicationId' => null]]; }
+        public function message(int $id): array { $this->calls[] = ['message', [$id]]; return ['id' => $id, 'applicationId' => null, 'version' => 1]; }
+        public function messagesForApplication(int $id): array { $this->calls[] = ['messagesForApplication', [$id]]; return [['id' => 21, 'applicationId' => $id]]; }
+        public function assign(int $id, int $applicationId, int $version, string $actorUid): array {
+            $this->calls[] = ['assign', [$id, $applicationId, $version, $actorUid]];
+            return ['id' => $id, 'applicationId' => $applicationId, 'state' => 'assigned', 'version' => $version + 1];
+        }
+        public function ignore(int $id, int $version, string $actorUid): array {
+            $this->calls[] = ['ignore', [$id, $version, $actorUid]];
+            return ['id' => $id, 'state' => 'ignored', 'version' => $version + 1];
+        }
+    }
+
+    final class DocumentReviewService {
+        public ?int $applicationId = null;
+        /** @var list<array{0:string,1:array}> */
+        public array $calls = [];
+        public function context(int $id): array { $this->calls[] = ['context', [$id]]; return ['id' => $id, 'applicationId' => $this->applicationId]; }
+        public function document(int $id): array { $this->calls[] = ['document', [$id]]; return ['content' => '%PDF-1.4', 'originalName' => 'Dokument.pdf', 'mimeType' => 'application/pdf', 'contentHash' => 'hash']; }
+        public function comments(int $id): array { $this->calls[] = ['comments', [$id]]; return [['id' => 1, 'attachmentId' => $id]]; }
+        public function addComment(int $id, string $kind, string $body, ?int $pageNumber, string $anchorColumn, string $clientKey, string $actorUid): array {
+            $this->calls[] = ['addComment', [$id, $kind, $body, $pageNumber, $anchorColumn, $clientKey, $actorUid]];
+            return ['id' => 1, 'attachmentId' => $id, 'kind' => $kind, 'body' => $body];
+        }
+    }
+
+    final class DocumentFieldLinkService {
+        /** @var list<array{0:string,1:array}> */
+        public array $calls = [];
+        public function requiredCapability(string $targetField): string {
+            $this->calls[] = ['requiredCapability', [$targetField]];
+            return in_array($targetField, ['birthDate', 'birthPlace'], true)
+                ? RecruitmentAccessService::EDIT_HIRING_DATA
+                : RecruitmentAccessService::EDIT_APPLICATIONS;
+        }
+        public function fieldContext(int $id, string $targetField): array {
+            $this->calls[] = ['fieldContext', [$id, $targetField]];
+            return ['applicationId' => 7, 'targetField' => $targetField, 'value' => '', 'version' => 3];
+        }
+        public function linkSelection(
+            int $id, string $targetField, string $selectedText, string $appliedValue,
+            int $pageNumber, array $rectangles, bool $replaceExisting, int $expectedVersion,
+            string $clientKey, string $actorUid,
+        ): array {
+            $this->calls[] = ['linkSelection', func_get_args()];
+            return ['id' => 5, 'attachmentId' => $id, 'targetField' => $targetField, 'resultValue' => $appliedValue];
+        }
+    }
 }
 
 namespace {
-    require __DIR__ . '/../lib/Exception/AccessDeniedException.php';
-    require __DIR__ . '/../lib/Exception/ConflictException.php';
-    require __DIR__ . '/../lib/Exception/NotFoundException.php';
-    require __DIR__ . '/../lib/Exception/ValidationException.php';
-    require __DIR__ . '/../lib/Controller/ApiController.php';
+    require_once __DIR__ . '/bootstrap.php';
 
     use OCA\Recruitment\Controller\ApiController;
     use OCA\Recruitment\Service\RecruitmentAccessService;
     use OCA\Recruitment\Service\RecruitmentUseCaseService;
+    use OCA\Recruitment\Service\MailInboxService;
+    use OCA\Recruitment\Service\DocumentReviewService;
+    use OCA\Recruitment\Service\DocumentFieldLinkService;
     use OCP\AppFramework\Http;
 
     $assert = static function (bool $condition, string $message): void {
@@ -126,6 +244,9 @@ namespace {
     $request = new class implements \OCP\IRequest {};
     $access = new RecruitmentAccessService();
     $useCases = new RecruitmentUseCaseService();
+    $inbox = new MailInboxService();
+    $documentReview = new DocumentReviewService();
+    $documentFieldLinks = new DocumentFieldLinkService();
     $logger = new class implements \Psr\Log\LoggerInterface {
         public array $errors = [];
         public function error(string $message, array $context = []): void { $this->errors[] = [$message, $context]; }
@@ -134,26 +255,90 @@ namespace {
         $request,
         $access,
         $useCases,
+        $inbox,
+        $documentReview,
+        $documentFieldLinks,
         $logger,
     );
 
     $response = $controller->bootstrap();
     $assert($response->getStatus() === Http::STATUS_FORBIDDEN, 'Anonymous API access is not rejected.');
     $assert($useCases->calls === [], 'Denied access reaches application services.');
-    $assert($access->required === [RecruitmentAccessService::VIEW], 'Bootstrap does not require view access.');
+    $assert($access->required === ['any'], 'Bootstrap does not require app access.');
 
     $access->allowed = [
         RecruitmentAccessService::VIEW,
         RecruitmentAccessService::MANAGE_CATALOG,
         RecruitmentAccessService::EDIT_APPLICATIONS,
         RecruitmentAccessService::INTERVIEW,
+        RecruitmentAccessService::EDIT_HIRING_DATA,
+        RecruitmentAccessService::VIEW_HIRING_DATA,
+        RecruitmentAccessService::MANAGE_FIRST_GUIDE_ACCESS,
+        RecruitmentAccessService::MANAGE_BASIS_QUALIFICATION,
     ];
     $access->required = [];
     $response = $controller->bootstrap();
     $assert($response->getStatus() === Http::STATUS_OK, 'Authorized bootstrap access fails.');
     $assert($response->getData()['data']['applications'][0]['id'] === 7, 'Bootstrap data is not forwarded.');
     $assert($response->getData()['capabilities']['view'] === true, 'Capabilities are not forwarded.');
-    $assert($access->required === [RecruitmentAccessService::VIEW], 'Authorized bootstrap skips its capability gate.');
+    $assert($access->required === ['any'], 'Authorized bootstrap skips its access gate.');
+    $assert($response->getData()['basisQualificationRuns'][0]['label'] === 'BQ 09/26', 'BQ runs are not forwarded for HR.');
+
+    $access->required = [];
+    $response = $controller->inbox();
+    $assert($response->getStatus() === Http::STATUS_FORBIDDEN, 'Scoped users can read the unassigned inbox.');
+    $assert($inbox->calls === [], 'Denied inbox access reaches the mail service.');
+    $access->manageInbox = true;
+    $access->required = [];
+    $response = $controller->inbox();
+    $assert($response->getData()['messages'][0]['id'] === 21, 'Authorized inbox data is not forwarded.');
+    $assert($access->required === ['manage_unassigned_inbox'], 'Inbox does not require its global gate.');
+    $response = $controller->assignInboxMessage(21, 7, 1);
+    $assert($response->getData()['applicationId'] === 7, 'Inbox assignment is not forwarded.');
+    $assert($inbox->calls[1] === ['assign', [21, 7, 1, 'editor-user']], 'Inbox assignment uses the wrong arguments.');
+
+    $documentReview->calls = [];
+    $response = $controller->attachmentDocument(31);
+    $assert($response->getStatus() === Http::STATUS_OK, 'Authorized unassigned PDF cannot be displayed.');
+    $assert($response->getData() === '%PDF-1.4', 'Inline PDF bytes are not forwarded unchanged.');
+    $assert($documentReview->calls === [['context', [31]], ['document', [31]]], 'PDF bytes are read before or without the inbox gate.');
+
+    $access->manageInbox = false;
+    $documentReview->calls = [];
+    $response = $controller->attachmentDocument(31);
+    $assert($response->getStatus() === Http::STATUS_FORBIDDEN, 'Unassigned PDFs are visible without inbox access.');
+    $assert($documentReview->calls === [['context', [31]]], 'A denied PDF request reads file content.');
+    $response = $controller->attachmentFieldContext(31, 'previousExperience');
+    $assert($response->getStatus() === Http::STATUS_UNPROCESSABLE_ENTITY, 'An unassigned PDF exposes applicant-field linking.');
+    $assert($documentFieldLinks->calls === [], 'Unassigned PDF field linking reaches the domain service.');
+
+    $documentReview->applicationId = 7;
+    $documentReview->calls = [];
+    $response = $controller->attachmentDocument(31);
+    $assert($response->getStatus() === Http::STATUS_OK, 'Scoped dossier PDF cannot be displayed.');
+    $response = $controller->createAttachmentComment(31, 'free', 'Hinweis', null, '', 'request-0001');
+    $assert($response->getStatus() === Http::STATUS_FORBIDDEN, 'A reader can write document comments.');
+    $assert(!array_filter($documentReview->calls, static fn(array $call): bool => $call[0] === 'addComment'), 'Denied comment write reaches persistence.');
+    $response = $controller->attachmentFieldContext(31, 'previousExperience');
+    $assert($response->getStatus() === Http::STATUS_FORBIDDEN, 'A dossier reader can prepare PDF field writes.');
+    $assert(!array_filter($documentFieldLinks->calls, static fn(array $call): bool => $call[0] === 'fieldContext'), 'Denied PDF field context reaches the field-link service.');
+    $access->allowed[] = RecruitmentAccessService::MANAGE_DOCUMENTS;
+    $response = $controller->createAttachmentComment(31, 'anchored', 'Fundstelle', 2, 'right', 'request-0002');
+    $assert($response->getStatus() === Http::STATUS_CREATED, 'Authorized document comment cannot be created.');
+    $assert(end($documentReview->calls) === ['addComment', [31, 'anchored', 'Fundstelle', 2, 'right', 'request-0002', 'editor-user']], 'Document comment arguments are not forwarded.');
+    $response = $controller->attachmentFieldContext(31, 'previousExperience');
+    $assert($response->getStatus() === Http::STATUS_OK, 'Authorized PDF field context cannot be read.');
+    $rectangles = [['x' => 0.1, 'y' => 0.2, 'width' => 0.3, 'height' => 0.04]];
+    $response = $controller->createAttachmentFieldLink(31, 'previousExperience', 'Assistenz', 'Zwei Jahre Assistenz', 2, $rectangles, false, 3, 'selection-0001');
+    $assert($response->getStatus() === Http::STATUS_CREATED, 'Authorized PDF selection cannot be linked.');
+    $assert(end($documentFieldLinks->calls)[0] === 'linkSelection', 'PDF field-link write is not forwarded.');
+
+    $access->allowed[] = RecruitmentAccessService::MANAGE_DELEGATIONS;
+    $access->required = [];
+    $response = $controller->bootstrap();
+    $assert($response->getStatus() === Http::STATUS_OK, 'Permission administration bootstrap fails.');
+    $assert($response->getData()['delegatableCapabilities'] === ['view', 'interview'], 'Delegatable capabilities are missing.');
+    $assert(array_key_exists('permissionSettings', $response->getData()), 'Permission settings are not forwarded.');
 
     $access->required = [];
     $response = $controller->applicationDetail(8);
@@ -162,9 +347,16 @@ namespace {
     $assert($access->required === [RecruitmentAccessService::VIEW], 'Application detail skips its capability gate.');
 
     $access->required = [];
+    $useCases->calls = [];
+    $response = $controller->hiringData(8);
+    $assert($response->getData()['version'] === 2, 'Hiring data is not forwarded.');
+    $assert($access->required === [RecruitmentAccessService::VIEW_HIRING_DATA], 'Hiring data skips its scoped read gate.');
+    $assert($useCases->calls === [['hiringData', [8]]], 'Hiring data reads the wrong application.');
+
+    $access->required = [];
     $response = $controller->templateDetail(9);
     $assert($response->getData() === ['id' => 9, 'revision' => 2], 'Template detail is not forwarded.');
-    $assert($access->required === [RecruitmentAccessService::VIEW], 'Template detail skips its capability gate.');
+    $assert($access->required === [], 'Template detail uses an unexpected object gate.');
 
     $writeCases = [
         [
@@ -175,12 +367,54 @@ namespace {
                 ['editor-user'],
                 ['recruiting'],
                 'engineering',
+                true,
+                'assistance',
             ),
             RecruitmentAccessService::MANAGE_CATALOG,
             'createJob',
-            ['Interner Titel', 'Öffentlicher Titel', true, ['editor-user'], ['recruiting'], 'engineering'],
+            ['Interner Titel', 'Öffentlicher Titel', true, ['editor-user'], ['recruiting'], 'engineering', true, 'assistance'],
             Http::STATUS_CREATED,
             ['id' => 12],
+        ],
+        [
+            static fn (): \OCP\AppFramework\Http\JSONResponse => $controller->setJobBasisQualificationRequired(6, true, 2),
+            RecruitmentAccessService::MANAGE_BASIS_QUALIFICATION,
+            'setJobBasisQualificationRequired',
+            [6, true, 2, 'editor-user'],
+            Http::STATUS_OK,
+            ['id' => 6, 'basisQualificationRequired' => true],
+        ],
+        [
+            static fn (): \OCP\AppFramework\Http\JSONResponse => $controller->createBasisQualificationRun(
+                '2026-09-07',
+                '2026-09-18',
+            ),
+            RecruitmentAccessService::MANAGE_BASIS_QUALIFICATION,
+            'createBasisQualificationRun',
+            ['2026-09-07', '2026-09-18', 'editor-user'],
+            Http::STATUS_CREATED,
+            ['id' => 12],
+        ],
+        [
+            static fn (): \OCP\AppFramework\Http\JSONResponse => $controller->assignBasisQualification(13, 3, 4),
+            RecruitmentAccessService::MANAGE_BASIS_QUALIFICATION,
+            'assignBasisQualification',
+            [13, 3, 4, 'editor-user'],
+            Http::STATUS_CREATED,
+            ['id' => 4, 'applicationId' => 13, 'result' => 'pending'],
+        ],
+        [
+            static fn (): \OCP\AppFramework\Http\JSONResponse => $controller->recordBasisQualificationResult(
+                4,
+                'not_suitable',
+                'Einfache Bewertung',
+                1,
+            ),
+            RecruitmentAccessService::MANAGE_BASIS_QUALIFICATION,
+            'recordBasisQualificationResult',
+            [4, 'not_suitable', 'Einfache Bewertung', 1, 'editor-user'],
+            Http::STATUS_OK,
+            ['id' => 4, 'result' => 'not_suitable'],
         ],
         [
             static fn (): \OCP\AppFramework\Http\JSONResponse => $controller->createPerson(
@@ -202,10 +436,12 @@ namespace {
                 'manual',
                 '2026-07-27',
                 'editor-user',
+                20.5,
+                30.0,
             ),
             RecruitmentAccessService::EDIT_APPLICATIONS,
             'createApplication',
-            [4, 5, 'manual', '2026-07-27', 'editor-user'],
+            [4, 5, 'manual', '2026-07-27', 'editor-user', 20.5, 30.0],
             Http::STATUS_CREATED,
             ['id' => 12],
         ],
@@ -311,9 +547,37 @@ namespace {
             ),
             RecruitmentAccessService::EDIT_APPLICATIONS,
             'transitionStatus',
-            [13, 'screening', 4, 'editor-user'],
+            [13, 'screening', 4, 'editor-user', '', []],
             Http::STATUS_OK,
             ['id' => 13, 'status' => 'screening'],
+        ],
+        [
+            static fn (): \OCP\AppFramework\Http\JSONResponse => $controller->saveHiringData(
+                13,
+                ['city' => 'Beispielstadt'],
+                2,
+            ),
+            RecruitmentAccessService::EDIT_HIRING_DATA,
+            'saveHiringData',
+            [13, ['city' => 'Beispielstadt'], 2, 'editor-user'],
+            Http::STATUS_OK,
+            ['data' => ['city' => 'Beispielstadt'], 'version' => 3],
+        ],
+        [
+            static fn (): \OCP\AppFramework\Http\JSONResponse => $controller->setFirstGuideAccess(13, false, 5),
+            RecruitmentAccessService::MANAGE_FIRST_GUIDE_ACCESS,
+            'setFirstGuideAccess',
+            [13, false, 5, 'editor-user'],
+            Http::STATUS_OK,
+            ['id' => 13, 'firstGuideAccess' => false],
+        ],
+        [
+            static fn (): \OCP\AppFramework\Http\JSONResponse => $controller->saveRepresentatives([], 3),
+            RecruitmentAccessService::MANAGE_DELEGATIONS,
+            'saveRepresentatives',
+            [[], 3, 'editor-user', []],
+            Http::STATUS_OK,
+            ['representatives' => [], 'revision' => 4],
         ],
     ];
 
@@ -326,6 +590,34 @@ namespace {
         $assert($access->required === [$capability], $method . ' checks the wrong capability.');
         $assert($useCases->calls === [[$method, $arguments]], $method . ' does not forward its arguments exactly.');
     }
+
+    $access->required = [];
+    $useCases->calls = [];
+    $response = $controller->basisQualificationAssignments(13);
+    $assert($response->getData()[0]['applicationId'] === 13, 'BQ assignments are not forwarded.');
+    $assert($access->required === [RecruitmentAccessService::MANAGE_BASIS_QUALIFICATION], 'BQ detail skips the HR-only gate.');
+
+    $access->allowed = array_values(array_filter(
+        $access->allowed,
+        static fn(string $capability): bool => $capability !== RecruitmentAccessService::MANAGE_BASIS_QUALIFICATION,
+    ));
+    $access->required = [];
+    $useCases->calls = [];
+    $response = $controller->assignBasisQualification(999, 3, 1);
+    $assert($response->getStatus() === Http::STATUS_FORBIDDEN, 'A non-HR user can assign a foreign application to BQ.');
+    $assert($useCases->calls === [], 'Denied BQ assignment reaches the use case or mutates data.');
+
+    $useCases->calls = [];
+    $response = $controller->saveFirstGuideGroup('first-guides', 4);
+    $assert($response->getStatus() === Http::STATUS_FORBIDDEN, 'Non-admins can change the structural first-guide group.');
+    $assert($useCases->calls === [], 'Denied structural group change reaches the use case.');
+
+    $access->isAdmin = true;
+    $useCases->calls = [];
+    $response = $controller->saveFirstGuideGroup('first-guides', 4);
+    $assert($response->getData() === ['firstGuideGroupId' => 'first-guides', 'revision' => 5], 'First-guide group is not saved for Nextcloud admins.');
+    $assert($useCases->calls === [['saveFirstGuideGroup', ['first-guides', 4, 'editor-user']]], 'First-guide group arguments are not forwarded.');
+    $access->isAdmin = false;
 
     foreach ([
         [new \OCA\Recruitment\Exception\AccessDeniedException('Verboten.'), Http::STATUS_FORBIDDEN],

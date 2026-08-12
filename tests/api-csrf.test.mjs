@@ -76,6 +76,11 @@ function loadApi({
         [() => api.application(7), '/api/applications/7', 'GET', null],
         [() => api.template(8), '/api/templates/8', 'GET', null],
         [() => api.createJob({ title: 'Entwicklung' }), '/api/jobs', 'POST', { title: 'Entwicklung' }],
+        [() => api.createBasisQualificationRun({ startsOn: '2026-09-07', endsOn: '2026-09-18' }), '/api/basis-qualifications', 'POST', { startsOn: '2026-09-07', endsOn: '2026-09-18' }],
+        [() => api.setJobBasisQualificationRequired(6, true, 2), '/api/jobs/6/basis-qualification', 'PUT', { required: true, version: 2 }],
+        [() => api.basisQualificationAssignments(7), '/api/applications/7/basis-qualifications', 'GET', null],
+        [() => api.assignBasisQualification(7, 3, 4), '/api/applications/7/basis-qualification', 'POST', { runId: 3, version: 4 }],
+        [() => api.recordBasisQualificationResult(5, 'suitable', 'Geeignet', 1), '/api/basis-qualification-assignments/5/result', 'PUT', { result: 'suitable', note: 'Geeignet', version: 1 }],
         [() => api.createPerson({ givenName: 'Alex' }), '/api/people', 'POST', { givenName: 'Alex' }],
         [() => api.createApplication({ personId: 4 }), '/api/applications', 'POST', { personId: 4 }],
         [() => api.createTemplate({ name: 'Erstgespräch' }), '/api/templates', 'POST', { name: 'Erstgespräch' }],
@@ -85,7 +90,21 @@ function loadApi({
         [() => api.createInterview(12, 13), '/api/applications/12/interviews', 'POST', { templateId: 13 }],
         [() => api.saveDraft(14, { 1: 'Antwort' }, 2), '/api/interviews/14/draft', 'PUT', { answers: { 1: 'Antwort' }, version: 2 }],
         [() => api.completeInterview(15, { 2: 'Ja' }, 3), '/api/interviews/15/complete', 'POST', { answers: { 2: 'Ja' }, version: 3 }],
-        [() => api.transitionStatus(16, 'screening', 4), '/api/applications/16/status', 'POST', { status: 'screening', version: 4 }],
+        [() => api.transitionStatus(16, 'screening', 4), '/api/applications/16/status', 'POST', { status: 'screening', version: 4, areaKey: '' }],
+        [() => api.hiringData(16), '/api/applications/16/hiring-data', 'GET', null],
+        [() => api.saveHiringData(16, { iban: 'DE89' }, 1), '/api/applications/16/hiring-data', 'PUT', { data: { iban: 'DE89' }, version: 1 }],
+        [() => api.setFirstGuideAccess(16, false, 5), '/api/applications/16/first-guide-access', 'PUT', { enabled: false, version: 5 }],
+        [() => api.saveRepresentatives([], 2), '/api/permissions/representatives', 'PUT', { representatives: [], revision: 2 }],
+        [() => api.saveFirstGuideGroup('first-guides', 3), '/api/permissions/first-guide-group', 'PUT', { groupId: 'first-guides', revision: 3 }],
+        [() => api.inbox(), '/api/inbox', 'GET', null],
+        [() => api.inboxMessage(21), '/api/inbox/21', 'GET', null],
+        [() => api.applicationMessages(16), '/api/applications/16/messages', 'GET', null],
+        [() => api.assignInboxMessage(21, 16, 2), '/api/inbox/21/assign', 'POST', { applicationId: 16, version: 2 }],
+        [() => api.ignoreInboxMessage(21, 2), '/api/inbox/21/ignore', 'POST', { version: 2 }],
+        [() => api.attachmentComments(31), '/api/attachments/31/comments', 'GET', null],
+        [() => api.createDocumentComment(31, { kind: 'free', body: 'Hinweis' }), '/api/attachments/31/comments', 'POST', { kind: 'free', body: 'Hinweis' }],
+        [() => api.attachmentFieldContext(31, 'birthDate'), '/api/attachments/31/field-context/birthDate', 'GET', null],
+        [() => api.createAttachmentFieldLink(31, { targetField: 'birthDate', pageNumber: 1 }), '/api/attachments/31/field-links', 'POST', { targetField: 'birthDate', pageNumber: 1 }],
     ]
 
     for (const [invoke, path, method, body] of cases) {
@@ -104,6 +123,12 @@ function loadApi({
             assert.equal(request.options.headers['Content-Type'], 'application/json')
         }
     }
+}
+
+{
+    const { api, requests } = loadApi({ authToken: 'token' })
+    assert.equal(api.documentUrl(31), '/apps/adrecruitment/api/attachments/31/document')
+    assert.equal(requests.length, 0, 'Generating an inline document URL must not start a request itself')
 }
 
 for (const tokenCase of [

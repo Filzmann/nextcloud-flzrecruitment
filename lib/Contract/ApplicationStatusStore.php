@@ -15,5 +15,7 @@ interface ApplicationStatusStore {
         string $toStatus,
         int $expectedVersion,
         string $actorUid,
+        ?string $areaKey,
+        bool $enableFirstGuideAccess,
     ): array;
 }
