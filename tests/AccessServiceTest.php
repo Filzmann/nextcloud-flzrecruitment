@@ -6,8 +6,6 @@ namespace OCA\LocalBase\AppInfo { final class Application { public const APP_ID 
 namespace OCA\Recruitment\AppInfo { final class Application { public const APP_ID = 'adrecruitment'; } }
 
 namespace {
-    require_once __DIR__ . '/bootstrap.php';
-
     use OCA\LocalBase\Organization\AdOrganizationSettingsService;
     use OCA\LocalBase\Organization\AdOrganizationSnapshotService;
     use OCA\Recruitment\Exception\AccessDeniedException;
@@ -68,11 +66,13 @@ namespace {
     TestRunner::test('HR receives full access and payroll only released hiring data', static function () use ($dependencies): void {
         $hr = $dependencies('hr-user', ['ad-Stab-HR' => ['hr-user']]);
         assertTrue($hr->can(RecruitmentAccessService::MANAGE_DELEGATIONS));
+        assertTrue($hr->can(RecruitmentAccessService::OVERRIDE_STATUS_TRANSITIONS));
         assertTrue($hr->can(RecruitmentAccessService::INTERVIEW, ['id' => 1, 'status' => 'screening', 'areaKey' => '', 'firstGuideAccess' => false]));
 
         $payroll = $dependencies('payroll-user', ['ad-Lohn' => ['payroll-user']]);
         $approved = ['id' => 2, 'status' => 'approved_for_hire', 'areaKey' => 'west', 'firstGuideAccess' => true];
         assertTrue($payroll->can(RecruitmentAccessService::VIEW_HIRING_DATA, $approved));
+        assertTrue($payroll->can(RecruitmentAccessService::EDIT_PAYROLL_DATA, $approved));
         assertSame(false, $payroll->can(RecruitmentAccessService::VIEW, $approved));
     });
 
@@ -80,6 +80,7 @@ namespace {
         $admin = $dependencies('admin-user', [], ['admin-user']);
         assertTrue($admin->can(RecruitmentAccessService::MANAGE_CATALOG));
         assertTrue($admin->can(RecruitmentAccessService::MANAGE_DELEGATIONS));
+        assertTrue($admin->can(RecruitmentAccessService::OVERRIDE_STATUS_TRANSITIONS));
     });
 
     TestRunner::test('scoped overview keeps ordered workbench statuses', static function () use ($dependencies): void {

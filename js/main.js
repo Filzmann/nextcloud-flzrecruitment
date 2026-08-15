@@ -6,7 +6,17 @@
     const { csvList, desiredHoursLabel, sourceLabel, statusLabel } = root.RecruitmentUiData
     const { createController: createDialogController } = root.RecruitmentDialogOverlay
     const pdfLightbox = root.RecruitmentPdfLightbox
-    const { canMoveApplication, filterApplications, groupApplicationsByStatus } = root.RecruitmentApplicationWorkbench
+    const richTextEditor = root.RecruitmentRichTextEditor
+    const settingsNavigation = root.RecruitmentSettingsNavigation
+    const contactLinks = root.ADRecruitmentContactLinks || { emailHref: () => '', emailLinkAttributes: () => null, phoneHref: () => '' }
+    const {
+        DEFAULT_APPLICATION_VIEW,
+        canMoveApplication,
+        filterApplications,
+        groupApplicationsByStatus,
+        requiresStatusOverride,
+        statusTargets,
+    } = root.RecruitmentApplicationWorkbench
     const content = document.getElementById('adrecruitment-content')
     const tabs = document.getElementById('adrecruitment-tabs')
     const status = document.getElementById('adrecruitment-status')
@@ -17,12 +27,15 @@
         areas: [],
         hiringData: [],
         basisQualificationRuns: [],
+        jobResponsibilityGroups: [],
         permissionSettings: null,
+        mailConfiguration: null,
+        candidatePool: null,
         delegatableCapabilities: [],
-        isNextcloudAdmin: false,
         inboxMessages: [],
         activeTab: 'applications',
-        applicationView: 'table',
+        activeSettingsSection: 'templates',
+        applicationView: DEFAULT_APPLICATION_VIEW,
         applicationFilters: {
             query: '', jobId: '', status: '', areaKey: '', assigneeUid: '',
             receivedFrom: '', receivedTo: '', sort: 'received_desc',
@@ -35,19 +48,35 @@
         ['street', 'Straße'], ['houseNumber', 'Hausnummer'], ['postalCode', 'Postleitzahl'],
         ['city', 'Ort'], ['country', 'Land'], ['nationality', 'Staatsangehörigkeit'],
         ['privateEmail', 'Private E-Mail', 'email'], ['privatePhone', 'Private Telefonnummer', 'tel'],
-        ['iban', 'IBAN'], ['bic', 'BIC'],
-        ['accountHolder', 'Kontoinhaber*in'], ['healthInsurance', 'Krankenkasse'],
-        ['healthInsuranceType', 'Versicherungsart'], ['socialSecurityNumber', 'Sozialversicherungsnummer'],
-        ['taxId', 'Steuer-ID'], ['taxClass', 'Steuerklasse'],
         ['plannedStartDate', 'Geplanter Eintritt', 'date'], ['contractType', 'Beschäftigungsform'],
-        ['contractTerm', 'Vertragsdauer'], ['workingTimeModel', 'Arbeitszeitmodell'],
-        ['positionTitle', 'Tätigkeitsbezeichnung'], ['workLocation', 'Arbeitsort'],
-        ['payGrade', 'Entgeltgruppe'], ['payStep', 'Tarifstufe'],
-        ['weeklyHours', 'Wochenstunden', 'number'], ['salaryAmount', 'Monatsentgelt', 'number'],
-        ['salaryCurrency', 'Währung'], ['vacationDays', 'Urlaubstage', 'number'],
+        ['positionTitle', 'Tätigkeitsbezeichnung'], ['payStep', 'Tarifstufe'],
         ['contractEndDate', 'Vertragsende', 'date'],
     ]
+    const payrollOnlyFields = [
+        ['iban', 'IBAN'], ['bic', 'BIC'], ['accountHolder', 'Kontoinhaber*in'],
+        ['healthInsurance', 'Krankenkasse'], ['healthInsuranceType', 'Versicherungsart'],
+        ['socialSecurityNumber', 'Sozialversicherungsnummer'], ['taxId', 'Steuer-ID'], ['taxClass', 'Steuerklasse'],
+    ]
+    const jobDerivedHiringFields = [
+        ['contractTerm', 'Vertragsdauer'], ['workingTimeModel', 'Arbeitszeitmodell'],
+        ['workLocation', 'Arbeitsort'], ['payGrade', 'Entgeltgruppe'],
+        ['weeklyHours', 'Ausgeschriebene Wochenstunden'], ['vacationDays', 'Urlaubstage gemäß HTV'],
+    ]
     const hiringChoices = {
+        salutation: [
+            { value: 'female', label: 'Frau' }, { value: 'male', label: 'Herr' },
+            { value: 'diverse', label: 'Divers' }, { value: 'neutral', label: 'Keine Anrede' },
+        ],
+        title: [
+            { value: 'dr', label: 'Dr.' }, { value: 'prof', label: 'Prof.' },
+            { value: 'prof_dr', label: 'Prof. Dr.' },
+        ],
+        healthInsuranceType: [
+            { value: 'statutory', label: 'Gesetzlich' },
+            { value: 'private', label: 'Privat' },
+            { value: 'other', label: 'Sonstige' },
+        ],
+        taxClass: ['1', '2', '3', '4', '5', '6'].map((value) => ({ value, label: `Steuerklasse ${value}` })),
         contractType: [
             { value: 'marginal', label: 'Geringfügig' },
             { value: 'social_insurance', label: 'Sozialversicherungspflichtig' },
@@ -65,6 +94,30 @@
         payGrade: ['3', '5', '8', '9a', '9b', '10', '11', '12', '13'].map((value) => ({ value, label: `EG ${value}` })),
         payStep: ['1', '2', '3', '4', '5', '6'].map((value) => ({ value, label: `Stufe ${value}` })),
     }
+    const hiringLengths = {
+        birthName: 80, birthPlace: 80, street: 100, houseNumber: 12,
+        postalCode: 10, city: 80, country: 80, nationality: 80,
+        privateEmail: 254, privatePhone: 40, positionTitle: 120,
+        iban: 34, bic: 11, accountHolder: 120, healthInsurance: 120,
+        socialSecurityNumber: 20, taxId: 11,
+    }
+
+    function hiringControl(name, type, value, choices = null) {
+        const control = choices
+            ? select(name, [{ value: '', label: 'Bitte wählen' }].concat(choices), value ?? '')
+            : input(name, type, false, value ?? '')
+        control.classList.add('adrecruitment-content-input')
+        if (type === 'date') control.classList.add('is-date')
+        const maxlength = hiringLengths[name]
+        if (maxlength) {
+            control.maxLength = maxlength
+            control.size = Math.min(maxlength, name === 'privateEmail' || name === 'accountHolder' ? 32 : 20)
+        }
+        if (name === 'postalCode') { control.inputMode = 'numeric'; control.pattern = '[0-9A-Za-z -]{3,10}' }
+        if (name === 'taxId') { control.inputMode = 'numeric'; control.pattern = '[0-9]{11}' }
+        if (name === 'iban' || name === 'bic') control.style.textTransform = 'uppercase'
+        return control
+    }
     const professionCategories = [
         { value: 'assistance', label: 'Assistenz' },
         { value: 'nursing', label: 'Pflegefachkraft' },
@@ -77,6 +130,8 @@
         edit_applications: 'Bewerbungen bearbeiten', interview: 'Interviews bearbeiten',
         edit_hiring_data: 'Einstellungsstammdaten bearbeiten', view_hiring_data: 'Einstellungsstammdaten lesen',
         manage_documents: 'Dokumente verwalten', communicate: 'Kommunikation bearbeiten',
+        manage_mail_templates: 'Mailvorlagen verwalten',
+        manage_candidate_pool: 'Bewerberpool verwalten',
         manage_first_guide_access: 'Erstbegleitungszugriff steuern',
     }
 
@@ -104,6 +159,14 @@
         return label
     }
 
+    function richTextField(labelText, editor, hint = '') {
+        const wrapper = element('div', { className: 'adrecruitment-field' }, [
+            element('span', { text: labelText }), editor.element,
+        ])
+        if (hint) wrapper.append(element('small', { text: hint }))
+        return wrapper
+    }
+
     function input(name, type = 'text', required = false, value = '') {
         return element('input', { name, type, required, value })
     }
@@ -123,6 +186,38 @@
 
     function button(text, type = 'submit', className = '') {
         return element('button', { type, text, className })
+    }
+
+    function contactNode(value, kind) {
+        const text = String(value || '').trim()
+        if (kind === 'email') {
+            const attributes = contactLinks.emailLinkAttributes(text)
+            return attributes
+                ? element('a', { ...attributes, target: '_blank', rel: 'noopener noreferrer', text, className: 'adrecruitment-contact-link' })
+                : element('span', { text })
+        }
+        const href = contactLinks.phoneHref(text)
+        return href ? element('a', { href, text, className: 'adrecruitment-contact-link' }) : element('span', { text })
+    }
+
+    function contactLine(email, phone) {
+        const children = []
+        if (email) children.push(contactNode(email, 'email'))
+        if (email && phone) children.push(element('span', { text: ' · ', 'aria-hidden': 'true' }))
+        if (phone) children.push(contactNode(phone, 'phone'))
+        return element('span', { className: 'adrecruitment-contact-line' }, children)
+    }
+
+    function mailBodyHtml(body, format = 'plain') {
+        if (format === 'html') return String(body || '')
+        const escaped = String(body || '').trim()
+            .replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
+            .replaceAll('"', '&quot;').replaceAll("'", '&#039;')
+        return `<p>${escaped.replaceAll(/\r\n|\r|\n/g, '<br>')}</p>`
+    }
+
+    function mailEditor(body, format = 'plain') {
+        return richTextEditor.create({ name: 'body', html: mailBodyHtml(body, format) })
     }
 
     let overlaySequence = 0
@@ -197,14 +292,15 @@
     function renderTabs() {
         tabs.replaceChildren()
         tabs.setAttribute('role', 'tablist')
+        const settingsSections = settingsNavigation.sections(state.capabilities)
         const definitions = [
             ...(state.capabilities.manage_unassigned_inbox ? [['inbox', 'Posteingang']] : []),
             ...(state.capabilities.view_dossier ? [['applications', 'Bewerbungen']] : []),
             ...(state.capabilities.manage_catalog ? [['jobs', 'Stellen']] : []),
-            ...(state.capabilities.manage_catalog || state.capabilities.interview ? [['templates', 'Interviewvorlagen']] : []),
             ...(state.capabilities.manage_basis_qualification ? [['basis-qualifications', 'Basisqualifikationen']] : []),
+            ...(state.capabilities.manage_candidate_pool ? [['candidate-pool', 'Rückstellungen']] : []),
             ...(state.capabilities.view_hiring_data ? [['payroll', 'Vertragsvorbereitung']] : []),
-            ...(state.capabilities.manage_delegations ? [['permissions', 'Berechtigungen']] : []),
+            ...(settingsSections.length ? [['settings', 'Einstellungen']] : []),
         ]
         if (!definitions.some(([id]) => id === state.activeTab)) {
             state.activeTab = definitions[0]?.[0] || ''
@@ -235,10 +331,10 @@
         renderTabs()
         if (id === 'inbox') renderInbox()
         else if (id === 'jobs') renderJobs()
-        else if (id === 'templates') renderTemplates()
         else if (id === 'basis-qualifications') renderBasisQualifications()
+        else if (id === 'candidate-pool') renderCandidatePool()
         else if (id === 'payroll') renderPayroll()
-        else if (id === 'permissions') renderPermissions()
+        else if (id === 'settings') renderSettings()
         else renderApplications()
     }
 
@@ -249,6 +345,136 @@
             role: 'tabpanel',
             'aria-labelledby': `adrecruitment-tab-${id}`,
         }, [element('h2', { text: title })])
+    }
+
+    function settingsPanel(id, title) {
+        return element('section', {
+            id: `adrecruitment-settings-panel-${id}`,
+            className: 'adrecruitment-settings-panel',
+            role: 'tabpanel',
+            'aria-labelledby': `adrecruitment-settings-tab-${id}`,
+        }, [element('h3', { text: title })])
+    }
+
+    function showSettingsSection(id, moveFocus = false) {
+        state.activeSettingsSection = id
+        renderSettings()
+        if (moveFocus) document.getElementById(`adrecruitment-settings-tab-${id}`)?.focus()
+    }
+
+    function renderSettings() {
+        const definitions = settingsNavigation.sections(state.capabilities)
+        state.activeSettingsSection = settingsNavigation.resolveActiveSection(
+            state.activeSettingsSection,
+            definitions,
+        )
+        const view = panel('settings', 'Einstellungen')
+        view.append(element('p', {
+            text: 'Hier finden Sie Funktionen, die nur gelegentlich für die Einrichtung und Pflege des Recruitings benötigt werden.',
+        }))
+        const navigation = element('div', {
+            className: 'adrecruitment-settings-nav',
+            role: 'tablist',
+            'aria-label': 'Einstellungsbereiche',
+        })
+        for (const [index, definition] of definitions.entries()) {
+            const tab = button(definition.label, 'button', 'adrecruitment-settings-tab')
+            tab.id = `adrecruitment-settings-tab-${definition.id}`
+            tab.setAttribute('role', 'tab')
+            tab.setAttribute('aria-controls', `adrecruitment-settings-panel-${definition.id}`)
+            tab.setAttribute('aria-selected', String(state.activeSettingsSection === definition.id))
+            tab.tabIndex = state.activeSettingsSection === definition.id ? 0 : -1
+            tab.addEventListener('click', () => showSettingsSection(definition.id, true))
+            tab.addEventListener('keydown', (event) => {
+                if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return
+                event.preventDefault()
+                let nextIndex = index
+                if (event.key === 'ArrowLeft') nextIndex = (index - 1 + definitions.length) % definitions.length
+                else if (event.key === 'ArrowRight') nextIndex = (index + 1) % definitions.length
+                else if (event.key === 'Home') nextIndex = 0
+                else if (event.key === 'End') nextIndex = definitions.length - 1
+                showSettingsSection(definitions[nextIndex].id, true)
+            })
+            navigation.append(tab)
+        }
+        const settingsContent = element('div', { className: 'adrecruitment-settings-content' })
+        view.append(navigation, settingsContent)
+        content.replaceChildren(view)
+
+        if (state.activeSettingsSection === 'mail-templates') renderMailTemplates(settingsContent, true)
+        else if (state.activeSettingsSection === 'permissions') renderPermissions(settingsContent, true)
+        else if (state.activeSettingsSection === 'candidate-pool') renderCandidatePoolSettings(settingsContent)
+        else renderTemplates(settingsContent, true)
+    }
+
+    function renderCandidatePool() {
+        const view = panel('candidate-pool', 'Datenschutzgerechte Rückstellungen')
+        const pool = state.candidatePool || { entries: [], settings: {} }
+        view.append(element('p', { text: 'Nur reduzierte Profile mit dokumentierter, freiwilliger Einwilligung werden berücksichtigt. Vorschläge sind Hinweise für eine menschliche Prüfung und lösen weder Kontakt noch Entscheidung automatisch aus.' }))
+        if (!pool.settings.enabled) view.append(element('p', { className: 'adrecruitment-warning', text: 'Der Bewerberpool ist bis zur Freigabe des Datenschutzhinweises deaktiviert.' }))
+        const requestForm = element('form', { className: 'adrecruitment-form adrecruitment-card' }, [
+            element('h3', { text: 'Rückstellung anfragen' }),
+            field('Bewerbungs-ID', input('applicationId', 'number', true)),
+            button('Einwilligung anfragen'),
+        ])
+        requestForm.addEventListener('submit', (event) => { event.preventDefault(); run(() => api.requestCandidatePool(Number(new FormData(requestForm).get('applicationId'))), 'Rückstellung wurde angefragt.', load) })
+        view.append(requestForm)
+        if (!pool.entries.length) view.append(emptyState('Noch keine Rückstellung vorhanden.'))
+        for (const entry of pool.entries) {
+            const card = element('article', { className: 'adrecruitment-card' }, [
+                element('h3', { text: `Bewerbung #${entry.sourceApplicationId}` }),
+                element('p', { text: `Status: ${entry.status} · Berufsgruppe: ${entry.professionCategory}` }),
+                element('p', { text: entry.expiresAt ? `Einwilligung bis ${entry.expiresAt}` : 'Einwilligung noch nicht erfasst' }),
+            ])
+            for (const match of entry.matches || []) card.append(element('p', { text: `Passende Stelle #${match.jobId}: ${(match.reasons || []).join(' ')}` }))
+            if (entry.status === 'requested') {
+                const form = element('form', { className: 'adrecruitment-form' }, [
+                    field('Nachweisreferenz', input('evidenceReference', 'text', true), 'Zum Beispiel die Message-ID der bestätigenden E-Mail; nicht den Mailinhalt kopieren.'),
+                    button('Einwilligung erfassen'),
+                ])
+                form.addEventListener('submit', (event) => { event.preventDefault(); run(() => api.grantCandidatePoolConsent(entry.id, { evidenceType: 'email_reply', evidenceReference: new FormData(form).get('evidenceReference'), noticeVersion: pool.settings.noticeVersion, areaKeys: [] }), 'Einwilligung wurde dokumentiert.', load) })
+                card.append(form)
+            } else if (entry.status === 'active') {
+                const revoke = button('Einwilligung widerrufen', 'button', 'adrecruitment-secondary')
+                revoke.addEventListener('click', () => run(() => api.withdrawCandidatePoolConsent(entry.id), 'Einwilligung wurde widerrufen.', load))
+                card.append(revoke)
+            }
+            view.append(card)
+        }
+        content.replaceChildren(view)
+    }
+
+    function renderCandidatePoolSettings(target) {
+        const view = settingsPanel('candidate-pool', 'Datenschutz & Rückstellungen')
+        const settings = state.candidatePool?.settings || { enabled: false, noticeVersion: '', consentMonths: 12, reminderDays: 30, revision: 0 }
+        view.append(element('p', {
+            text: 'Das Personalreferat pflegt hier Datenschutzhinweis und Einwilligungsfristen. Die Funktion bleibt aus, bis ein versionierter Datenschutzhinweis freigegeben ist.',
+        }))
+        const enabled = input('enabled', 'checkbox'); enabled.checked = settings.enabled
+        const form = element('form', { className: 'adrecruitment-form adrecruitment-card' }, [
+            field('Bewerberpool aktiv', enabled),
+            field('Version Datenschutzhinweis', input('noticeVersion', 'text', false, settings.noticeVersion)),
+            field('Einwilligung (Monate)', input('consentMonths', 'number', true, settings.consentMonths)),
+            field('Erinnerung vor Ablauf (Tage)', input('reminderDays', 'number', true, settings.reminderDays)),
+            button('Einstellung speichern'),
+        ])
+        form.addEventListener('submit', (event) => {
+            event.preventDefault()
+            const data = new FormData(form)
+            run(
+                () => api.saveCandidatePoolSettings({
+                    enabled: data.has('enabled'),
+                    noticeVersion: data.get('noticeVersion'),
+                    consentMonths: Number(data.get('consentMonths')),
+                    reminderDays: Number(data.get('reminderDays')),
+                    revision: settings.revision,
+                }),
+                'Bewerberpool-Einstellung wurde gespeichert.',
+                load,
+            )
+        })
+        view.append(form)
+        target.replaceChildren(view)
     }
 
     function emptyState(text) {
@@ -274,7 +500,7 @@
                     open.addEventListener('click', () => openInboxMessage(message.id))
                     list.append(element('article', { className: 'adrecruitment-card' }, [
                         element('h3', { text: message.subject || 'Ohne Betreff' }),
-                        element('p', { text: `${message.senderAddress} · ${message.receivedAt}` }),
+                        element('p', {}, [contactNode(message.senderAddress, 'email'), element('span', { text: ` · ${message.receivedAt}` })]),
                         element('p', { text: stateLabels[message.state] || message.state }),
                         open,
                     ]))
@@ -304,7 +530,7 @@
         back.addEventListener('click', renderInbox)
         view.append(back, element('h2', { text: message.subject || 'Ohne Betreff' }))
         view.append(element('dl', { className: 'adrecruitment-facts' }, [
-            element('div', {}, [element('dt', { text: 'Absender' }), element('dd', { text: message.senderAddress })]),
+            element('div', {}, [element('dt', { text: 'Absender' }), element('dd', {}, contactNode(message.senderAddress, 'email'))]),
             element('div', {}, [element('dt', { text: 'Empfangen' }), element('dd', { text: message.receivedAt })]),
             element('div', {}, [element('dt', { text: 'Postfach' }), element('dd', { text: message.mailbox.label })]),
         ]))
@@ -352,10 +578,14 @@
     function renderMailSuggestions(suggestions) {
         const card = element('section', { className: 'adrecruitment-card' }, [element('h3', { text: 'Ausgelesene Vorschläge' })])
         const facts = element('dl', { className: 'adrecruitment-facts' })
-        const labels = { name: 'Name', email: 'E-Mail', phone: 'Telefon', jobPreference: 'Stellenwunsch', message: 'Nachricht' }
+        const labels = { salutation: 'Anrede', title: 'Titel', name: 'Name', email: 'E-Mail', phone: 'Telefon', jobPreference: 'Stellenwunsch', desiredWeeklyHours: 'Wunschstunden', availableFrom: 'Verfügbar ab', previousExperience: 'Berufserfahrung', germanLanguageLevel: 'Deutschkenntnisse', location: 'Wohnort', message: 'Nachricht' }
         for (const [key, label] of Object.entries(labels)) {
             if (!suggestions?.[key]?.value) continue
-            facts.append(element('div', {}, [element('dt', { text: label }), element('dd', { text: suggestions[key].value })]))
+            const value = suggestions[key].value
+            const displayed = key === 'email' || key === 'phone'
+                ? contactNode(value, key)
+                : element('span', { text: value })
+            facts.append(element('div', {}, [element('dt', { text: label }), element('dd', {}, displayed)]))
         }
         card.append(facts.childElementCount ? facts : emptyState('Keine zusätzlichen Felder erkannt.'))
         return card
@@ -581,16 +811,127 @@
     function renderJobs() {
         const view = panel('jobs', 'Stellen und Ausschreibungen')
         if (state.capabilities.manage_catalog) {
+            const profession = select('professionCategory', professionCategories, 'assistance', true)
+            const groupSelect = select('responsibleGroups', [])
+            groupSelect.multiple = true
+            groupSelect.size = 6
+            const userSearch = input('responsibilityUserSearch', 'search')
+            userSearch.autocomplete = 'off'
+            userSearch.placeholder = 'Name oder Benutzerkennung'
+            const searchButton = button('Suchen', 'button', 'adrecruitment-secondary')
+            const searchResults = element('div', {
+                className: 'adrecruitment-responsibility-results',
+                role: 'list',
+                'aria-label': 'Gefundene verantwortliche Personen',
+            })
+            const selectedUsers = new Map()
+            const selectedUserList = element('div', {
+                className: 'adrecruitment-responsibility-selection',
+                'aria-live': 'polite',
+            })
+            const bqRule = element('p', { className: 'adrecruitment-callout' })
+
+            const selectedGroupIds = () => Array.from(groupSelect.selectedOptions, (option) => option.value)
+            const renderSelectedUsers = () => {
+                selectedUserList.replaceChildren()
+                if (selectedUsers.size === 0) {
+                    selectedUserList.append(element('small', { text: 'Keine einzelne Person zusätzlich ausgewählt.' }))
+                    return
+                }
+                for (const user of selectedUsers.values()) {
+                    const remove = button(`Entfernen: ${user.displayName}`, 'button', 'adrecruitment-chip')
+                    remove.addEventListener('click', () => {
+                        selectedUsers.delete(user.uid)
+                        renderSelectedUsers()
+                    })
+                    selectedUserList.append(remove)
+                }
+            }
+            const updateProfessionFields = () => {
+                const category = profession.value
+                const groups = state.jobResponsibilityGroups.filter((group) =>
+                    group.professionCategories.includes(category)
+                )
+                groupSelect.replaceChildren(...groups.map((group) => element('option', {
+                    value: group.id,
+                    text: group.label,
+                })))
+                groupSelect.size = Math.min(7, Math.max(3, groups.length))
+                selectedUsers.clear()
+                searchResults.replaceChildren()
+                renderSelectedUsers()
+                bqRule.textContent = category === 'assistance'
+                    ? 'Assistenzstellen benötigen immer eine Basisqualifikation.'
+                    : 'Für diese Berufsgruppe ist keine Basisqualifikation vorgesehen.'
+            }
+            profession.addEventListener('change', updateProfessionFields)
+            groupSelect.addEventListener('change', () => {
+                selectedUsers.clear()
+                searchResults.replaceChildren()
+                renderSelectedUsers()
+            })
+            searchButton.addEventListener('click', async () => {
+                searchResults.replaceChildren()
+                const query = userSearch.value.trim()
+                const groupIds = selectedGroupIds()
+                if (groupIds.length === 0) {
+                    searchResults.append(element('small', { text: 'Wählen Sie zuerst mindestens eine beteiligte Gruppe.' }))
+                    return
+                }
+                if (query.length < 2) {
+                    searchResults.append(element('small', { text: 'Geben Sie mindestens zwei Zeichen ein.' }))
+                    return
+                }
+                try {
+                    const payload = await api.jobResponsibilityUsers(profession.value, groupIds, query)
+                    if (!payload.users.length) {
+                        searchResults.append(element('small', { text: 'Keine passende Person in den ausgewählten Gruppen gefunden.' }))
+                        return
+                    }
+                    for (const user of payload.users) {
+                        const add = button(`${user.displayName} (${user.uid})`, 'button', 'adrecruitment-secondary')
+                        add.addEventListener('click', () => {
+                            selectedUsers.set(user.uid, user)
+                            renderSelectedUsers()
+                        })
+                        searchResults.append(element('div', { role: 'listitem' }, [add]))
+                    }
+                } catch (error) {
+                    showError(error)
+                }
+            })
+            userSearch.addEventListener('keydown', (event) => {
+                if (event.key !== 'Enter') return
+                event.preventDefault()
+                searchButton.click()
+            })
+
             const form = element('form', { className: 'adrecruitment-form adrecruitment-card' }, [
                 field('Interne Bezeichnung', input('internalTitle', 'text', true)),
                 field('Öffentliche Bezeichnung', input('publicTitle')),
-                field('Zuständige Benutzer-UIDs', input('responsibleUsers'), 'Kommagetrennt'),
-                field('Zuständige Gruppen-IDs', input('responsibleGroups'), 'Kommagetrennt'),
-                field('Zuordnungsschlüssel', input('assignmentKey')),
-                field('Berufsgruppe', select('professionCategory', professionCategories, 'assistance', true)),
-                field('Basisqualifikation für diese Assistenz-Stelle erforderlich', input('basisQualificationRequired', 'checkbox')),
+                field('Berufsgruppe', profession),
+                bqRule,
+                field('Beteiligte Gruppen', groupSelect, 'Nur fachlich passende Gruppen der AD-Organisation werden angeboten.'),
+                field('Verantwortliche Personen suchen', userSearch, 'Die Suche berücksichtigt ausschließlich die ausgewählten Gruppen.'),
+                searchButton,
+                searchResults,
+                selectedUserList,
+                field('Vertragsdauer', select('contractTerm', [
+                    { value: 'permanent', label: 'Unbefristet' },
+                    { value: 'fixed_term_reason', label: 'Befristet mit Sachgrund' },
+                ], 'permanent', true)),
+                field('Entgeltgruppe gemäß HTV', select('payGrade', hiringChoices.payGrade, '5', true)),
+                field('Ausgeschriebene Wochenstunden', input('advertisedWeeklyHours', 'number', true)),
+                field('Vollzeitstunden gemäß HTV', input('fullTimeWeeklyHours', 'number', true)),
+                field('Urlaubstage gemäß HTV', input('vacationDays', 'number', true)),
+                field('Arbeitsort', input('workLocation', 'text', true, 'Berlin')),
+                element('details', {}, [
+                    element('summary', { text: 'Weitere Angaben' }),
+                    field('Technischer Zuordnungsschlüssel', input('assignmentKey')),
+                ]),
                 button('Stelle anlegen'),
             ])
+            updateProfessionFields()
             form.addEventListener('submit', (event) => {
                 event.preventDefault()
                 const data = new FormData(form)
@@ -598,11 +939,14 @@
                     internalTitle: data.get('internalTitle'),
                     publicTitle: data.get('publicTitle'),
                     active: true,
-                    responsibleUsers: csvList(data.get('responsibleUsers')),
-                    responsibleGroups: csvList(data.get('responsibleGroups')),
+                    responsibleUsers: Array.from(selectedUsers.keys()),
+                    responsibleGroups: selectedGroupIds(),
                     assignmentKey: data.get('assignmentKey'),
-                    basisQualificationRequired: data.has('basisQualificationRequired'),
                     professionCategory: data.get('professionCategory'),
+                    contractTerm: data.get('contractTerm'), payGrade: data.get('payGrade'),
+                    advertisedWeeklyHours: Number(data.get('advertisedWeeklyHours')),
+                    fullTimeWeeklyHours: Number(data.get('fullTimeWeeklyHours')),
+                    vacationDays: Number(data.get('vacationDays')), workLocation: data.get('workLocation'),
                 }), 'Stelle wurde angelegt.')
             })
             view.append(createFormOverlay('Neue Stelle', 'Stelle neu', form))
@@ -619,26 +963,17 @@
                     job.publicTitle ? element('p', { text: job.publicTitle }) : null,
                     element('p', { text: job.active ? 'Aktiv' : 'Deaktiviert' }),
                     element('p', { text: professionCategories.find((item) => item.value === job.professionCategory)?.label || 'Sonstige Berufsgruppe' }),
-                    element('p', { text: job.basisQualificationRequired ? 'Basisqualifikation erforderlich' : 'Keine Basisqualifikation' }),
+                    element('p', { text: job.professionCategory === 'assistance' ? 'Basisqualifikation erforderlich' : 'Keine Basisqualifikation' }),
+                    element('p', { text: `${job.workingTimeModel === 'kapovaz' ? 'KAPOVAZ' : 'Festgehalt'} · EG ${job.payGrade || '–'} · ${job.advertisedWeeklyHours ?? '–'} Std./Woche · ${job.workLocation || 'Berlin'}` }),
                     element('small', {
                         text: [
                             job.responsibleUsers.length ? `Benutzer: ${job.responsibleUsers.join(', ')}` : '',
-                            job.responsibleGroups.length ? `Gruppen: ${job.responsibleGroups.join(', ')}` : '',
+                            job.responsibleGroups.length ? `Gruppen: ${job.responsibleGroups.map((groupId) =>
+                                state.jobResponsibilityGroups.find((group) => group.id === groupId)?.label || groupId
+                            ).join(', ')}` : '',
                         ].filter(Boolean).join(' · ') || 'Noch keine Zuständigkeit zugeordnet.',
                     }),
                 ])
-                if (state.capabilities.manage_basis_qualification) {
-                    const toggle = button(
-                        job.basisQualificationRequired ? 'BQ-Pflicht entfernen' : 'Als Assistenz mit BQ markieren',
-                        'button',
-                        'adrecruitment-secondary',
-                    )
-                    toggle.addEventListener('click', () => run(
-                        () => api.setJobBasisQualificationRequired(job.id, !job.basisQualificationRequired, job.version),
-                        'BQ-Einstellung der Stelle wurde gespeichert.',
-                    ))
-                    card.append(toggle)
-                }
                 list.append(card)
             }
             view.append(list)
@@ -869,6 +1204,8 @@
             const tableActions = element('div', { className: 'adrecruitment-table-actions' }, [applicationOpenButton(application.id)])
             const tableStatusMove = renderApplicationStatusMove(application)
             if (tableStatusMove) tableActions.append(tableStatusMove)
+            const withdrawal = renderWithdrawalAction(application)
+            if (withdrawal) tableActions.append(withdrawal)
             body.append(element('tr', {}, [
                 element('td', { text: person ? `${person.givenName} ${person.familyName}` : 'Unbekannt' }),
                 element('td', { text: job?.internalTitle || 'Unbekannt' }),
@@ -885,17 +1222,36 @@
     }
 
     function renderApplicationStatusMove(application) {
-        if (!state.capabilities.edit_applications || !application.allowedStatuses?.length) return null
-        const target = select('targetStatus', application.allowedStatuses.map((value) => ({
+        const targets = statusTargets(
+            application,
+            state.data.applicationStatuses || [],
+            state.capabilities.override_status_transitions === true,
+        )
+        if (!state.capabilities.edit_applications || !targets.length) return null
+        const target = select('targetStatus', targets.map((value) => ({
             value,
-            label: statusLabel(value),
+            label: `${statusLabel(value)}${requiresStatusOverride(application, value) ? ' · Ausnahme' : ''}`,
         })), '', true)
         const move = button('Status verschieben', 'button', 'adrecruitment-secondary')
-        move.addEventListener('click', () => moveApplication(application, target.value))
+        move.addEventListener('click', () => {
+            const override = requiresStatusOverride(application, target.value)
+            if (override && !confirm('Dieser Statuswechsel ist im Regelprozess nicht vorgesehen. Als Personalreferentin trotzdem durchführen?')) return
+            moveApplication(application, target.value, override)
+        })
         return element('div', { className: 'adrecruitment-card-move' }, [
             field('Nächster Status', target),
             move,
         ])
+    }
+
+    function renderWithdrawalAction(application) {
+        if (!state.capabilities.edit_applications || !application.allowedStatuses?.includes('withdrawn')) return null
+        const withdraw = button('Bewerbung zurückziehen', 'button', 'adrecruitment-danger')
+        withdraw.addEventListener('click', () => {
+            if (!confirm('Bewerbung wirklich zurückziehen?')) return
+            moveApplication(application, 'withdrawn')
+        })
+        return withdraw
     }
 
     function renderApplicationBoard(applications) {
@@ -924,6 +1280,8 @@
                         event.dataTransfer?.setDragImage?.(card, 16, 16)
                     })
                     card.append(renderApplicationStatusMove(application))
+                    const withdrawal = renderWithdrawalAction(application)
+                    if (withdrawal) card.append(withdrawal)
                 }
                 cards.append(card)
             }
@@ -955,8 +1313,9 @@
         return board
     }
 
-    function moveApplication(application, targetStatus) {
-        if (!canMoveApplication(application, targetStatus)) {
+    function moveApplication(application, targetStatus, override = false) {
+        if (!canMoveApplication(application, targetStatus)
+            && !(override && state.capabilities.override_status_transitions === true)) {
             showError(new Error('Dieser Statuswechsel ist für die Bewerbung nicht zulässig.'))
             return
         }
@@ -966,7 +1325,7 @@
             return
         }
         run(
-            () => api.transitionStatus(application.id, targetStatus, application.version, areaKey),
+            () => api.transitionStatus(application.id, targetStatus, application.version, areaKey, override),
             'Status wurde geändert.',
         )
     }
@@ -995,6 +1354,9 @@
             if (state.capabilities.manage_basis_qualification) {
                 detail.basisQualifications = await api.basisQualificationAssignments(id)
             }
+            if (state.capabilities.communicate) {
+                detail.mailDrafts = (await api.applicationMailDrafts(id)).drafts || []
+            }
             detail.inboxMessages = (await api.applicationMessages(id)).messages || []
             renderApplicationDetail(detail)
             setReady()
@@ -1014,6 +1376,8 @@
             element('div', {}, [element('dt', { text: 'Status' }), element('dd', { text: statusLabel(detail.application.status) })]),
             element('div', {}, [element('dt', { text: 'Eingang' }), element('dd', { text: detail.application.receivedOn })]),
             element('div', {}, [element('dt', { text: 'Kanal' }), element('dd', { text: sourceLabel(detail.application.source) })]),
+            element('div', {}, [element('dt', { text: 'E-Mail' }), element('dd', {}, contactNode(detail.person.email, 'email'))]),
+            element('div', {}, [element('dt', { text: 'Telefon' }), element('dd', {}, contactNode(detail.person.phone, 'phone'))]),
             element('div', {}, [element('dt', { text: 'Zuständigkeit' }), element('dd', { text: detail.application.assigneeUid || 'Nicht zugeordnet' })]),
             element('div', {}, [
                 element('dt', { text: 'Gewünschte Wochenstunden' }),
@@ -1024,10 +1388,15 @@
             element('div', {}, [element('dt', { text: 'Freier Kommentar' }), element('dd', { text: detail.application.freeComment || 'Nicht erfasst' })]),
         ]))
 
-        if (state.capabilities.edit_applications && detail.allowedStatuses.length) {
-            const statusSelect = select('status', detail.allowedStatuses.map((value) => ({
+        const detailStatusTargets = statusTargets(
+            detail.application,
+            state.data.applicationStatuses || [],
+            state.capabilities.override_status_transitions === true,
+        )
+        if (state.capabilities.edit_applications && detailStatusTargets.length) {
+            const statusSelect = select('status', detailStatusTargets.map((value) => ({
                     value,
-                    label: statusLabel(value),
+                    label: `${statusLabel(value)}${requiresStatusOverride(detail.application, value) ? ' · Ausnahme' : ''}`,
                 })))
             const areaSelect = select('areaKey', [{ value: '', label: 'Bürobereich wählen' }].concat(
                 state.areas.map((area) => ({ value: area.key, label: area.label })),
@@ -1048,8 +1417,10 @@
                 event.preventDefault()
                 const formData = new FormData(statusForm)
                 const target = formData.get('status')
+                const override = requiresStatusOverride(detail.application, target)
+                if (override && !confirm('Dieser Statuswechsel ist im Regelprozess nicht vorgesehen. Als Personalreferentin trotzdem durchführen?')) return
                 run(
-                    () => api.transitionStatus(detail.application.id, target, detail.application.version, formData.get('areaKey') || ''),
+                    () => api.transitionStatus(detail.application.id, target, detail.application.version, formData.get('areaKey') || '', override),
                     'Status wurde geändert.',
                     () => openApplication(detail.application.id),
                 )
@@ -1068,13 +1439,15 @@
             for (const message of detail.inboxMessages) {
                 mailCard.append(element('article', { className: 'adrecruitment-question-editor' }, [
                     element('h4', { text: message.subject || 'Ohne Betreff' }),
-                    element('p', { text: `${message.senderAddress} · ${message.receivedAt}` }),
+                    element('p', {}, [contactNode(message.senderAddress, 'email'), element('span', { text: ` · ${message.receivedAt}` })]),
                     element('pre', { className: 'adrecruitment-mail-body', text: message.bodyText }),
                     renderMailAttachments(message.attachments, detail.application.id, () => openApplication(detail.application.id)),
                 ]))
             }
         }
         view.append(mailCard)
+
+        if (state.capabilities.communicate) view.append(renderOutgoingMailDrafts(detail))
 
         if (state.capabilities.manage_basis_qualification && detail.job.basisQualificationRequired) {
             view.append(renderApplicationBasisQualification(detail))
@@ -1239,8 +1612,180 @@
         return answers
     }
 
-    function renderTemplates() {
-        const view = panel('templates', 'Interviewvorlagen')
+    function renderOutgoingMailDrafts(detail) {
+        const card = element('section', { className: 'adrecruitment-card' }, [
+            element('h3', { text: 'Ausgehende E-Mails' }),
+            element('p', { text: 'Die Empfängeradresse stammt zunächst aus dem Personendatensatz. Eine Korrektur vor der Freigabe wird getrennt vom ursprünglichen Wert dokumentiert.' }),
+        ])
+        const drafts = detail.mailDrafts || []
+        if (!drafts.length) {
+            card.append(emptyState('Für diese Bewerbung gibt es noch keinen Mailentwurf.'))
+            return card
+        }
+        for (const draft of drafts) {
+            const article = element('article', { className: 'adrecruitment-question-editor' }, [
+                element('h4', { text: `${statusLabel(draft.fromStatus)} → ${statusLabel(draft.toStatus)}` }),
+                element('p', { text: `Ursprüngliche Adresse: ${draft.originalRecipient} · Zustand: ${draft.status}` }),
+            ])
+            if (draft.testMode) article.append(element('p', { className: 'adrecruitment-warning', text: `Testmodus: tatsächliche Zustellung an ${draft.deliveryRecipient}` }))
+            if (draft.status !== 'draft') {
+                article.append(element('p', { text: `Freigegebene Zieladresse: ${draft.intendedRecipient || draft.originalRecipient}` }))
+                article.append(element('p', { text: draft.scheduledAt ? `Geplant für ${draft.scheduledAt}` : 'Nicht zum Versand geplant.' }))
+                article.append(element('strong', { text: draft.subject }), element('div', {
+                    className: 'adrecruitment-mail-body', innerHTML: mailBodyHtml(draft.body, draft.bodyFormat),
+                }))
+                card.append(article)
+                continue
+            }
+            const subject = input('subject', 'text', true, draft.subject)
+            const recipient = input('recipient', 'email', true, draft.originalRecipient)
+            if (state.mailConfiguration?.settings?.testMode) {
+                article.append(element('p', { className: 'adrecruitment-warning', text: `Aktiver Testmodus: Nach Freigabe erfolgt die tatsächliche Zustellung an ${state.mailConfiguration.settings.testRecipient}.` }))
+            }
+            const body = mailEditor(draft.body, draft.bodyFormat)
+            const form = element('form', { className: 'adrecruitment-form' }, [
+                field('Empfängeradresse', recipient), field('Betreff', subject), richTextField('Nachricht', body),
+            ])
+            const blocks = (state.mailConfiguration?.textBlocks || []).filter((block) => block.active)
+            if (blocks.length) {
+                const blockSelect = select('textBlock', [{ value: '', label: 'Textblock wählen' }].concat(blocks.map((block) => ({ value: block.id, label: block.label }))))
+                const insertBlock = button('Textblock an Cursorposition einfügen', 'button', 'adrecruitment-secondary')
+                insertBlock.addEventListener('click', () => {
+                    const block = blocks.find((item) => String(item.id) === String(blockSelect.value))
+                    if (!block) return
+                    body.insertText(block.insertText)
+                })
+                form.append(field('Vorbereiteter Textblock', blockSelect), insertBlock)
+            }
+            const scheduled = input('scheduledAt', 'datetime-local')
+            form.append(field('Freier Versandzeitpunkt', scheduled))
+            const actions = element('div', { className: 'adrecruitment-actions' })
+            const save = button('Entwurf speichern', 'button', 'adrecruitment-secondary')
+            save.addEventListener('click', () => run(
+                () => api.saveMailDraft(draft.id, { subject: subject.value, body: body.value(), bodyFormat: 'html', version: draft.version }),
+                'Mailentwurf wurde gespeichert.', () => openApplication(detail.application.id),
+            ))
+            const approve = (label, timing) => {
+                const control = button(label + (draft.defaultTiming === timing ? ' (Voreinstellung)' : ''), 'button')
+                control.addEventListener('click', () => {
+                    const value = timing === 'scheduled' && scheduled.value ? new Date(scheduled.value).toISOString() : null
+                    run(
+                        () => api.approveMailDraft(draft.id, { recipient: recipient.value, subject: subject.value, body: body.value(), bodyFormat: 'html', timing, scheduledAt: value, version: draft.version }),
+                        'Mail wurde verbindlich zum Versand eingeplant.', () => openApplication(detail.application.id),
+                    )
+                })
+                return control
+            }
+            const cancel = button('Entwurf abbrechen', 'button', 'adrecruitment-secondary')
+            cancel.addEventListener('click', () => run(
+                () => api.cancelMailDraft(draft.id, draft.version), 'Mailentwurf wurde abgebrochen.', () => openApplication(detail.application.id),
+            ))
+            actions.append(save, approve('Jetzt freigeben', 'immediate'), approve('Kommenden Montag freigeben', 'next_monday'), approve('Zum gewählten Zeitpunkt freigeben', 'scheduled'), cancel)
+            form.append(actions); article.append(form); card.append(article)
+        }
+        return card
+    }
+
+    function renderMailTemplates(target = content, embedded = false) {
+        const view = embedded
+            ? settingsPanel('mail-templates', 'Mailvorlagen und Versandregeln')
+            : panel('mail-templates', 'Mailvorlagen und Versandregeln')
+        const configuration = state.mailConfiguration || { templates: [], rules: [], textBlocks: [], settings: {} }
+        view.append(element('p', {
+            className: 'adrecruitment-callout',
+            text: `${configuration.rules.length} erlaubte Übergänge sind mit bearbeitbaren Vorlagen vorbereitet. Diese Regel ist zunächst ausgeschaltet. Aktivieren Sie nur die gewünschten Entwürfe.`,
+        }))
+        const timingOptions = [
+            { value: 'immediate', label: 'Sofort nach Freigabe' },
+            { value: 'scheduled', label: 'Zeitpunkt im Entwurf wählen' },
+            { value: 'next_monday', label: 'Kommenden Montag, 09:00 Uhr' },
+        ]
+        const renderTemplateEditor = (template) => {
+            const name = input('name', 'text', true, template.name)
+            const subject = input('subject', 'text', true, template.subject)
+            const body = mailEditor(template.body, template.bodyFormat)
+            const active = input('active', 'checkbox'); active.checked = template.active
+            const form = element('form', { className: 'adrecruitment-form adrecruitment-mail-template-editor' }, [
+                field('Vorlagenname', name), field('Betreff', subject),
+                richTextField('Nachricht', body, 'Formatierung und Platzhalter können bis zum Versand erneut geändert werden.'),
+                element('p', { text: 'Platzhalter: {{given_name}}, {{family_name}}, {{job_title}}' }),
+                field('Vorlage aktiv', active), button('Vorlage als neue Revision speichern'),
+            ])
+            form.addEventListener('submit', (event) => {
+                event.preventDefault()
+                run(() => api.reviseMailTemplate(template.id, {
+                    name: name.value, subject: subject.value, body: body.value(), bodyFormat: 'html',
+                    active: active.checked, version: template.version,
+                }), 'Neue Mailvorlagenrevision wurde gespeichert.')
+            })
+            return form
+        }
+
+        for (const fromStatus of state.data.applicationStatuses) {
+            const rules = configuration.rules.filter((rule) => rule.fromStatus === fromStatus)
+            if (!rules.length) continue
+            const section = element('section', { className: 'adrecruitment-mail-transition-group' }, [
+                element('h2', { text: statusLabel(fromStatus) }),
+            ])
+            for (const rule of rules) {
+                const toStatus = rule.toStatus
+                const template = configuration.templates.find((item) => item.id === rule.templateId)
+                const enabled = input(`enabled-${rule.id}`, 'checkbox'); enabled.checked = rule.enabled
+                const timing = select(`timing-${rule.id}`, timingOptions, rule.defaultTiming)
+                const templateChoice = select(`template-${rule.id}`, configuration.templates.filter((item) => item.active || item.id === rule.templateId).map((item) => ({ value: item.id, label: item.name })), rule.templateId, true)
+                const settings = element('form', { className: 'adrecruitment-mail-transition-settings' }, [
+                    field('Entwurf erzeugen', enabled), field('Mailvorlage', templateChoice), field('Standardplanung', timing), button('Einstellung speichern'),
+                ])
+                settings.addEventListener('submit', (event) => {
+                    event.preventDefault()
+                    run(() => api.saveStatusMailRule({
+                        fromStatus, toStatus, templateId: Number(templateChoice.value), enabled: enabled.checked,
+                        defaultTiming: timing.value, version: rule.version,
+                    }), 'Statusmail-Regel wurde gespeichert.')
+                })
+                const article = element('article', { className: 'adrecruitment-card adrecruitment-mail-transition' }, [
+                    element('div', { className: 'adrecruitment-mail-transition__heading' }, [
+                        element('h3', { text: `${statusLabel(fromStatus)} → ${statusLabel(toStatus)}` }),
+                        element('span', {
+                            className: rule.enabled ? 'adrecruitment-state adrecruitment-state--active' : 'adrecruitment-state',
+                            text: rule.enabled ? 'Aktiv' : 'Aus',
+                        }),
+                    ]),
+                    settings,
+                ])
+                const details = element('details', {}, [element('summary', { text: 'Vorlage bearbeiten' })])
+                details.append(template ? renderTemplateEditor(template) : element('p', { className: 'adrecruitment-warning', text: 'Die zugeordnete Vorlage fehlt.' }))
+                article.append(details)
+                section.append(article)
+            }
+            view.append(section)
+        }
+
+        const assignedTemplateIds = new Set(configuration.rules.map((rule) => rule.templateId))
+        const unassignedTemplates = configuration.templates.filter((template) => !assignedTemplateIds.has(template.id))
+        if (unassignedTemplates.length) {
+            const additional = element('details', { className: 'adrecruitment-card' }, [
+                element('summary', { text: 'Bisher nicht zugeordnete Vorlagen' }),
+                element('p', { text: 'Diese älteren Vorlagen bleiben bearbeitbar, lösen aber aktuell bei keinem Statusübergang einen Entwurf aus.' }),
+                ...unassignedTemplates.map(renderTemplateEditor),
+            ])
+            view.append(additional)
+        }
+        const blockForm = element('form', { className: 'adrecruitment-form adrecruitment-card' }, [
+            element('h3', { text: 'Textblock' }), field('Bezeichnung', input('label', 'text', true)),
+            field('Einfügetext', element('textarea', { name: 'insertText', rows: 4, required: true })), button('Textblock anlegen'),
+        ])
+        blockForm.addEventListener('submit', (event) => { event.preventDefault(); run(
+            () => api.createMailTextBlock(Object.fromEntries(new FormData(blockForm))), 'Textblock wurde angelegt.',
+        ) })
+        view.append(blockForm)
+        target.replaceChildren(view)
+    }
+
+    function renderTemplates(target = content, embedded = false) {
+        const view = embedded
+            ? settingsPanel('templates', 'Interviewfragen und Vorlagen')
+            : panel('templates', 'Interviewvorlagen')
         if (state.capabilities.manage_catalog) {
             const form = element('form', { className: 'adrecruitment-form adrecruitment-card' }, [
                 field('Name', input('name', 'text', true)),
@@ -1280,7 +1825,7 @@
             }
             view.append(list)
         }
-        content.replaceChildren(view)
+        target.replaceChildren(view)
     }
 
     async function openTemplate(id) {
@@ -1295,10 +1840,10 @@
     }
 
     function renderTemplateDetail(template) {
-        const view = element('section', { className: 'adrecruitment-panel' })
+        const view = panel('settings', `${template.name} · Revision ${template.revision}`)
         const back = button('← Zurück zu Vorlagen', 'button', 'adrecruitment-secondary')
-        back.addEventListener('click', () => showTab('templates'))
-        view.append(back, element('h2', { text: `${template.name} · Revision ${template.revision}` }))
+        back.addEventListener('click', () => showSettingsSection('templates', true))
+        view.prepend(back)
 
         if (state.capabilities.manage_catalog) {
             const form = questionForm()
@@ -1425,19 +1970,27 @@
             element('p', { text: 'Tarifgrundlage: Haustarifvertrag ambulante dienste e.V., bereitgestellte Fassung mit Änderungen 2024. Beträge werden nicht automatisch fortgeschrieben.' }),
         ])
         const stored = detail.hiringData
-        if (!state.capabilities.edit_hiring_data) {
-            card.append(hiringFacts(stored.data))
-            return card
-        }
-        const form = element('form', { className: 'adrecruitment-form adrecruitment-sensitive-form' })
+        const facts = hiringFacts(stored.data)
+        card.append(facts)
+        if (!state.capabilities.edit_hiring_data) return card
+        const edit = button('Vertragsdaten bearbeiten', 'button', 'adrecruitment-secondary')
+        card.append(edit)
+        edit.addEventListener('click', () => {
+            edit.remove()
+            facts.remove()
+            card.append(hiringEditor(detail, stored))
+        })
+        return card
+    }
+
+    function hiringEditor(detail, stored) {
+        const form = element('form', { className: 'adrecruitment-form adrecruitment-sensitive-form adrecruitment-compact-form' })
         const fields = element('div', { className: 'adrecruitment-grid' })
         for (const [name, label, type = 'text'] of hiringFields) {
             const availableChoices = name === 'workingTimeModel' && detail.job.professionCategory !== 'assistance'
                 ? hiringChoices[name]?.filter((item) => item.value !== 'kapovaz')
                 : hiringChoices[name]
-            const control = availableChoices
-                ? select(name, [{ value: '', label: 'Bitte wählen' }].concat(availableChoices), stored.data[name] ?? '')
-                : input(name, type, false, stored.data[name] ?? '')
+            const control = hiringControl(name, type, stored.data[name], availableChoices)
             if (type === 'number') control.step = '0.01'
             fields.append(field(label, control))
         }
@@ -1454,17 +2007,21 @@
                 () => openApplication(detail.application.id),
             )
         })
-        card.append(form)
-        return card
+        return form
     }
 
     function hiringFacts(data) {
         const facts = element('dl', { className: 'adrecruitment-facts' })
-        for (const [name, label] of hiringFields) {
+        for (const [name, label] of [...hiringFields, ...payrollOnlyFields, ...jobDerivedHiringFields]) {
             const value = data[name]
             if (value === '' || value === null || value === undefined) continue
             const visibleValue = hiringChoices[name]?.find((item) => item.value === value)?.label || String(value)
-            facts.append(element('div', {}, [element('dt', { text: label }), element('dd', { text: visibleValue })]))
+            const displayed = name === 'privateEmail'
+                ? contactNode(visibleValue, 'email')
+                : name === 'privatePhone'
+                    ? contactNode(visibleValue, 'phone')
+                    : element('span', { text: visibleValue })
+            facts.append(element('div', {}, [element('dt', { text: label }), element('dd', {}, displayed)]))
         }
         if (!facts.childElementCount) return emptyState('Noch keine Einstellungsstammdaten erfasst.')
         return facts
@@ -1482,9 +2039,29 @@
                 const card = element('article', { className: 'adrecruitment-card adrecruitment-hiring-record' }, [
                     element('h3', { text: `${item.givenName} ${item.familyName}` }),
                     element('p', { text: `${item.position || 'Ohne Stellenbezeichnung'} · ${statusLabel(item.status)}` }),
-                    element('p', { text: [item.email, item.phone].filter(Boolean).join(' · ') }),
+                    element('p', {}, contactLine(item.email, item.phone)),
                 ])
-                card.append(hiringFacts(item.hiringData))
+                const payrollFacts = hiringFacts(item.hiringData)
+                card.append(payrollFacts)
+                if (state.capabilities.edit_payroll_data) {
+                    const edit = button('LoBu-Daten bearbeiten', 'button', 'adrecruitment-secondary')
+                    card.append(edit)
+                    edit.addEventListener('click', () => {
+                        edit.remove()
+                        payrollFacts.remove()
+                        const form = element('form', { className: 'adrecruitment-form adrecruitment-sensitive-form adrecruitment-compact-form' })
+                        const fields = element('div', { className: 'adrecruitment-grid' })
+                        for (const [name, label, type = 'text'] of payrollOnlyFields) {
+                            fields.append(field(label, hiringControl(name, type, item.hiringData[name], hiringChoices[name])))
+                        }
+                        form.append(fields, button('LoBu-Daten speichern'))
+                        form.addEventListener('submit', (event) => { event.preventDefault(); run(
+                            () => api.savePayrollData(item.applicationId, Object.fromEntries(new FormData(form)), item.hiringDataVersion),
+                            'LoBu-Stammdaten wurden gespeichert.', load,
+                        ) })
+                        card.append(form)
+                    })
+                }
                 view.append(card)
             }
         }
@@ -1494,7 +2071,7 @@
     function renderBasisQualifications() {
         const view = panel('basis-qualifications', 'Basisqualifikationen')
         view.append(element('p', {
-            text: 'BQ-Durchläufe gelten ausschließlich für entsprechend gekennzeichnete Assistenz-Stellen. Bewertungen verwalten vorerst nur Personalreferent*innen.',
+            text: 'BQ-Durchläufe gelten ausschließlich für Assistenz-Stellen. Diese lokale Verwaltung bleibt eine Übergangslösung, bis die eigenständige BQ-Planer-App angebunden ist; Bewertungen verwalten vorerst nur Personalreferent*innen.',
         }))
         const form = element('form', { className: 'adrecruitment-inline-form adrecruitment-card' }, [
             field('Beginn', input('startsOn', 'date', true)),
@@ -1600,12 +2177,14 @@
         return card
     }
 
-    function renderPermissions() {
-        const view = panel('permissions', 'Vertretungen und Erstbegleitungen')
+    function renderPermissions(target = content, embedded = false) {
+        const view = embedded
+            ? settingsPanel('permissions', 'Vertretungen und Erstbegleitungen')
+            : panel('permissions', 'Vertretungen und Erstbegleitungen')
         const settings = state.permissionSettings
         if (!settings) {
             view.append(emptyState('Die Berechtigungskonfiguration ist nicht verfügbar.'))
-            content.replaceChildren(view)
+            target.replaceChildren(view)
             return
         }
         view.append(element('p', {
@@ -1681,21 +2260,7 @@
         })
         view.append(form)
 
-        if (state.isNextcloudAdmin) {
-            const groupForm = element('form', { className: 'adrecruitment-inline-form adrecruitment-card' }, [
-                field('Nextcloud-Gruppe für Erstbegleitungen', input('groupId', 'text', true, settings.firstGuideGroupId)),
-                button('Strukturelle Gruppe speichern'),
-            ])
-            groupForm.addEventListener('submit', (event) => {
-                event.preventDefault()
-                run(
-                    () => api.saveFirstGuideGroup(new FormData(groupForm).get('groupId'), settings.revision),
-                    'Erstbegleitungsgruppe wurde gespeichert.',
-                )
-            })
-            view.append(groupForm)
-        }
-        content.replaceChildren(view)
+        target.replaceChildren(view)
     }
 
     async function load() {
@@ -1708,9 +2273,11 @@
             state.areas = payload.areas || []
             state.hiringData = payload.hiringData || []
             state.basisQualificationRuns = payload.basisQualificationRuns || []
+            state.jobResponsibilityGroups = payload.jobResponsibilityGroups || []
             state.permissionSettings = payload.permissionSettings || null
+            state.mailConfiguration = payload.mailConfiguration || null
+            state.candidatePool = payload.candidatePool || null
             state.delegatableCapabilities = payload.delegatableCapabilities || []
-            state.isNextcloudAdmin = payload.isNextcloudAdmin === true
             renderTabs()
             showTab(state.activeTab)
             setReady()

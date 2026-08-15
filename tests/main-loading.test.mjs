@@ -63,6 +63,7 @@ const window = {
     RecruitmentUiData: { csvList: () => [], sourceLabel: (value) => value, statusLabel: (value) => value },
     RecruitmentDialogOverlay: { createController: () => ({ open() {}, close() {} }) },
     RecruitmentApplicationWorkbench: { filterApplications: () => [], groupApplicationsByStatus: () => ({}) },
+    RecruitmentSettingsNavigation: { sections: () => [], resolveActiveSection: () => '' },
 }
 window.window = window
 

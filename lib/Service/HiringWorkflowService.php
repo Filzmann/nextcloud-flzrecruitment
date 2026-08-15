@@ -16,11 +16,7 @@ final class HiringWorkflowService {
      */
     public function save(HiringDataStore $store, int $applicationId, array $data, int $expectedVersion, string $actorUid): array {
         $context = $store->hiringContext($applicationId);
-        $validated = $this->masterData->validate($data);
-        if ((string)$validated['workingTimeModel'] === 'kapovaz'
-            && (string)($context['job']['professionCategory'] ?? '') !== 'assistance') {
-            throw new ValidationException('KAPOVAZ ist nur für Assistenz-Stellen zulässig.');
-        }
+        $validated = array_replace($this->masterData->normalizeStored($store->hiringData($applicationId)['data']), $this->masterData->validatePersonnelInput($data));
         return $store->saveHiringData(
             $applicationId,
             $validated,
@@ -29,11 +25,18 @@ final class HiringWorkflowService {
         );
     }
 
+    public function savePayroll(HiringDataStore $store, int $applicationId, array $data, int $expectedVersion, string $actorUid): array {
+        $context = $store->hiringContext($applicationId);
+        if (!$this->masterData->isPayrollEligible($context['application'])) throw new ValidationException('LoBu-Stammdaten sind erst ab der Einstellungsfreigabe bearbeitbar.');
+        $validated = array_replace($this->masterData->normalizeStored($store->hiringData($applicationId)['data']), $this->masterData->validatePayrollInput($data));
+        return $store->saveHiringData($applicationId, $validated, $expectedVersion, $actorUid);
+    }
+
     /** @return array{data: array<string,mixed>, version: int} */
     public function detail(HiringDataStore $store, int $applicationId): array {
         $store->findApplication($applicationId);
         $stored = $store->hiringData($applicationId);
-        return ['data' => $this->masterData->normalizeStored($stored['data']), 'version' => $stored['version']];
+        return ['data' => $this->masterData->personnelProjection($stored['data']), 'version' => $stored['version']];
     }
 
     /** @return list<array<string,mixed>> */

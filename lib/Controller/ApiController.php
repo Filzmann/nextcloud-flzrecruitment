@@ -15,6 +15,13 @@ use OCA\Recruitment\Service\RecruitmentUseCaseService;
 use OCA\Recruitment\Service\MailInboxService;
 use OCA\Recruitment\Service\DocumentReviewService;
 use OCA\Recruitment\Service\DocumentFieldLinkService;
+use OCA\Recruitment\Service\StatusMailService;
+use OCA\Recruitment\Service\JobResponsibilityService;
+use OCA\Recruitment\Contract\CandidatePoolStore;
+use OCA\Recruitment\Service\CandidatePoolService;
+use OCA\Recruitment\Service\CandidatePoolSettingsService;
+use OCA\Recruitment\Service\ResumeExtractionSettingsService;
+use DateTimeImmutable;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -35,7 +42,13 @@ final class ApiController extends Controller {
         private MailInboxService $inboxService,
         private DocumentReviewService $documentReview,
         private DocumentFieldLinkService $documentFieldLinks,
+        private JobResponsibilityService $jobResponsibilities,
         private LoggerInterface $logger,
+        private ?StatusMailService $statusMail = null,
+        private ?CandidatePoolStore $candidatePoolStore = null,
+        private ?CandidatePoolService $candidatePool = null,
+        private ?CandidatePoolSettingsService $candidatePoolSettings = null,
+        private ?ResumeExtractionSettingsService $resumeExtractionSettings = null,
     ) {
         parent::__construct(Application::APP_ID, $request);
     }
@@ -209,10 +222,23 @@ final class ApiController extends Controller {
             if ($capabilities[RecruitmentAccessService::MANAGE_BASIS_QUALIFICATION] ?? false) {
                 $payload['basisQualificationRuns'] = $this->useCases->basisQualificationRuns();
             }
+            if ($capabilities[RecruitmentAccessService::MANAGE_CATALOG] ?? false) {
+                $payload['jobResponsibilityGroups'] = $this->jobResponsibilities->allGroups();
+            }
             if ($capabilities[RecruitmentAccessService::MANAGE_DELEGATIONS] ?? false) {
                 $payload['permissionSettings'] = $this->access->permissionSettings();
                 $payload['delegatableCapabilities'] = RecruitmentPermissionPolicy::DELEGATABLE_CAPABILITIES;
-                $payload['isNextcloudAdmin'] = $this->access->isNextcloudAdmin();
+            }
+            if (($capabilities[RecruitmentAccessService::MANAGE_MAIL_TEMPLATES] ?? false)
+                || ($capabilities[RecruitmentAccessService::COMMUNICATE] ?? false)) {
+                $mailConfiguration = $this->mailService()->configuration();
+                $payload['mailConfiguration'] = ($capabilities[RecruitmentAccessService::MANAGE_MAIL_TEMPLATES] ?? false)
+                    ? $mailConfiguration
+                    : ['textBlocks' => $mailConfiguration['textBlocks'] ?? [], 'settings' => $mailConfiguration['settings'] ?? []];
+            }
+            if (($capabilities[RecruitmentAccessService::MANAGE_CANDIDATE_POOL] ?? false)
+                && $this->candidatePoolStore !== null && $this->candidatePoolSettings !== null) {
+                $payload['candidatePool'] = ['entries' => $this->poolStore()->candidatePoolEntries(), 'settings' => $this->poolSettings()->settings()];
             }
             return $payload;
         });
@@ -250,6 +276,8 @@ final class ApiController extends Controller {
         string $assignmentKey = '',
         bool $basisQualificationRequired = false,
         string $professionCategory = '',
+        string $contractTerm = '', string $payGrade = '', ?float $advertisedWeeklyHours = null,
+        ?float $fullTimeWeeklyHours = null, ?float $vacationDays = null, string $workLocation = 'Berlin',
     ): JSONResponse {
         return $this->respond(function () use (
             $internalTitle,
@@ -260,8 +288,10 @@ final class ApiController extends Controller {
             $assignmentKey,
             $basisQualificationRequired,
             $professionCategory,
+            $contractTerm, $payGrade, $advertisedWeeklyHours, $fullTimeWeeklyHours, $vacationDays, $workLocation,
         ): array {
             $this->access->require(RecruitmentAccessService::MANAGE_CATALOG);
+            $this->jobResponsibilities->validate($professionCategory, $responsibleGroups, $responsibleUsers);
             return ['id' => $this->useCases->createJob(
                 $internalTitle,
                 $publicTitle,
@@ -271,8 +301,18 @@ final class ApiController extends Controller {
                 $assignmentKey,
                 $basisQualificationRequired,
                 $professionCategory,
+                $contractTerm, $payGrade, $advertisedWeeklyHours, $fullTimeWeeklyHours, $vacationDays, $workLocation,
             )];
         }, Http::STATUS_CREATED);
+    }
+
+    #[NoAdminRequired]
+    #[NoCSRFRequired]
+    public function jobResponsibilityUsers(string $professionCategory, array $groupIds, string $query): JSONResponse {
+        return $this->respond(function () use ($professionCategory, $groupIds, $query): array {
+            $this->access->require(RecruitmentAccessService::MANAGE_CATALOG);
+            return ['users' => $this->jobResponsibilities->searchUsers($professionCategory, $groupIds, $query)];
+        });
     }
 
     #[NoAdminRequired]
@@ -527,10 +567,11 @@ final class ApiController extends Controller {
     }
 
     #[NoAdminRequired]
-    public function transitionStatus(int $id, string $status, int $version, string $areaKey = ''): JSONResponse {
-        return $this->respond(function () use ($id, $status, $version, $areaKey): array {
+    public function transitionStatus(int $id, string $status, int $version, string $areaKey = '', string $clientKey = '', bool $override = false): JSONResponse {
+        return $this->respond(function () use ($id, $status, $version, $areaKey, $clientKey, $override): array {
             $application = $this->useCases->applicationSummary($id);
             $this->access->require(RecruitmentAccessService::EDIT_APPLICATIONS, $application);
+            if ($override) $this->access->require(RecruitmentAccessService::OVERRIDE_STATUS_TRANSITIONS, $application);
             return $this->useCases->transitionStatus(
                 $id,
                 $status,
@@ -538,7 +579,95 @@ final class ApiController extends Controller {
                 $this->access->currentUid(),
                 $areaKey,
                 $this->access->organization()->areaKeys(),
+                $clientKey,
+                $override,
             );
+        });
+    }
+
+    #[NoAdminRequired]
+    #[NoCSRFRequired]
+    public function mailConfiguration(): JSONResponse {
+        return $this->respond(function (): array {
+            $this->access->require(RecruitmentAccessService::MANAGE_MAIL_TEMPLATES);
+            return $this->mailService()->configuration();
+        });
+    }
+
+    #[NoAdminRequired]
+    public function createMailTemplate(string $name, string $subject, string $body, string $bodyFormat = 'plain'): JSONResponse {
+        return $this->respond(function () use ($name, $subject, $body, $bodyFormat): array {
+            $this->access->require(RecruitmentAccessService::MANAGE_MAIL_TEMPLATES);
+            return $this->mailService()->createTemplate($name, $subject, $body, $bodyFormat, $this->access->currentUid());
+        }, Http::STATUS_CREATED);
+    }
+
+    #[NoAdminRequired]
+    public function reviseMailTemplate(int $id, string $name, string $subject, string $body, bool $active, int $version, string $bodyFormat = 'plain'): JSONResponse {
+        return $this->respond(function () use ($id, $name, $subject, $body, $bodyFormat, $active, $version): array {
+            $this->access->require(RecruitmentAccessService::MANAGE_MAIL_TEMPLATES);
+            return $this->mailService()->reviseTemplate($id, $name, $subject, $body, $bodyFormat, $active, $version, $this->access->currentUid());
+        });
+    }
+
+    #[NoAdminRequired]
+    public function saveStatusMailRule(string $fromStatus, string $toStatus, int $templateId, bool $enabled, string $defaultTiming, int $version): JSONResponse {
+        return $this->respond(function () use ($fromStatus, $toStatus, $templateId, $enabled, $defaultTiming, $version): array {
+            $this->access->require(RecruitmentAccessService::MANAGE_MAIL_TEMPLATES);
+            return $this->mailService()->configureRule($fromStatus, $toStatus, $templateId, $enabled, $defaultTiming, $version, $this->access->currentUid());
+        });
+    }
+
+    #[NoAdminRequired]
+    public function createMailTextBlock(string $label, string $insertText): JSONResponse {
+        return $this->respond(function () use ($label, $insertText): array {
+            $this->access->require(RecruitmentAccessService::MANAGE_MAIL_TEMPLATES);
+            return $this->mailService()->createTextBlock($label, $insertText, $this->access->currentUid());
+        }, Http::STATUS_CREATED);
+    }
+
+    #[NoAdminRequired]
+    #[NoCSRFRequired]
+    public function applicationMailDrafts(int $id): JSONResponse {
+        return $this->respond(function () use ($id): array {
+            $application = $this->useCases->applicationSummary($id);
+            $this->access->require(RecruitmentAccessService::COMMUNICATE, $application);
+            return ['drafts' => $this->mailService()->drafts($id)];
+        });
+    }
+
+    #[NoAdminRequired]
+    public function saveMailDraft(int $id, string $subject, string $body, int $version, string $bodyFormat = 'plain'): JSONResponse {
+        return $this->respond(function () use ($id, $subject, $body, $bodyFormat, $version): array {
+            $draft = $this->mailService()->draft($id); $application = $this->useCases->applicationSummary((int)$draft['applicationId']);
+            $this->access->require(RecruitmentAccessService::COMMUNICATE, $application);
+            return $this->mailService()->saveDraft($id, $subject, $body, $bodyFormat, $version);
+        });
+    }
+
+    #[NoAdminRequired]
+    public function approveMailDraft(int $id, string $subject, string $body, string $recipient, string $timing, ?string $scheduledAt, int $version, string $jobKey, string $bodyFormat = 'plain'): JSONResponse {
+        return $this->respond(function () use ($id, $subject, $body, $bodyFormat, $recipient, $timing, $scheduledAt, $version, $jobKey): array {
+            $draft = $this->mailService()->draft($id); $application = $this->useCases->applicationSummary((int)$draft['applicationId']);
+            $this->access->require(RecruitmentAccessService::COMMUNICATE, $application);
+            return $this->mailService()->approveDraft($id, $subject, $body, $bodyFormat, $recipient, $timing, $scheduledAt, $version, $this->access->currentUid(), $jobKey);
+        });
+    }
+
+    #[NoAdminRequired]
+    public function cancelMailDraft(int $id, int $version): JSONResponse {
+        return $this->respond(function () use ($id, $version): array {
+            $draft = $this->mailService()->draft($id); $application = $this->useCases->applicationSummary((int)$draft['applicationId']);
+            $this->access->require(RecruitmentAccessService::COMMUNICATE, $application);
+            return $this->mailService()->cancelDraft($id, $version);
+        });
+    }
+
+    #[NoAdminRequired]
+    public function saveMailSettings(bool $testMode, string $testRecipient, int $revision): JSONResponse {
+        return $this->respond(function () use ($testMode, $testRecipient, $revision): array {
+            if (!$this->access->isNextcloudAdmin()) throw new AccessDeniedException();
+            return $this->mailService()->saveSettings($testMode, $testRecipient, $revision);
         });
     }
 
@@ -558,6 +687,15 @@ final class ApiController extends Controller {
             $application = $this->useCases->applicationSummary($id);
             $this->access->require(RecruitmentAccessService::EDIT_HIRING_DATA, $application);
             return $this->useCases->saveHiringData($id, $data, $version, $this->access->currentUid());
+        });
+    }
+
+    #[NoAdminRequired]
+    public function savePayrollData(int $id, array $data, int $version): JSONResponse {
+        return $this->respond(function () use ($id, $data, $version): array {
+            $application = $this->useCases->applicationSummary($id);
+            $this->access->require(RecruitmentAccessService::EDIT_PAYROLL_DATA, $application);
+            return $this->useCases->savePayrollData($id, $data, $version, $this->access->currentUid());
         });
     }
 
@@ -590,6 +728,53 @@ final class ApiController extends Controller {
             return $this->useCases->saveFirstGuideGroup($groupId, $revision, $this->access->currentUid());
         });
     }
+
+    #[NoAdminRequired]
+    #[NoCSRFRequired]
+    public function candidatePool(): JSONResponse {
+        return $this->respond(function (): array { $this->access->require(RecruitmentAccessService::MANAGE_CANDIDATE_POOL); return ['entries' => $this->poolStore()->candidatePoolEntries(), 'settings' => $this->poolSettings()->settings()]; });
+    }
+
+    #[NoAdminRequired]
+    public function requestCandidatePool(int $id): JSONResponse {
+        return $this->respond(function () use ($id): array { $this->access->require(RecruitmentAccessService::MANAGE_CANDIDATE_POOL); return $this->poolService()->request($this->poolStore(), $id, $this->poolSettings()->settings(), $this->access->currentUid(), new DateTimeImmutable('now')); }, Http::STATUS_CREATED);
+    }
+
+    #[NoAdminRequired]
+    public function grantCandidatePoolConsent(int $id, string $evidenceType, string $evidenceReference, string $noticeVersion, array $areaKeys = []): JSONResponse {
+        return $this->respond(function () use ($id, $evidenceType, $evidenceReference, $noticeVersion, $areaKeys): array { $this->access->require(RecruitmentAccessService::MANAGE_CANDIDATE_POOL); return $this->poolService()->grant($this->poolStore(), $id, $evidenceType, $evidenceReference, $noticeVersion, $areaKeys, $this->access->currentUid(), new DateTimeImmutable('now'), $this->poolSettings()->settings()); });
+    }
+
+    #[NoAdminRequired]
+    public function withdrawCandidatePoolConsent(int $id): JSONResponse {
+        return $this->respond(function () use ($id): array { $this->access->require(RecruitmentAccessService::MANAGE_CANDIDATE_POOL); return $this->poolService()->withdraw($this->poolStore(), $id, $this->access->currentUid(), new DateTimeImmutable('now')); });
+    }
+
+    #[NoAdminRequired]
+    public function saveCandidatePoolSettings(bool $enabled, string $noticeVersion, int $consentMonths, int $reminderDays, int $revision): JSONResponse {
+        return $this->respond(function () use ($enabled, $noticeVersion, $consentMonths, $reminderDays, $revision): array {
+            $this->access->require(RecruitmentAccessService::MANAGE_CANDIDATE_POOL);
+            return $this->poolSettings()->save($enabled, $noticeVersion, $consentMonths, $reminderDays, $revision);
+        });
+    }
+
+    #[NoAdminRequired]
+    public function saveResumeExtractionSettings(string $method, int $revision): JSONResponse {
+        return $this->respond(function () use ($method, $revision): array {
+            if (!$this->access->isNextcloudAdmin()) throw new AccessDeniedException();
+            return $this->extractionSettings()->save($method, $revision);
+        });
+    }
+
+    private function mailService(): StatusMailService {
+        if ($this->statusMail === null) throw new \RuntimeException('Der Statusmail-Service ist nicht verfügbar.');
+        return $this->statusMail;
+    }
+
+    private function poolStore(): CandidatePoolStore { return $this->candidatePoolStore ?? throw new \RuntimeException('Der Bewerberpool-Speicher ist nicht verfügbar.'); }
+    private function poolService(): CandidatePoolService { return $this->candidatePool ?? throw new \RuntimeException('Der Bewerberpool-Service ist nicht verfügbar.'); }
+    private function poolSettings(): CandidatePoolSettingsService { return $this->candidatePoolSettings ?? throw new \RuntimeException('Die Bewerberpool-Einstellungen sind nicht verfügbar.'); }
+    private function extractionSettings(): ResumeExtractionSettingsService { return $this->resumeExtractionSettings ?? throw new \RuntimeException('Die Einstellungen zur Lebenslaufextraktion sind nicht verfügbar.'); }
 
     private function respond(callable $operation, int $successStatus = Http::STATUS_OK): JSONResponse {
         try {

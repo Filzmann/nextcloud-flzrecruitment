@@ -27,6 +27,12 @@ final class RecruitmentService {
         string $assignmentKey,
         bool $basisQualificationRequired = false,
         string $professionCategory = '',
+        string $contractTerm = '',
+        string $payGrade = '',
+        ?float $advertisedWeeklyHours = null,
+        ?float $fullTimeWeeklyHours = null,
+        ?float $vacationDays = null,
+        string $workLocation = 'Berlin',
     ): int {
         $internalTitle = trim($internalTitle);
         if ($internalTitle === '') {
@@ -43,6 +49,11 @@ final class RecruitmentService {
         if ($basisQualificationRequired && $professionCategory !== 'assistance') {
             throw new ValidationException('Eine Basisqualifikation ist nur für Assistenz-Stellen zulässig.');
         }
+        $basisQualificationRequired = $professionCategory === 'assistance';
+        if ($contractTerm !== '' && !in_array($contractTerm, ['permanent', 'fixed_term_reason'], true)) throw new ValidationException('Die Vertragsdauer der Stelle ist ungültig.');
+        if ($payGrade !== '' && !in_array($payGrade, ['3', '5', '8', '9a', '9b', '10', '11', '12', '13'], true)) throw new ValidationException('Die Entgeltgruppe der Stelle ist ungültig.');
+        foreach ([$advertisedWeeklyHours, $fullTimeWeeklyHours] as $hours) if ($hours !== null && (!is_finite($hours) || $hours <= 0 || $hours > 80)) throw new ValidationException('Die Wochenstunden der Stelle sind ungültig.');
+        if ($vacationDays !== null && (!is_finite($vacationDays) || $vacationDays < 0 || $vacationDays > 366)) throw new ValidationException('Der Urlaubsanspruch der Stelle ist ungültig.');
 
         return $store->createJob([
             'internalTitle' => $internalTitle,
@@ -53,6 +64,10 @@ final class RecruitmentService {
             'assignmentKey' => trim($assignmentKey),
             'basisQualificationRequired' => $basisQualificationRequired,
             'professionCategory' => $professionCategory,
+            'contractTerm' => $contractTerm, 'payGrade' => $payGrade,
+            'advertisedWeeklyHours' => $advertisedWeeklyHours, 'fullTimeWeeklyHours' => $fullTimeWeeklyHours,
+            'vacationDays' => $vacationDays, 'workLocation' => trim($workLocation) ?: 'Berlin',
+            'workingTimeModel' => $professionCategory === 'assistance' ? 'kapovaz' : 'fixed',
         ]);
     }
 

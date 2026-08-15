@@ -8,6 +8,9 @@ interface ApplicationStatusStore {
     /** @return array<string,mixed> */
     public function findApplication(int $id): array;
 
+    /** @return array<string,mixed>|null */
+    public function statusMailPreparation(int $id, string $fromStatus, string $toStatus): ?array;
+
     /** @return array<string,mixed> */
     public function transitionStatus(
         int $id,
@@ -17,5 +20,7 @@ interface ApplicationStatusStore {
         string $actorUid,
         ?string $areaKey,
         bool $enableFirstGuideAccess,
+        ?array $mailDraft = null,
+        bool $override = false,
     ): array;
 }

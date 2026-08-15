@@ -21,7 +21,9 @@ const data = {
     ],
 }
 
-const { canMoveApplication, filterApplications, groupApplicationsByStatus, sortApplications } = globalThis.RecruitmentApplicationWorkbench
+const { DEFAULT_APPLICATION_VIEW, canMoveApplication, filterApplications, groupApplicationsByStatus, requiresStatusOverride, sortApplications, statusTargets } = globalThis.RecruitmentApplicationWorkbench
+
+assert.equal(DEFAULT_APPLICATION_VIEW, 'board')
 
 assert.deepEqual(filterApplications(data, { query: 'mika', jobId: '', status: '' }).map(({ id }) => id), [101, 102])
 assert.deepEqual(filterApplications(data, { query: '', jobId: '10', status: '' }).map(({ id }) => id), [100, 101])
@@ -38,6 +40,7 @@ assert.deepEqual(sortApplications(data, data.applications, 'person_asc').map(({ 
 assert.deepEqual(sortApplications(data, data.applications, 'status_asc').map(({ id }) => id), [100, 102, 103, 101])
 assert.deepEqual(data.applications.map(({ id }) => id), originalOrder)
 
+data.applications.push({ id: 104, personId: 1, jobId: 10, status: 'withdrawn', receivedOn: '2026-07-20' })
 const groups = groupApplicationsByStatus(data.applications)
 assert.deepEqual(Object.keys(groups), ['received', 'basis_qualification', 'screening'])
 assert.deepEqual(groups.basis_qualification.map(({ id }) => id), [101])
@@ -45,8 +48,14 @@ assert.deepEqual(groups.basis_qualification.map(({ id }) => id), [101])
 const completeGroups = groupApplicationsByStatus(data.applications, ['received', 'screening', 'phone_planned'])
 assert.deepEqual(Object.keys(completeGroups), ['received', 'screening', 'phone_planned', 'basis_qualification'])
 assert.deepEqual(completeGroups.phone_planned, [])
+assert.equal(Object.hasOwn(completeGroups, 'withdrawn'), false)
 
 const movable = { id: 100, allowedStatuses: ['screening', 'withdrawn'] }
 assert.equal(canMoveApplication(movable, 'screening'), true)
 assert.equal(canMoveApplication(movable, 'hired'), false)
 assert.equal(canMoveApplication(null, 'screening'), false)
+assert.deepEqual(statusTargets(movable, ['received', 'screening', 'phone_planned', 'withdrawn'], false), ['screening'])
+assert.deepEqual(statusTargets(movable, ['received', 'screening', 'phone_planned', 'hired', 'withdrawn'], true), ['screening', 'received', 'phone_planned'])
+assert.deepEqual(statusTargets({ status: 'basis_qualification', allowedStatuses: ['rejected'], basisQualification: { result: 'pending' } }, ['approved_for_hire', 'rejected'], true), ['rejected'])
+assert.equal(requiresStatusOverride(movable, 'screening'), false)
+assert.equal(requiresStatusOverride(movable, 'phone_planned'), true)

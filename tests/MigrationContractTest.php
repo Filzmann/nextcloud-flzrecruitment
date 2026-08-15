@@ -2,8 +2,6 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/bootstrap.php';
-
 use RecruitmentTests\TestRunner;
 
 use function RecruitmentTests\assertTrue;
@@ -120,4 +118,101 @@ TestRunner::test('document field-link upgrade preserves existing applications an
     assertTrue(str_contains($source, "addUniqueIndex(['attachment_id', 'client_key']"), 'Retried field linking is not idempotent');
     assertTrue(str_contains($source, "addIndex(['application_id', 'created_at']"), 'Application field-link history is not indexed');
     assertTrue(!str_contains($source, "getTable('rec_attachments')->addColumn"), 'Immutable attachment records must not be changed for field links');
+});
+
+TestRunner::test('status mail upgrade separates revisions, rules, drafts and idempotent outbox jobs', static function (): void {
+    $source = @file_get_contents(dirname(__DIR__) . '/lib/Migration/Version000009Date202608150001.php');
+    assertTrue($source !== false, 'Additive status-mail migration is missing');
+    foreach ([
+        'rec_mail_templates', 'rec_mail_template_revisions', 'rec_mail_text_blocks',
+        'rec_status_mail_rules', 'rec_mail_drafts', 'rec_mail_outbox',
+    ] as $table) {
+        assertTrue(str_contains($source, "hasTable('{$table}')"), "Status-mail migration lacks an idempotence guard for {$table}");
+        assertTrue(str_contains($source, "createTable('{$table}')"), "Status-mail migration lacks table {$table}");
+    }
+    assertTrue(str_contains($source, "addUniqueIndex(['template_id', 'revision']"), 'Template revisions are not immutable and uniquely addressable');
+    assertTrue(str_contains($source, "addUniqueIndex(['from_status', 'to_status']"), 'A transition can have conflicting mail rules');
+    assertTrue(str_contains($source, "addUniqueIndex(['application_id', 'client_key']"), 'Retried status actions can duplicate drafts');
+    assertTrue(substr_count($source, "addColumn('default_timing'") === 2, 'Drafts do not preserve the configured scheduling default');
+    assertTrue(str_contains($source, "addColumn('intended_recipient'"), 'Draft approval does not preserve an explicit recipient correction');
+    assertTrue(str_contains($source, "addUniqueIndex(['draft_id']"), 'One approved draft can create duplicate outbox jobs');
+    assertTrue(str_contains($source, "addIndex(['state', 'scheduled_at']"), 'Due outbox jobs cannot be selected safely');
+    assertTrue(str_contains($source, "addForeignKeyConstraint(\$schema->getTable('rec_applications')"), 'Mail drafts are not scoped to an application');
+});
+
+TestRunner::test('status mail delivery job is idempotently registered for existing installations', static function (): void {
+    $source = file_get_contents(dirname(__DIR__) . '/lib/Migration/Version000010Date202608150002.php');
+    assertTrue($source !== false, 'Status-mail job registration migration is missing');
+    assertTrue(str_contains($source, 'IJobList'), 'Status-mail job registration does not use the public Nextcloud job list');
+    assertTrue(str_contains($source, 'DeliverStatusMailJob::class'), 'Status-mail delivery job is not registered by the upgrade');
+    assertTrue(str_contains($source, '->has('), 'Repeated upgrades can duplicate the status-mail delivery job');
+});
+
+TestRunner::test('HTML status-mail upgrade preserves legacy text and fills only missing transition defaults', static function (): void {
+    $source = file_get_contents(dirname(__DIR__) . '/lib/Migration/Version000011Date202608150003.php');
+    assertTrue($source !== false, 'Additive HTML status-mail migration is missing');
+    assertTrue(substr_count($source, "hasColumn('body_format')") === 2, 'Legacy template revisions and drafts lack guarded format columns');
+    assertTrue(substr_count($source, "addColumn('body_format'") === 2, 'HTML body formats are not persisted in both snapshots');
+    assertTrue(str_contains($source, "'default' => 'plain'"), 'Existing plain-text data is not preserved safely');
+    assertTrue(str_contains($source, 'DefaultStatusMailTemplateCatalog'), 'Default transition content has no single catalog');
+    assertTrue(str_contains($source, "from('rec_status_mail_rules')"), 'Existing transition rules are not checked before seeding');
+    assertTrue(str_contains($source, 'if ($existingRule !== false) continue;'), 'Existing transition rules can be overwritten');
+});
+
+TestRunner::test('candidate-pool upgrade separates consent evidence and human-reviewed matches', static function (): void {
+    $source = file_get_contents(dirname(__DIR__) . '/lib/Migration/Version000012Date202608150004.php');
+    assertTrue($source !== false, 'Additive candidate-pool migration is missing');
+    foreach (['rec_pool_entries', 'rec_pool_consents', 'rec_pool_matches'] as $table) {
+        assertTrue(str_contains($source, "hasTable('{$table}')"), "Candidate-pool migration lacks guard for {$table}");
+        assertTrue(str_contains($source, "createTable('{$table}')"), "Candidate-pool table is missing: {$table}");
+    }
+    assertTrue(str_contains($source, "addUniqueIndex(['source_application_id']"), 'One application can create conflicting pool entries');
+    assertTrue(str_contains($source, "addUniqueIndex(['entry_id', 'job_id']"), 'Repeated matching can create duplicate suggestions');
+    assertTrue(str_contains($source, "addIndex(['status', 'expires_at']"), 'Expiry maintenance is not indexed');
+    assertTrue(str_contains($source, 'CandidatePoolMaintenanceJob::class'), 'Candidate-pool maintenance job is not registered');
+});
+
+TestRunner::test('mail-rule consolidation reuses one template for every withdrawal edge', static function (): void {
+    $source = file_get_contents(dirname(__DIR__) . '/lib/Migration/Version000013Date202608150005.php');
+    assertTrue($source !== false, 'Withdrawal-template consolidation migration is missing');
+    assertTrue(str_contains($source, "eq('to_status'"), 'Withdrawal rules are not selected by their target status.');
+    assertTrue(str_contains($source, "set('template_id'"), 'Withdrawal rules are not assigned to one reusable template.');
+    assertTrue(str_contains($source, "eq('to_status',"), 'Migration could rewrite unrelated status transitions.');
+});
+
+TestRunner::test('job-contract upgrade adds nullable tariff facts without rewriting existing hiring records', static function (): void {
+    $source = file_get_contents(dirname(__DIR__) . '/lib/Migration/Version000014Date202608150006.php');
+    assertTrue($source !== false, 'Additive job-contract migration is missing');
+    foreach (['contract_term', 'pay_grade', 'advertised_weekly_hours', 'full_time_weekly_hours', 'vacation_days', 'work_location'] as $column) {
+        assertTrue(str_contains($source, "'{$column}' =>"), "Job contract definition missing: {$column}");
+    }
+    assertTrue(str_contains($source, 'hasColumn($column)'), 'Partially applied job upgrades are not guarded.');
+    assertTrue(str_contains($source, 'addColumn($column'), 'Configured job contract columns are not added.');
+    assertTrue(!str_contains($source, 'rec_hiring_data'), 'Existing applicant hiring records must not be rewritten.');
+});
+
+TestRunner::test('name suggestion backfill updates only messages without an existing name', static function (): void {
+    $source = file_get_contents(dirname(__DIR__) . '/lib/Migration/Version000015Date202608150007.php');
+    assertTrue($source !== false, 'Name-suggestion backfill migration is missing');
+    assertTrue(str_contains($source, "['name']['value']"), 'Existing name suggestions are not protected.');
+    assertTrue(str_contains($source, 'ApplicationMailFieldExtractor'), 'Backfill does not reuse the canonical extractor.');
+    assertTrue(str_contains($source, "set('field_suggestions_json'"), 'Derived names are not persisted.');
+    assertTrue(str_contains($source, "set('version'"), 'Backfilled messages do not invalidate stale clients.');
+});
+
+TestRunner::test('questionnaire-skip upgrade adds only missing disabled mail rules and reuses templates', static function (): void {
+    $source = file_get_contents(dirname(__DIR__) . '/lib/Migration/Version000016Date202608150008.php');
+    assertTrue($source !== false, 'Questionnaire-skip mail-rule migration is missing.');
+    foreach ([
+        "['screening', 'live_planned']",
+        "['screening', 'decision_pending']",
+        "['questionnaire_pending', 'phone_planned']",
+        "['questionnaire_pending', 'live_planned']",
+        "['questionnaire_pending', 'decision_pending']",
+        "['questionnaire_pending', 'rejected']",
+    ] as $edge) assertTrue(str_contains($source, $edge), "Missing questionnaire-skip edge {$edge}.");
+    assertTrue(str_contains($source, "from('rec_status_mail_rules')"), 'Existing transition rules are not checked.');
+    assertTrue(str_contains($source, "select('template_id')"), 'Reusable target templates are not selected.');
+    assertTrue(str_contains($source, "createNamedParameter(false, IQueryBuilder::PARAM_BOOL)"), 'New skip rules are not disabled by default.');
+    assertTrue(!str_contains($source, "insert('rec_mail_templates')"), 'The migration duplicates reusable templates.');
 });

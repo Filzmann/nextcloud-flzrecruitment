@@ -8,6 +8,15 @@ durchgängige Sollprozess stehen in
 setzen dieses Zielbild um; die Reihenfolge darf nach Abhängigkeiten angepasst,
 der fachliche Umfang aber nicht still entfernt werden.
 
+## Bewerberpool-Paket – technisch umgesetzt, Aktivierung ausstehend
+
+- additive Tabellen für reduzierte Poolprofile, unveränderliche Einwilligungsereignisse und nachvollziehbare Stellenhinweise
+- standardmäßig deaktiviert; Aktivierung erst mit versioniertem Datenschutzhinweis
+- zwölf Monate Einwilligungsdauer und interne Erinnerung 30 Tage vor Ablauf als konfigurierbare Standards
+- sofortiger Widerruf und automatisches Ende weiterer Vorschläge bei Ablauf
+- keine Interviewnotizen oder automatisierten Entscheidungen als Matching
+- offen vor produktiver Aktivierung: Textfreigabe, allgemeine Löschregel samt Löschprozess und externer Self-Service für Einwilligung/Widerruf
+
 ## Zukunftsplanung – nicht freigegeben
 
 ### RECR-L10N – AD Recruitment vollständig lokalisieren
@@ -59,6 +68,11 @@ Status: Anzeige, Grundfilter und Statusinteraktion umgesetzt; weitere Filter off
 - Umgesetzt: explizite Statusaktion unmittelbar in der Tabellenansicht; sie
   verwendet denselben zentralen Übergangspfad und dieselbe Bürobereichswahl
   wie die Kartenansicht.
+- Umgesetzt: Kurzfragebogen auf definierten regulären Kanten überspringen und
+  weitere Prozesssprünge ausschließlich als Personalreferat/Admin über das
+  Dropdown nach Sicherheitsabfrage durchführen; Ausnahmefähigkeit,
+  Serverprüfung und gesondertes Audit sind nicht delegierbar, harte BQ- und
+  Einstellungsgrenzen bleiben bestehen.
 - Beibehalten: optimistische Sperren, verständliche Konflikte und vollständige
   Statusprotokollierung beibehalten.
 
@@ -114,8 +128,8 @@ Status: erster Durchstich umgesetzt; Ausbau offen
 
 ### RECR-MAIL-INBOX – Postfacheingang und manuelle Zuordnung
 
-Status: Importkern, privater Eingang und manuelle Zuordnung umgesetzt; realer
-Empfangsadapter und Postfachadministration offen
+Status: Importkern, privater Eingang, lokale PDF-Textextraktion und manuelle
+Zuordnung umgesetzt; realer Empfangsadapter und Postfachadministration offen
 
 - Mehrere administrativ konfigurierte Bewerbungspostfächer über einen
   freigegebenen Empfangsadapter anbinden.
@@ -123,6 +137,13 @@ Empfangsadapter und Postfachadministration offen
   beschriftete Formularzeilen und eindeutige Kontakt-E-Mail-Adressen aus
   freien Klartextmails als quellmarkierte Vorschläge auswerten; mehrere
   Body-Adressen und unbekannte Berufsrichtungen bleiben ungeklärt.
+- Umgesetzt: vom Empfangsadapter bereits normalisierten Lebenslauftext mit
+  Mailtext kombinieren und Wunschstunden, Verfügbarkeit, Erfahrung,
+  Deutschniveau und Wohnort mit getrennter Herkunft vorschlagen.
+- Umgesetzt: textbasierte PDF-Anhänge ohne Netzwerk oder KI bevorzugt über
+  lokales `pdftotext`, ersatzweise Ghostscript mit Größen- und Zeitgrenze
+  auslesen und Name, Telefon, Wohnort, Wunschstunden, Verfügbarkeit,
+  Berufserfahrung und Deutschniveau nach konservativen Stichworten vorschlagen.
 - Umgesetzt: privaten Eingang sowie die technischen Importzustände `neu`,
   `zugeordnet`, `unklar`, `fehlerhaft` und `ignoriert` persistieren; neue,
   zugeordnete, fehlerhafte und ignorierte Vorgänge sind im ersten Ablauf
@@ -130,9 +151,12 @@ Empfangsadapter und Postfachadministration offen
 - Umgesetzt: normalisierte Nachrichten anhand Message-ID und Inhaltsfingerprint
   idempotent importieren und manuell einer bestehenden Bewerbung zuordnen,
   korrigieren oder als Nicht-Bewerbung schließen.
+- Umgesetzt: bei der bestätigten Zuordnung sichere Kontakt- und
+  Eintrittsvorschläge ausschließlich in leere Vertragsfelder übernehmen.
 - Offen: Person und Bewerbung kontrolliert direkt aus dem Eingang neu anlegen,
-  Postfachabruf und Quarantäne-Retry als Hintergrundprozess sowie administrative
-  Postfachkonfiguration.
+  weitere Vorschläge einzeln auswählbar machen, Postfachabruf und
+  Quarantäne-Retry als Hintergrundprozess sowie
+  administrative Postfachkonfiguration.
 - Zugangsdaten und Tokens ausschließlich über geeignete Nextcloud-native
   Secret-/Konfigurationsmechanismen verwalten.
 - Automatische Zuordnungsregeln erst in einem späteren Paket ergänzen;
@@ -144,16 +168,23 @@ Empfangsadapter und Postfachadministration offen
 
 ### RECR-DATA-EXTRACTION – Stammdatenvorschläge
 
-Status: fachlich beschrieben, abhängig von Bewerbungsakte und Mailimport
+Status: regelbasierte Mail-/Lebenslaufvorschläge, lokale Text-PDF-Extraktion
+und sichere Vorbelegung umgesetzt; Einzelauswahl und OCR offen
 
-- Stammdaten aus Nachrichtentexten und geeigneten Anhängen als Vorschläge mit
-  Quelle und nachvollziehbarem Erkennungsstatus bereitstellen.
+- Umgesetzt: Stammdaten aus Nachrichtentexten, lokal ausgelesenen Text-PDFs
+  und vom Adapter normalisiertem Lebenslauftext als Vorschläge mit Quelle
+  bereitstellen.
 - Vorschläge einzeln bestätigen, korrigieren oder verwerfen lassen und
   vorhandene Werte niemals still überschreiben.
 - Besonders sensible Vertragsdaten nicht automatisch aus unsicheren Quellen
   übernehmen.
 - Unterstützte Dateiformate, OCR-Bedarf, Qualitätsgrenzen und Umgang mit
   manipulierten Dokumenten vor der technischen Auswahl entscheiden.
+- Umgesetzt: Im Adminbereich zwischen verfügbaren Verfahren wählen und deren
+  lokale Laufzeitverfügbarkeit anzeigen. Die Stichworterkennung ist aktiv;
+  `Lokales Server-Modell` bleibt sichtbar, deaktiviert und nicht speicherbar,
+  bis ein datenschutzgeprüfter lokaler Provider tatsächlich installiert und
+  über einen getrennt getesteten Vertrag angebunden ist.
 
 ### RECR-TEMP-ACTIVITIES – Kurzfragebögen und Zwischenaktivitäten
 
@@ -171,7 +202,8 @@ Status: fachlich beschrieben, Sicherheitsentscheidung ausstehend
 
 ### RECR-COMMUNICATION – Vorlagen und Mailversand
 
-Status: fachlich beschrieben, Sicherheitsentscheidung ausstehend
+Status: Statuswechsel-Versand umgesetzt; Antwortzuordnung und vollständige
+Kommunikationschronik bleiben ausstehend
 
 - Versionierte Nachrichtenvorlagen, bearbeitbare Entwürfe und kontrollierten
   Versand aus der Bewerbung bereitstellen.
@@ -184,7 +216,13 @@ Status: fachlich beschrieben, Sicherheitsentscheidung ausstehend
 
 ### RECR-STATUS-MAIL-DRAFTS – Bearbeitbare Mails bei Statuswechseln
 
-Status: fachlich freigegeben; nach Dokumentenreview und vor realem Mailversand
+Status: implementiert und lokal migriert; manuelle Staging-Abnahme ausstehend
+
+- Umgesetzt: jede der 35 erlaubten Statuskanten erhält additiv eine eigene,
+  zunächst deaktivierte Standardvorlage; vorhandene Regeln bleiben autoritativ.
+- Umgesetzt: kompakte, nach Ausgangsstatus gruppierte Regelverwaltung mit
+  kleinem Rich-Text-Editor, serverseitiger HTML-Allowlist und automatischer
+  Klartextalternative.
 
 - Für jeden zulässigen Statuswechsel optional konfigurieren, ob ein
   Mailentwurf für die Bewerber*innen erzeugt wird; ein Statuswechsel selbst
@@ -195,9 +233,21 @@ Status: fachlich freigegeben; nach Dokumentenreview und vor realem Mailversand
 - Vor jedem Versand den vollständig aufgelösten Betreff und Nachrichtentext
   als bearbeitbaren Entwurf anzeigen. Es gibt keinen unbeaufsichtigten
   Direktversand allein durch den Statuswechsel.
+- Die Empfängeradresse stammt zunächst aus der kanonischen Bewerberadresse der
+  Person. Eine bewusste Korrektur im finalen Versanddialog ist zulässig;
+  ursprüngliche Adresse, freigegebene Zieladresse und tatsächlicher
+  Zustellempfänger bleiben als getrennte Snapshots nachvollziehbar.
 - Im Entwurf vorbereitete, durch Personalreferent*innen verwaltete Textblöcke
   an der Cursorposition einfügen und zusätzlich beliebigen Freitext ergänzen;
   vorhandener Text wird dabei nicht still überschrieben.
+- Die Versandfreigabe unterstützt sofortigen Versand, einen frei gewählten
+  zukünftigen Zeitpunkt und die gebündelte Planung für den kommenden Montag.
+  Ein Versandauftrag wird vor seinem freigegebenen Zeitpunkt nicht verarbeitet.
+- Eine zentrale administrative Mail-Testeinstellung leitet bei Aktivierung
+  sämtliche ausgehenden Recruitment-Mails serverseitig an genau eine
+  validierte Standard-Testadresse um. Oberfläche und Versandnachweis zeigen
+  Testmodus, ursprünglichen Empfänger und tatsächlichen Zustellempfänger
+  getrennt; kein Client darf die Umleitung umgehen.
 - Empfängeradresse, Vorlage, Textblöcke, Freitextänderung, ausführende Person,
   Freigabe und Versandzustand nachvollziehbar halten, ohne Mailinhalte in
   technische Logs zu schreiben.
@@ -221,9 +271,13 @@ Status: später, nach stabilem manuellen Mailprozess
 
 Status: erster manueller Durchstich umgesetzt; Ausbau offen
 
-- Umgesetzt: Stellen fachlich kennzeichnen, für die eine Basisqualifikation erforderlich
-  beziehungsweise zulässig ist; andere Berufsgruppen serverseitig vom
-  BQ-Prozess ausschließen.
+Die Planung der eigenständigen BQ-Planer-App wird suiteweit außerhalb
+dieser standalone-fähigen Produktroadmap geführt. Für AD Recruitment bleiben
+die folgenden lokalen Fallback- und Integrationsaufgaben maßgeblich.
+
+- Umgesetzt: die Basisqualifikation aus der Berufsgruppe ableiten: für jede
+  Assistenz-Stelle verpflichtend und nicht separat schaltbar; alle anderen
+  Berufsgruppen serverseitig vom BQ-Prozess ausschließen.
 - Umgesetzt: ungefähr zwölf jährliche, jeweils ungefähr zehntägige BQ-Durchläufe mit
   stabiler ID, sichtbarer Bezeichnung `BQ MM/YY`, Zeitraum und Zustand lokal
   verwalten können.
@@ -247,7 +301,7 @@ Status: erster manueller Durchstich umgesetzt; Ausbau offen
 - Umgesetzt: nach der Bewertung eine ausdrückliche Personalentscheidung verlangen; das
   Bewertungsergebnis darf die Einstellungsfreigabe nicht automatisch
   auslösen.
-- Ein späteres eigenständiges BQ-Modul nur optional über einen kleinen,
+- Die spätere eigenständige BQ-Planer-App nur optional über einen kleinen,
   versionierten Capability-/Event-Vertrag anbinden. AD Recruitment bleibt
   ohne Provider vollständig manuell nutzbar und greift niemals direkt auf
   dessen Tabellen, Controller oder Assets zu.

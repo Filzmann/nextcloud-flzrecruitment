@@ -7,6 +7,7 @@ namespace OCA\Recruitment\Service;
 use DateTimeImmutable;
 use OCA\Recruitment\Contract\MailAttachmentStorage;
 use OCA\Recruitment\Contract\MailInboxStore;
+use OCA\Recruitment\Contract\PdfTextExtractor;
 use OCA\Recruitment\Exception\ValidationException;
 
 /** Fachgrenze für unveränderlichen, wiederholbaren Mailimport und versionierte Zuordnung. */
@@ -21,11 +22,15 @@ final class MailInboxService {
     public const MAX_TOTAL_ATTACHMENT_BYTES = 50 * 1024 * 1024;
     public const MAX_BODY_BYTES = 2 * 1024 * 1024;
 
+    private HiringMasterDataService $hiringMasterData;
+
     public function __construct(
         private ApplicationMailFieldExtractor $extractor,
         private MailInboxStore $store,
         private MailAttachmentStorage $attachments,
-    ) {}
+        private PdfTextExtractor $pdfTextExtractor,
+        ?HiringMasterDataService $hiringMasterData = null,
+    ) { $this->hiringMasterData = $hiringMasterData ?? new HiringMasterDataService(); }
 
     /**
      * @param array<string,mixed> $mail
@@ -40,7 +45,14 @@ final class MailInboxService {
             return ['imported' => false, 'message' => $existing];
         }
 
-        $suggestions = $this->extractor->extract($normalized['senderAddress'], $normalized['bodyText']);
+        $resumeTexts = [];
+        foreach ($normalized['attachments'] as $attachment) {
+            $resumeText = $attachment['extractedText'];
+            if ($resumeText === '') $resumeText = $this->pdfTextExtractor->extract($attachment['content']);
+            if ($resumeText !== '') $resumeTexts[] = $resumeText;
+        }
+        $resumeText = implode("\n", $resumeTexts);
+        $suggestions = $this->extractor->extract($normalized['senderAddress'], $normalized['bodyText'], $resumeText, $normalized['senderName']);
         $messageId = $this->store->createInboxMessage([
             'mailboxId' => $mailboxId,
             'externalMessageId' => $normalized['externalMessageId'],
@@ -96,7 +108,13 @@ final class MailInboxService {
         if (!in_array((string)$message['state'], [self::STATE_NEW, self::STATE_UNCLEAR, self::STATE_ASSIGNED], true)) {
             throw new ValidationException('Diese Nachricht kann in ihrem aktuellen Zustand nicht zugeordnet werden.');
         }
-        return $this->store->assignInboxMessage($messageId, $applicationId, $expectedVersion, $actorUid);
+        return $this->store->assignInboxMessage(
+            $messageId,
+            $applicationId,
+            $expectedVersion,
+            $actorUid,
+            $this->hiringMasterData->mailDefaults((array)($message['fieldSuggestions'] ?? [])),
+        );
     }
 
     /** @return array<string,mixed> */
@@ -159,6 +177,7 @@ final class MailInboxService {
                 'originalName' => substr(trim((string)($attachment['originalName'] ?? 'Anhang.pdf')), 0, 255),
                 'content' => $content,
                 'contentHash' => hash('sha256', $content),
+                'extractedText' => substr(trim((string)($attachment['extractedText'] ?? '')), 0, self::MAX_BODY_BYTES),
             ];
         }
         $externalMessageId = trim((string)($mail['externalMessageId'] ?? ''));
@@ -166,6 +185,7 @@ final class MailInboxService {
             'mailbox' => ['technicalKey' => $technicalKey, 'label' => trim((string)($mailbox['label'] ?? $technicalKey)), 'address' => $mailboxAddress],
             'externalMessageId' => $externalMessageId === '' ? null : substr($externalMessageId, 0, 255),
             'senderAddress' => $senderAddress,
+            'senderName' => substr(trim((string)($mail['senderName'] ?? '')), 0, 255),
             'recipients' => array_keys($recipients),
             'subject' => substr(trim((string)($mail['subject'] ?? '')), 0, 998),
             'receivedAt' => $receivedAt,

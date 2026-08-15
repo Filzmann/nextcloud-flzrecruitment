@@ -18,12 +18,16 @@ final class RecruitmentAccessService {
     public const EDIT_APPLICATIONS = RecruitmentPermissionPolicy::EDIT_APPLICATIONS;
     public const INTERVIEW = RecruitmentPermissionPolicy::INTERVIEW;
     public const EDIT_HIRING_DATA = RecruitmentPermissionPolicy::EDIT_HIRING_DATA;
+    public const EDIT_PAYROLL_DATA = RecruitmentPermissionPolicy::EDIT_PAYROLL_DATA;
     public const VIEW_HIRING_DATA = RecruitmentPermissionPolicy::VIEW_HIRING_DATA;
     public const MANAGE_DOCUMENTS = RecruitmentPermissionPolicy::MANAGE_DOCUMENTS;
     public const COMMUNICATE = RecruitmentPermissionPolicy::COMMUNICATE;
     public const MANAGE_FIRST_GUIDE_ACCESS = RecruitmentPermissionPolicy::MANAGE_FIRST_GUIDE_ACCESS;
     public const MANAGE_BASIS_QUALIFICATION = RecruitmentPermissionPolicy::MANAGE_BASIS_QUALIFICATION;
+    public const MANAGE_MAIL_TEMPLATES = RecruitmentPermissionPolicy::MANAGE_MAIL_TEMPLATES;
+    public const MANAGE_CANDIDATE_POOL = RecruitmentPermissionPolicy::MANAGE_CANDIDATE_POOL;
     public const MANAGE_DELEGATIONS = RecruitmentPermissionPolicy::MANAGE_DELEGATIONS;
+    public const OVERRIDE_STATUS_TRANSITIONS = RecruitmentPermissionPolicy::OVERRIDE_STATUS_TRANSITIONS;
 
     public function __construct(
         private IUserSession $session,
@@ -77,7 +81,11 @@ final class RecruitmentAccessService {
         foreach ([
             ...RecruitmentPermissionPolicy::DELEGATABLE_CAPABILITIES,
             self::MANAGE_BASIS_QUALIFICATION,
+            self::EDIT_PAYROLL_DATA,
+            self::MANAGE_MAIL_TEMPLATES,
+            self::MANAGE_CANDIDATE_POOL,
             self::MANAGE_DELEGATIONS,
+            self::OVERRIDE_STATUS_TRANSITIONS,
         ] as $capability) {
             $result[$capability] = $policy->canSomewhere($actor, $capability);
         }

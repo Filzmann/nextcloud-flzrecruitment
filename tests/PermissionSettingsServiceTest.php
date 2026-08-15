@@ -12,14 +12,12 @@ namespace OCP {
 }
 
 namespace OCA\Recruitment\AppInfo {
-    if (!class_exists(Application::class)) {
+    if (!class_exists(Application::class, false)) {
         final class Application { public const APP_ID = 'adrecruitment'; }
     }
 }
 
 namespace {
-    require_once __DIR__ . '/bootstrap.php';
-
     use OCA\Recruitment\Exception\ConflictException;
     use OCA\Recruitment\Exception\ValidationException;
     use OCA\Recruitment\Service\RecruitmentPermissionPolicy;

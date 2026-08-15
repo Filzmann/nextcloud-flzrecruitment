@@ -2,8 +2,6 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/bootstrap.php';
-
 use OCA\LocalBase\Organization\AdOrganizationSnapshot;
 use OCA\Recruitment\Service\RecruitmentPermissionPolicy;
 use RecruitmentTests\TestRunner;
@@ -59,11 +57,12 @@ TestRunner::test('payroll receives only the hiring projection after approval', s
     $policy = new RecruitmentPermissionPolicy($snapshot, $settings);
     $payroll = ['uid' => 'payroll', 'isAdmin' => false, 'groupIds' => ['group-payroll']];
     assertTrue($policy->can($payroll, RecruitmentPermissionPolicy::VIEW_HIRING_DATA, $approvedWest));
+    assertTrue($policy->can($payroll, RecruitmentPermissionPolicy::EDIT_PAYROLL_DATA, $approvedWest));
     assertSame(false, $policy->can($payroll, RecruitmentPermissionPolicy::VIEW_DOSSIER, $approvedWest));
     assertSame(false, $policy->can($payroll, RecruitmentPermissionPolicy::VIEW_HIRING_DATA, array_replace($approvedWest, ['status' => 'screening'])));
 });
 
-TestRunner::test('BQ assignment opens only payroll master data and negative outcome closes it', static function () use ($snapshot, $settings): void {
+TestRunner::test('BQ assignment does not expose LoBu master data before hire approval', static function () use ($snapshot, $settings): void {
     $policy = new RecruitmentPermissionPolicy($snapshot, $settings);
     $payroll = ['uid' => 'payroll', 'isAdmin' => false, 'groupIds' => ['group-payroll']];
     $pending = [
@@ -74,7 +73,8 @@ TestRunner::test('BQ assignment opens only payroll master data and negative outc
         'basisQualification' => ['id' => 8, 'result' => 'pending'],
     ];
 
-    assertTrue($policy->can($payroll, RecruitmentPermissionPolicy::VIEW_HIRING_DATA, $pending));
+    assertSame(false, $policy->can($payroll, RecruitmentPermissionPolicy::VIEW_HIRING_DATA, $pending));
+    assertSame(false, $policy->can($payroll, RecruitmentPermissionPolicy::EDIT_PAYROLL_DATA, $pending));
     assertSame(false, $policy->can($payroll, RecruitmentPermissionPolicy::VIEW_DOSSIER, $pending));
     assertSame(false, $policy->can($payroll, RecruitmentPermissionPolicy::VIEW_HIRING_DATA, array_replace(
         $pending,
@@ -92,6 +92,29 @@ TestRunner::test('only HR and Nextcloud admins manage basis qualifications', sta
     assertTrue($policy->can($admin, RecruitmentPermissionPolicy::MANAGE_BASIS_QUALIFICATION));
     assertSame(false, $policy->can($representative, RecruitmentPermissionPolicy::MANAGE_BASIS_QUALIFICATION));
     assertSame(false, in_array(RecruitmentPermissionPolicy::MANAGE_BASIS_QUALIFICATION, RecruitmentPermissionPolicy::DELEGATABLE_CAPABILITIES, true));
+});
+
+TestRunner::test('only HR and Nextcloud admins manage mail templates while communication remains scoped', static function () use ($snapshot, $settings): void {
+    $policy = new RecruitmentPermissionPolicy($snapshot, $settings);
+    assertSame(true, $policy->can(['uid' => 'hr', 'isAdmin' => false, 'groupIds' => ['group-hr']], RecruitmentPermissionPolicy::MANAGE_MAIL_TEMPLATES));
+    assertSame(true, $policy->can(['uid' => 'admin', 'isAdmin' => true, 'groupIds' => []], RecruitmentPermissionPolicy::MANAGE_MAIL_TEMPLATES));
+    assertSame(false, $policy->can(['uid' => 'representative', 'isAdmin' => false, 'groupIds' => []], RecruitmentPermissionPolicy::MANAGE_MAIL_TEMPLATES));
+});
+
+TestRunner::test('candidate pool is restricted to HR and Nextcloud admins and cannot be delegated', static function () use ($snapshot, $settings): void {
+    $policy = new RecruitmentPermissionPolicy($snapshot, $settings);
+    assertSame(true, $policy->can(['uid' => 'hr', 'isAdmin' => false, 'groupIds' => ['group-hr']], RecruitmentPermissionPolicy::MANAGE_CANDIDATE_POOL));
+    assertSame(true, $policy->can(['uid' => 'admin', 'isAdmin' => true, 'groupIds' => []], RecruitmentPermissionPolicy::MANAGE_CANDIDATE_POOL));
+    assertSame(false, $policy->can(['uid' => 'representative', 'isAdmin' => false, 'groupIds' => []], RecruitmentPermissionPolicy::MANAGE_CANDIDATE_POOL));
+    assertSame(false, in_array(RecruitmentPermissionPolicy::MANAGE_CANDIDATE_POOL, RecruitmentPermissionPolicy::DELEGATABLE_CAPABILITIES, true));
+});
+
+TestRunner::test('exceptional status transitions are restricted to HR and admins and cannot be delegated', static function () use ($snapshot, $settings, $approvedWest): void {
+    $policy = new RecruitmentPermissionPolicy($snapshot, $settings);
+    assertSame(true, $policy->can(['uid' => 'hr', 'isAdmin' => false, 'groupIds' => ['group-hr']], RecruitmentPermissionPolicy::OVERRIDE_STATUS_TRANSITIONS, $approvedWest));
+    assertSame(true, $policy->can(['uid' => 'admin', 'isAdmin' => true, 'groupIds' => []], RecruitmentPermissionPolicy::OVERRIDE_STATUS_TRANSITIONS, $approvedWest));
+    assertSame(false, $policy->can(['uid' => 'representative-case', 'isAdmin' => false, 'groupIds' => []], RecruitmentPermissionPolicy::OVERRIDE_STATUS_TRANSITIONS, $approvedWest));
+    assertSame(false, in_array(RecruitmentPermissionPolicy::OVERRIDE_STATUS_TRANSITIONS, RecruitmentPermissionPolicy::DELEGATABLE_CAPABILITIES, true));
 });
 
 TestRunner::test('first guides need eligibility, matching area, approved status and active manual grant', static function () use ($snapshot, $settings, $approvedWest): void {

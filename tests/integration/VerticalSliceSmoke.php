@@ -46,6 +46,8 @@ $ids = [
     'interview' => null,
     'basisQualificationRun' => null,
     'basisQualificationAssignment' => null,
+    'mailbox' => null,
+    'message' => null,
 ];
 
 $delete = static function (string $table, string $column, int $id) use ($db): void {
@@ -97,6 +99,25 @@ try {
         20.0,
         30.0,
     );
+    $repository->saveHiringData($ids['application'], ['city' => 'Potsdam'], 0, 'admin');
+    $ids['mailbox'] = $repository->ensureMailbox([
+        'technicalKey' => 'smoke-' . $suffix,
+        'label' => 'Synthetischer Smoke-Eingang',
+        'address' => "smoke-{$suffix}@example.invalid",
+    ]);
+    $ids['message'] = $repository->createInboxMessage([
+        'mailboxId' => $ids['mailbox'], 'externalMessageId' => "<smoke-{$suffix}@example.invalid>",
+        'contentHash' => hash('sha256', $suffix), 'state' => 'new',
+        'senderAddress' => "alex-{$suffix}@example.invalid", 'recipients' => ['bewerbung@example.invalid'],
+        'subject' => 'Synthetische Bewerbung', 'receivedAt' => new DateTimeImmutable('2026-08-15T09:00:00+02:00'),
+        'bodyText' => 'Synthetischer Inhalt', 'fieldSuggestions' => [], 'actorUid' => 'admin',
+    ]);
+    $repository->assignInboxMessage($ids['message'], $ids['application'], 1, 'admin', [
+        'city' => 'Berlin', 'privateEmail' => "vertrag-{$suffix}@example.invalid",
+    ]);
+    $prefilledHiring = $repository->hiringData($ids['application']);
+    $assert($prefilledHiring['data']['city'] === 'Potsdam', 'Die Mailzuordnung überschreibt vorhandene Vertragsdaten.');
+    $assert($prefilledHiring['data']['privateEmail'] === "vertrag-{$suffix}@example.invalid", 'Die Mailzuordnung befüllt ein leeres Vertragsfeld nicht.');
     $ids['template'] = $templates->create(
         $repository,
         'Synthetisches Interview',
@@ -196,6 +217,10 @@ try {
 
     echo "AD Recruitment DDEV vertical slice: OK\n";
 } finally {
+    if ($ids['message'] !== null) {
+        $delete('rec_message_audit', 'message_id', $ids['message']);
+        $delete('rec_messages', 'id', $ids['message']);
+    }
     if ($ids['application'] !== null) {
         $delete('rec_status_log', 'application_id', $ids['application']);
         $delete('rec_bq_assignments', 'application_id', $ids['application']);
@@ -217,5 +242,8 @@ try {
     }
     if ($ids['basisQualificationRun'] !== null) {
         $delete('rec_bq_runs', 'id', $ids['basisQualificationRun']);
+    }
+    if ($ids['mailbox'] !== null) {
+        $delete('rec_mailboxes', 'id', $ids['mailbox']);
     }
 }

@@ -2,8 +2,6 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/bootstrap.php';
-
 use OCA\Recruitment\Contract\HiringDataStore;
 use OCA\Recruitment\Exception\ConflictException;
 use OCA\Recruitment\Service\HiringMasterDataService;
@@ -60,29 +58,35 @@ TestRunner::test('hiring workflow validates before optimistic persistence', stat
     $store = new MemoryHiringStore();
     $workflow = new HiringWorkflowService(new HiringMasterDataService());
 
-    $saved = $workflow->save($store, 1, ['iban' => 'DE89370400440532013000'], 0, 'hr-user');
+    $saved = $workflow->save($store, 1, ['city' => 'Berlin'], 0, 'hr-user');
     assertSame(1, $saved['version']);
-    assertSame('DE89370400440532013000', $saved['data']['iban']);
+    assertSame('Berlin', $saved['data']['city']);
     assertThrows(
-        static fn () => $workflow->save($store, 1, ['iban' => 'DE89370400440532013000'], 0, 'hr-user'),
+        static fn () => $workflow->save($store, 1, ['city' => 'Berlin'], 0, 'hr-user'),
         ConflictException::class,
     );
 });
 
-TestRunner::test('KAPOVAZ contract data is accepted only for assistance jobs', static function (): void {
+TestRunner::test('PersRef cannot write LoBu-only or job-derived fields', static function (): void {
+    $store = new MemoryHiringStore(); $workflow = new HiringWorkflowService(new HiringMasterDataService());
+    assertThrows(static fn() => $workflow->save($store, 1, ['iban' => 'DE89370400440532013000'], 0, 'hr-user'), \OCA\Recruitment\Exception\ValidationException::class);
+    assertThrows(static fn() => $workflow->save($store, 1, ['payGrade' => '5'], 0, 'hr-user'), \OCA\Recruitment\Exception\ValidationException::class);
+    assertSame([], $store->data);
+});
+
+TestRunner::test('LoBu writes only sensitive fields after hire approval', static function (): void {
+    $store = new MemoryHiringStore(); $workflow = new HiringWorkflowService(new HiringMasterDataService());
+    $saved = $workflow->savePayroll($store, 1, ['iban' => 'DE89370400440532013000', 'healthInsurance' => 'Beispielkasse'], 0, 'payroll');
+    assertSame('DE89370400440532013000', $saved['data']['iban']);
+    assertThrows(static fn() => $workflow->savePayroll($store, 2, ['taxId' => '123'], 0, 'payroll'), \OCA\Recruitment\Exception\ValidationException::class);
+    assertThrows(static fn() => $workflow->savePayroll($store, 1, ['city' => 'Manipuliert'], 1, 'payroll'), \OCA\Recruitment\Exception\ValidationException::class);
+});
+
+TestRunner::test('job-derived contract data cannot be overridden in applicant master data', static function (): void {
     $store = new MemoryHiringStore();
     $workflow = new HiringWorkflowService(new HiringMasterDataService());
 
-    assertThrows(
-        static fn () => $workflow->save($store, 1, ['workingTimeModel' => 'kapovaz'], 0, 'hr-user'),
-        \OCA\Recruitment\Exception\ValidationException::class,
-    );
-    $saved = $workflow->save($store, 5, [
-        'contractType' => 'student',
-        'workingTimeModel' => 'kapovaz',
-        'weeklyHours' => 20,
-    ], 0, 'hr-user');
-    assertSame('kapovaz', $saved['data']['workingTimeModel']);
+    assertThrows(static fn () => $workflow->save($store, 5, ['workingTimeModel' => 'kapovaz'], 0, 'hr-user'), \OCA\Recruitment\Exception\ValidationException::class);
 });
 
 TestRunner::test('payroll list projects released hiring records without dossier fields', static function (): void {
@@ -93,13 +97,10 @@ TestRunner::test('payroll list projects released hiring records without dossier 
     $workflow = new HiringWorkflowService(new HiringMasterDataService());
 
     $list = $workflow->payrollList($store);
-    assertSame(2, count($list));
+    assertSame(1, count($list));
     assertSame('Beispielkasse', $list[0]['hiringData']['healthInsurance']);
     assertSame(2, $list[0]['hiringDataVersion']);
     assertSame(false, array_key_exists('interviews', $list[0]));
-    assertSame('Beispielkasse BQ', $list[1]['hiringData']['healthInsurance']);
-    assertSame('BQ 09/26', $list[1]['basisQualification']['label']);
-    assertSame(false, array_key_exists('result', $list[1]['basisQualification']));
     assertSame(0, $store->dossierReads);
 });
 

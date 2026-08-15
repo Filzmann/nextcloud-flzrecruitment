@@ -12,4 +12,5 @@ PhpTestRunner::run(
     testDirectories: ['tests'],
     testSuffixes: ['Test.php'],
     successMessage: 'AD Recruitment PHP tests passed',
+    prependBootstrap: true,
 );

@@ -73,6 +73,8 @@ final class RecruitmentUseCaseService {
         string $assignmentKey,
         bool $basisQualificationRequired = false,
         string $professionCategory = '',
+        string $contractTerm = '', string $payGrade = '', ?float $advertisedWeeklyHours = null,
+        ?float $fullTimeWeeklyHours = null, ?float $vacationDays = null, string $workLocation = 'Berlin',
     ): int {
         return $this->recruitment->createJob(
             $this->repository,
@@ -84,6 +86,7 @@ final class RecruitmentUseCaseService {
             $assignmentKey,
             $basisQualificationRequired,
             $professionCategory,
+            $contractTerm, $payGrade, $advertisedWeeklyHours, $fullTimeWeeklyHours, $vacationDays, $workLocation,
         );
     }
 
@@ -211,6 +214,8 @@ final class RecruitmentUseCaseService {
         string $actorUid,
         string $areaKey = '',
         array $validAreaKeys = [],
+        string $clientKey = '',
+        bool $override = false,
     ): array {
         return $this->statuses->transition(
             $this->repository,
@@ -220,6 +225,8 @@ final class RecruitmentUseCaseService {
             $actorUid,
             $areaKey,
             $validAreaKeys,
+            $clientKey,
+            $override,
         );
     }
 
@@ -233,6 +240,9 @@ final class RecruitmentUseCaseService {
      */
     public function saveHiringData(int $applicationId, array $data, int $version, string $actorUid): array {
         return $this->hiring->save($this->repository, $applicationId, $data, $version, $actorUid);
+    }
+    public function savePayrollData(int $applicationId, array $data, int $version, string $actorUid): array {
+        return $this->hiring->savePayroll($this->repository, $applicationId, $data, $version, $actorUid);
     }
 
     /** @return list<array<string,mixed>> */

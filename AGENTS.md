@@ -38,10 +38,8 @@ Bewerbermanagement orientierten Prozess innerhalb der AD-Suite ab:
 - `BQ MM/YY` bezeichnet eine konkrete Basisqualifikation für
   Assistenz-Bewerber*innen. Die ungefähr zehntägige Qualifizierung mit
   anschließender Bewertung ist eine vorgelagerte Auswahlphase und weder
-  Beschäftigung noch Einstellungsfreigabe. Mit der BQ-Zuordnung beginnt aber
-  bereits die Vertragsvorbereitung: Lohn erhält die dafür bestimmten
-  Stammdaten, nicht jedoch Bewerbungsakte, Interviews oder BQ-Bewertung. Der
-  Erstbegleitungszugriff beginnt weiterhin erst mit Einstellungsfreigabe.
+  Beschäftigung noch Einstellungsfreigabe. LoBu-Vertragserstellung und
+  Erstbegleitungszugriff beginnen erst mit der Einstellungsfreigabe.
 - Die Bewerbungsakte bündelt Stammdaten, Kommunikation, Unterlagen, Verlauf,
   interne Anmerkungen, Fragebögen und Interviews. Aus Nachrichten oder
   Unterlagen erkannte Stammdaten werden nur als nachvollziehbare Vorschläge
@@ -50,10 +48,8 @@ Bewerbermanagement orientierten Prozess innerhalb der AD-Suite ab:
   temporär aktiviert, befristet, beendet, abgebrochen oder erneut
   freigegeben werden. Öffentliche Zugänge sind eng begrenzte, widerrufbare
   Einmalzugänge ohne Zugriff auf die übrige Bewerbungsakte.
-- Die BQ-Zuordnung beziehungsweise bei anderen Berufsgruppen die
-  Einstellungsfreigabe übergibt die erforderlichen Vertragsstammdaten an
-  Lohn. Erst die Einstellungsfreigabe aktiviert bereichsgebunden den Zugriff
-  der Erstbegleitung.
+- Die Einstellungsfreigabe übergibt die erforderlichen Vertragsstammdaten an
+  LoBu und aktiviert bereichsgebunden den Zugriff der Erstbegleitung.
 - Kommunikation, Zuordnung, Statuswechsel, Bearbeitung und Berechtigungen
   bleiben nachvollziehbar; Aufbewahrung, Archivierung und Löschung werden
   fachlich getrennt behandelt.
@@ -65,24 +61,21 @@ Bewerbermanagement orientierten Prozess innerhalb der AD-Suite ab:
 - Gewünschte Wochenstunden sind im Bewerbungsprozess ein unverbindlicher
   einzelner Circa-Wert oder ein Von-bis-Bereich. Für Bereiche gilt
   `0 < von ≤ bis ≤ 80`; gleiche Grenzen werden als Einzelwert normalisiert.
-  Verbindliche Vertragsstunden, Beschäftigungsform,
-  Vertragsdauer und Arbeitszeitmodell gehören ausschließlich in den getrennten
-  Vertragsbereich. KAPOVAZ ist nur für Assistenz-Stellen zulässig; Vollzeit ist
-  dort kein stiller Standardwert.
+  Verbindliche Vertragsdauer, Entgeltgruppe, Stunden, Urlaub und Arbeitsort
+  stammen kanonisch aus der Stelle. Das Arbeitszeitmodell wird als KAPOVAZ für
+  Assistenz und Festgehalt für andere Berufsgruppen abgeleitet.
 - Familienstand ist kein Bewerbungs- oder aktives Vertragsstammdatum. Bank-,
   Steuer-, Krankenkassen- und Sozialversicherungsdaten werden ausschließlich
   im Vertragsbereich verarbeitet.
 - Bewerbungsstatus sind kontrollierte Zustände. Übergänge laufen ausschließlich über den zentralen `ApplicationStatusService` und werden mit Zeitpunkt sowie ausführender Nextcloud-UID protokolliert.
-- Basisqualifikationen gelten ausschließlich für entsprechend gekennzeichnete
-  Assistenz-Stellen. Eine Bewerbung in einer BQ ist zur möglichen Einstellung
+- Jede Assistenz-Stelle benötigt ausnahmslos eine Basisqualifikation; für alle
+  anderen Berufsgruppen ist sie ausgeschlossen. Die Pflicht wird aus der
+  Berufsgruppe abgeleitet und ist nicht separat schaltbar. Eine Bewerbung in
+  einer BQ ist zur möglichen Einstellung
   vorgemerkt, bleibt aber bis zur Bewertung im Bewerbungsprozess. Die
-  Zuordnung zu einem BQ-Durchlauf erteilt Lohn sofort den eng begrenzten
-  Stammdatenzugriff zur Vertragsvorbereitung. Erst eine anschließende
-  ausdrückliche Einstellungsfreigabe darf Erstbegleitungszugriff auslösen.
-- Endet die BQ-Zuordnung ohne Einstellungsfreigabe oder Einstellung, endet
-  auch der BQ-begründete Lohnzugriff. Eine spätere Konfiguration darf den
-  Zugriffsbeginn vom Zuordnungszeitpunkt auf das Startdatum des BQ-Durchlaufs
-  verschieben; bis dahin gilt die Zuordnung als sofortiger Beginn.
+  Zuordnung zu einem BQ-Durchlauf erteilt noch keinen LoBu-Zugriff. Erst eine
+  anschließende ausdrückliche Einstellungsfreigabe öffnet die getrennte
+  LoBu-Projektion und darf Erstbegleitungszugriff auslösen.
 - AD Recruitment muss BQ-Zuordnung und Bewertung zunächst eigenständig
   abbilden können. Ein späteres BQ-Modul wird ausschließlich über einen
   kleinen optionalen Capability-/Event-Vertrag angebunden; sein Fehlen bleibt
@@ -114,9 +107,14 @@ Bewerbermanagement orientierten Prozess innerhalb der AD-Suite ab:
   strukturierte Werte werden nicht still überschrieben und der freie
   Bewerbungskommentar wird nur angehängt. Schreiben erfordert Dokument- und
   passendes Feldrecht. Reale Postfachanbindung, weitergehende
-  Dokumentablage, Mailversand und öffentliche Fragebogenlinks bleiben
+  Dokumentablage, Antwortzuordnung und öffentliche Fragebogenlinks bleiben
   Folgepakete mit eigener Architektur-, Rechte-, Datenschutz- und
-  Aufbewahrungsentscheidung.
+  Aufbewahrungsentscheidung. Der vorhandene Statuswechsel-Versand erzeugt
+  zunächst einen bearbeitbaren Entwurf und nutzt erst nach ausdrücklicher,
+  scope- und CSRF-geschützter Freigabe die Nextcloud-Mailkonfiguration.
+  Jede erlaubte Statuskante besitzt eine standardmäßig deaktivierte Regel;
+  Vorlagen dürfen von mehreren Kanten gemeinsam verwendet werden. HTML bleibt auf den serverseitig bereinigten kleinen
+  Formatwortschatz beschränkt und wird stets mit Klartextalternative versandt.
 - Schreibende Routen verwenden den Nextcloud-CSRF-Schutz. Requestwerte werden validiert; SQL-Werte werden gebunden.
 - Der direkte App-Root erfüllt den Nextcloud-Scrollvertrag. Alle Funktionen sind per Tastatur bedienbar, besitzen sichtbaren Fokus und verständliche Fehlerzustände.
 - Der technische PHP-Namespace `OCA\Recruitment` und das bestehende
@@ -125,7 +123,7 @@ Bewerbermanagement orientierten Prozess innerhalb der AD-Suite ab:
   weiterverwenden.
 - Der `PersonalDataProvider` für Nextcloud-Nutzer*innen umfasst alle internen
   UID-Bezüge in Zuständigkeiten, Status-, Interview-, BQ-, Posteingangs-,
-  Berechtigungs- und Dokumentbearbeitungsnachweisen. Bewerberakten werden
+  Berechtigungs-, Dokument- und Statusmail-Bearbeitungsnachweisen. Bewerberakten werden
   diesem Subject-Typ nicht über eine bloße E-Mail-Übereinstimmung zugeordnet;
   sie benötigen einen eigenen authentifizierten Subject-Vertrag.
 

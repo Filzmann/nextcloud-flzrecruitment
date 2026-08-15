@@ -39,7 +39,12 @@ final class SeedInboxCommand extends Command {
             'subject' => 'Bewerbung als Assistenz',
             'receivedAt' => '2026-08-02T09:15:00+02:00',
             'bodyText' => "Name: Mara Muster\nE-Mail: mara.muster@example.org\nTelefon: +49 30 5550101\nIch bewerbe mich als: Assistenz\nNachricht: Ich interessiere mich für die Assistenz.",
-            'attachments' => [['originalName' => 'Bewerbungsunterlagen.pdf', 'mimeType' => 'application/pdf', 'content' => $pdf('Bewerbungsunterlagen')]],
+            'attachments' => [[
+                'originalName' => 'Bewerbungsunterlagen.pdf',
+                'mimeType' => 'application/pdf',
+                'content' => $pdf('Bewerbungsunterlagen'),
+                'extractedText' => "Berufserfahrung: Drei Jahre persönliche Assistenz\nDeutschkenntnisse: C1\nWohnort: Berlin",
+            ]],
         ], [
             'mailbox' => $mailbox,
             'externalMessageId' => '<demo-freie-mail-20260802@example.org>',
@@ -48,7 +53,12 @@ final class SeedInboxCommand extends Command {
             'subject' => 'Interesse an einer Mitarbeit',
             'receivedAt' => '2026-08-02T10:30:00+02:00',
             'bodyText' => "Guten Tag,\n\nich interessiere mich für eine Mitarbeit in der Assistenz. Sie erreichen mich unter noah.beispiel@example.org.\n\nFreundliche Grüße",
-            'attachments' => [['originalName' => 'Lebenslauf.pdf', 'mimeType' => 'application/pdf', 'content' => $pdf('Lebenslauf')]],
+            'attachments' => [[
+                'originalName' => 'Lebenslauf.pdf',
+                'mimeType' => 'application/pdf',
+                'content' => $pdf('Lebenslauf'),
+                'extractedText' => "Berufserfahrung: Zwei Jahre Pflegeassistenz\nDeutschkenntnisse: B2\nWohnort: Berlin",
+            ]],
         ]];
     }
 }

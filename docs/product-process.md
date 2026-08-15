@@ -27,7 +27,10 @@ eigenen Berechtigungen und ohne technische Abhängigkeit von Odoo.
   Fragebögen, Notizen und Verlauf gehören zur Bewerbung.
 - Eine **Stelle** beziehungsweise Ausschreibung bündelt Bezeichnung,
   Zuständigkeiten, Bürobereich, Eingangskanäle und optional einen eigenen
-  Prozess.
+  Prozess. Nach Auswahl der Berufsgruppe stehen nur fachlich passende Gruppen
+  aus dem kanonischen AD-Organisationsmodell bereit. Verantwortliche Personen
+  werden in den ausgewählten Gruppen über die native Nextcloud-Benutzersuche
+  gefunden; frei eingegebene Gruppen- oder Benutzerkennungen sind unzulässig.
 - Ein **Prozessstatus** ist eine administrativ konfigurierte Phase mit
   stabiler technischer ID, sichtbarem Namen, Reihenfolge, zulässigen
   Übergängen und fachlicher Kategorie.
@@ -113,6 +116,23 @@ Extraktion überschreibt niemals still vorhandene Daten und schreibt keine
 unsicheren Werte automatisch in besonders sensible Felder wie Bank,
 Krankenkasse, Steuer- oder Sozialversicherungsdaten.
 
+Textbasierte PDF-Lebensläufe werden beim Import ausschließlich lokal
+ausgelesen und ohne KI nach konservativen Stichworten für Standardfelder
+durchsucht. Bildbasierte PDFs bleiben bis zu einer getrennten OCR-Entscheidung
+uninterpretiert. Nextcloud-Administrationen sehen das aktive lokale Verfahren
+und sein Laufzeitwerkzeug in den Einstellungen. Ein späteres, lokal auf dem
+Server installiertes Modell ist dort bereits als noch nicht angebundene und
+nicht aktivierbare Alternative sichtbar; eine Übertragung an externe
+KI-Dienste findet nicht statt.
+
+Mit der bestätigten Zuordnung werden Anrede, Titel, private E-Mail,
+Telefonnummer, geplanter Eintritt und Ort in bislang leere Vertragsfelder
+vorbelegt. Vorhandene Werte bleiben unverändert. Der Vertragsbereich ist im
+Normalzustand eine kompakte Leseansicht; Eingabefelder erscheinen erst nach
+einer expliziten Bearbeitungsaktion. Anrede, Titel, Versicherungsart und
+Steuerklasse verwenden kontrollierte Auswahllisten, übrige Felder zu ihrem
+Inhalt passende Typen und Längen.
+
 Die gewünschte Wochenarbeitszeit gehört zum Bewerbungswunsch und ist keine
 Vertragszusage. Sie darf als Einzelwert oder Bereich angegeben werden; für
 einen Bereich gilt `0 < von ≤ bis ≤ 80`. Verbindliche Wochenstunden werden erst im Vertragsbereich
@@ -123,6 +143,11 @@ Beschriftete Formularfelder gelten dabei als nachvollziehbare
 Mailbody-Vorschläge. In freien Nachrichtentexten darf genau eine eindeutig
 erkennbare E-Mail-Adresse vorgeschlagen werden. Mehrere unterschiedliche
 Adressen bleiben mehrdeutig; die Anwendung wählt keine davon still aus.
+Fehlt ein beschrifteter Name, dürfen eine explizite Selbstvorstellung, eine
+übliche Grußsignatur, der Absender-Anzeigename oder eine eindeutig aus Vor-
+und Nachnamen aufgebaute Absenderadresse in dieser Reihenfolge als
+quellmarkierter Vorschlag dienen. Rollenadressen, Ziffern und unklare
+Einzelbegriffe bleiben ohne Vorschlag.
 
 ### 4. Steuerung in Karten- und Tabellenansicht
 
@@ -141,29 +166,47 @@ Beide Sichten verwenden dieselben serverseitigen Filter, Berechtigungen und
 Änderungen konkurrierender Bearbeiter*innen dürfen sich nicht still
 überschreiben.
 
+Der Kurzfragebogen ist ein regulär überspringbarer Prozessschritt. Die
+angebotenen Folgestati erlauben deshalb auch den direkten Wechsel von der
+Vorprüfung beziehungsweise einem noch offenen Kurzfragebogen zu Telefon,
+Vorstellung, Entscheidung oder Ablehnung. Personalreferat und
+Nextcloud-Administration dürfen ausschließlich über das Status-Dropdown nach
+einer ausdrücklichen Sicherheitsabfrage weitere Prozesssprünge ausführen. Die
+dafür erforderliche Fähigkeit ist nicht delegierbar, wird serverseitig erneut
+geprüft und der Ausnahmeweg gesondert auditiert. Drag-and-drop bleibt auf
+reguläre Kanten beschränkt. Unbekannte und identische Stati, eine Einstellung
+ohne vorherige Einstellungsfreigabe sowie eine Einstellungsfreigabe trotz
+ungeeignetem oder offenem BQ-Ergebnis bleiben auch als Ausnahme verboten.
+
 Eine Karte darf nur in einen vom Server für genau diese Bewerbung gelieferten
 Zielstatus verschoben werden. Manipulierte Karten- oder Spaltenkennungen
 erteilen keine Rechte. Für die Einstellungsfreigabe ist auch im
 Kartenarbeitsplatz ein gültiger Bürobereich erforderlich.
 
+`Zurückgezogen` ist kein laufender Arbeitsvorrat und erhält deshalb keine
+Kartenspalte. Der Abschluss erfolgt über eine deutlich als destruktiv
+erkennbare rote Aktion mit Bestätigungsabfrage; der Statuswechsel selbst
+bleibt serverseitig kontrolliert und auditiert.
+
 ### Vertragsbereich und Tarifgrundlage
 
 Der Vertragsbereich ist von der Bewerbungsakte fachlich getrennt. Bankdaten,
-Steuer-ID, Krankenkasse, Sozialversicherungsnummer und verbindliche
-Vertragsbedingungen werden ausschließlich dort verarbeitet. Familienstand
-gehört weder zum Bewerbungsprozess noch zur aktiven Vertragsdatenerfassung.
+Steuer-ID, Krankenkasse und Sozialversicherungsnummer werden erst ab
+`approved_for_hire` für LoBu sichtbar und ausschließlich dort bearbeitet.
+Personalreferat und BQ sehen diese Felder vorher nicht. Familienstand gehört
+weder zum Bewerbungsprozess noch zur aktiven Vertragsdatenerfassung.
 
-Die Beschäftigungsform bietet zunächst `geringfügig`,
-`sozialversicherungspflichtig`, `studentisch` und `sonstige`. Vertragsdauer
-(`unbefristet` oder `befristet mit Sachgrund`) und Arbeitszeitmodell (`feste
-Arbeitszeit` oder für Assistenz `KAPOVAZ`) bleiben getrennte Merkmale.
+Die Stelle ist die kanonische Quelle für Vertragsdauer, Entgeltgruppe,
+ausgeschriebene Wochenstunden, tarifliche Vollzeitstunden, Urlaub und
+Arbeitsort. Berlin ist der Standardarbeitsort. Das Arbeitszeitmodell wird
+serverseitig abgeleitet: Assistenz verwendet `KAPOVAZ`, alle anderen
+Berufsgruppen `Festgehalt`. Ein individuelles Gehalts- oder Währungsfeld wird
+nicht geführt.
 
 Fachliche Tarifgrundlage ist der bereitgestellte „Haustarifvertrag inkl.
 Änderungen zum 1. Oktober 2023“ mit den enthaltenen Änderungen beziehungsweise
-Tabellen bis 2024/2025. Entgeltgruppe und Tarifstufe werden getrennt erfasst.
-Da die bereitgestellte Fassung eine mögliche spätere Kündigung zulässt, werden
-zeitabhängige Tabellenwerte, Urlaub oder weitere Ansprüche nicht ohne
-bestätigte aktuelle Tarifversion automatisch berechnet.
+Tabellen bis 2024/2025. Die Ausschreibung referenziert die daraus fachlich
+bestätigten Werte; die Bewerbungsakte kopiert oder überschreibt sie nicht.
 
 ### 5. Konfigurierbare Bewerbungsstati
 
@@ -220,10 +263,10 @@ eingegangen markiert; abgelaufene oder widerrufene Links sind wirkungslos.
 
 ### 7. Basisqualifikation für Assistenz-Bewerber*innen
 
-Die Basisqualifikation ist ausschließlich für Bewerbungen auf entsprechend
-gekennzeichnete Assistenz-Stellen zulässig. Für andere Berufsgruppen darf
-dieser Prozessschritt weder angeboten noch über einen direkten Request
-gesetzt werden.
+Die Basisqualifikation ist für jede Assistenz-Stelle verpflichtend und wird
+allein aus deren Berufsgruppe abgeleitet. Sie ist nicht separat ein- oder
+abschaltbar. Für andere Berufsgruppen darf dieser Prozessschritt weder
+angeboten noch über einen direkten Request gesetzt werden.
 
 1. Eine Personalreferent*in merkt eine grundsätzlich geeignete Bewerbung für
    einen konkreten BQ-Durchlauf vor.
@@ -259,9 +302,9 @@ erst am hinterlegten BQ-Beginn zu aktivieren. Diese Terminregel darf den
 Zugriff nicht vor dem Start erteilen und muss Verschiebungen, Abbruch und
 manuelle Korrekturen nachvollziehbar behandeln.
 
-Bis zu einem eigenen BQ-Modul verwaltet AD Recruitment Durchlauf,
+Bis zur Anbindung der eigenständigen BQ-Planer-App verwaltet AD Recruitment Durchlauf,
 Teilnahmezustand und freigegebenes Bewertungsergebnis selbst. Ein späteres
-Modul kann Terminplanung, Durchführung und ausführlichere Bewertung
+BQ-Planer-Modul kann Terminplanung, Durchführung und ausführlichere Bewertung
 übernehmen. Die optionale Integration verwendet einen kleinen versionierten
 Capability-/Event-Vertrag und niemals direkte Zugriffe auf Tabellen,
 Controller oder Assets des anderen Moduls. Ohne dieses Modul bleibt der
@@ -289,6 +332,26 @@ erstellt, vor Versand bearbeitet und erst nach erfolgreichem Versand als
 gesendet markiert werden. Antworten sollen über technische Kennungen wieder
 derselben Bewerbung zugeordnet werden können.
 
+Für zulässige Statusübergänge kann das Personalreferat die Entwurfserzeugung
+je Kante ein- oder ausschalten und eine Standardplanung wählen. Der
+Statuswechsel sendet nie unbeaufsichtigt. Vor der Freigabe bleiben Zieladresse,
+Betreff und Text bearbeitbar; die ursprüngliche Personenadresse wird bei einer
+Korrektur weiterhin angezeigt und gespeichert. Neben sofortiger und frei
+terminierter Zustellung kann gesammelt der kommende Montag um 09:00 Uhr
+gewählt werden. Ein zentraler administrativer Testmodus leitet alle derzeit
+ausgehenden Recruitment-Mails serverseitig an eine Standard-Testadresse um.
+
+Für jeden fachlich zulässigen Statusübergang steht eine vorbereitete Regel
+bereit. Die zugehörige Regel ist zunächst deaktiviert und wird durch
+Personalreferent*innen bewusst je Übergang eingeschaltet. Eine Vorlage kann
+mehreren Kanten zugeordnet werden; alle Übergänge nach `withdrawn` verwenden
+standardmäßig dieselbe Rückzugsvorlage. Vorlagen sind
+versioniert und unterstützen einen kleinen bereinigten HTML-Wortschatz für
+Absätze, Fett, Kursiv, Listen und sichere Links. Vor der Versandfreigabe bleibt
+der erzeugte Entwurf mit demselben Editor änderbar; zu jeder HTML-Mail wird
+eine Klartextalternative erzeugt. Aufgelöste Bewerberwerte werden im HTML
+escaped und können keine eigene Formatierung oder Links einschleusen.
+
 Mailabruf und Versand müssen wiederholbar sein: Ein erneuter Hintergrundlauf
 erzeugt weder doppelte Nachrichten noch einen doppelten Versand. Nicht
 eindeutig zustellbare, zuordenbare oder versendbare Vorgänge erhalten einen
@@ -301,11 +364,11 @@ Bürobereich zugeordnet. Dadurch werden die zuständigen Erstbegleitungen
 ermittelt. Die Freigabe aktiviert deren lesenden Zugriff; das Ende erfolgt
 vorerst manuell.
 
-Lohn erhält bei Assistenz-Bewerbungen ab der Zuordnung zu einem BQ-Durchlauf,
-bei anderen Berufsgruppen spätestens ab der Einstellungsfreigabe lesenden
-Zugriff auf alle für die Vertragsvorbereitung vorgesehenen Stammdaten,
-insbesondere Adresse, Geburtsdaten, Bankverbindung, Krankenkasse, Steuer- und
-Sozialversicherungsdaten sowie Vertragsparameter. Lohn erhält dadurch keinen
+LoBu erhält für alle Berufsgruppen erst ab der Einstellungsfreigabe lesenden
+und für LoBu-only Felder schreibenden Zugriff auf die für die
+Vertragserstellung vorgesehene Projektion. Vertragsdauer, Arbeitszeitmodell,
+Entgeltgruppe, Stunden, Urlaub und Arbeitsort werden aus der Stelle abgeleitet.
+LoBu erhält dadurch keinen
 Zugriff auf Interviews, BQ-Bewertungen, Bewerbungsunterlagen oder interne
 Anmerkungen.
 
@@ -318,6 +381,24 @@ Vorgänge. Die Teilnahme an einer Basisqualifikation ist keine Einwilligung in
 eine verlängerte Aufbewahrung. Fristen, Rechtsgrundlagen, Ausnahmen, Sperren
 und Nachweise müssen vor der automatischen Löschung verbindlich festgelegt
 werden.
+
+### Datenschutzgerechte Rückstellung im Bewerberpool
+
+Eine Rückstellung ist ausschließlich nach Absage, Rückzug oder Archivierung
+möglich. Sie ist von der ursprünglichen Bewerbung und von einer BQ-Teilnahme
+getrennt, freiwillig, versioniert nachweisbar und jederzeit widerrufbar. Der
+Pool hält nur Personbezug, Ausgangsbewerbung, Berufsgruppe, gewünschten
+Stundenkorridor und gewählte Bereiche vor; Interviewantworten,
+Freitextnotizen und Dokumente sind keine Matchingmerkmale.
+
+Die Standarddauer einer Einwilligung beträgt zwölf Monate, die interne
+Wiedervorlage erfolgt 30 Tage vor Ablauf. Widerruf und Ablauf stoppen Matching
+unmittelbar. Das tägliche Matching erzeugt nur transparente Vorschläge für
+die Personalreferenz; Kontaktaufnahme, neue Bewerbung, Zu- oder Absage
+erfolgen niemals automatisch. Die Funktion ist initial deaktiviert und setzt
+zur Aktivierung einen freigegebenen, versionierten Datenschutzhinweis voraus.
+Eine automatische Löschung folgt erst nach separater Freigabe der allgemeinen
+Löschregel und ihres Fehler- und Roll-forward-Verhaltens.
 
 ## Administration
 
@@ -366,6 +447,14 @@ Lohnfreigabe. Ein erster Bewerbungsarbeitsplatz bietet Tabelle, nach Status
 gruppierte Karten und grundlegende Filter. Anlageformulare öffnen über
 Buttons in Dialog-Overlays; Bewerber*innen und Bewerbungen sind dort
 ausdrücklich als manuelle Ausnahme gekennzeichnet.
+Interviewfragen und -vorlagen, Mailvorlagen, Bewerberpool-Grundkonfiguration
+sowie die Verwaltung von Vertretungsrechten sind als gelegentliche
+PersRef-Pflegeaufgaben unter einem
+capability-gebundenen Einstellungsmenü zusammengefasst und belegen keine
+eigenen Haupttabs mehr. Ausschließlich systemweite Grundkonfigurationen für
+Mail-Testmodus, Datenextraktion und strukturelle
+Erstbegleitungsgruppe liegen im nativen, nur für Nextcloud-Admins sichtbaren
+Adminabschnitt `AD Recruitment`.
 
 Ebenfalls umgesetzt ist ein erster privater Posteingang für bereits
 normalisierte Nachrichten: Websiteformular und freie Mail werden mit
@@ -376,6 +465,9 @@ Bewerbungen zuordnen, die Zuordnung korrigieren oder Nicht-Bewerbungen
 schließen. Jede Zustandsänderung ist versioniert und auditiert. Nach der
 Zuordnung folgen Mailtext und Anhangsmetadaten dem serverseitigen
 Bewerbungsscope.
+Textbasierte PDFs werden innerhalb der Importgrenze lokal in Text überführt
+und zusammen mit Mailtext beziehungsweise bereits normalisiertem Adaptertext
+nach quellmarkierten Standardfeldern durchsucht.
 
 Validierte PDF-Anhänge öffnen innerhalb desselben Scopes in einer großen
 Lightbox. Vor der Ausgabe wird der Inhalt gegen den beim Import gespeicherten
@@ -390,7 +482,8 @@ Lesen folgt der Akte; zum Verknüpfen sind `manage_documents` und das passende
 Feldrecht erforderlich.
 
 Noch nicht vorhanden sind insbesondere konfigurierbare Prozessstati,
-realer Postfachabruf und Mailversand, die vollständige nutzerverwaltete
+realer Postfachabruf, Antwortzuordnung und eine vollständige
+Kommunikationschronik, die vollständige nutzerverwaltete
 Dokumentenakte, Bestätigung einzelner Extraktionsvorschläge,
 öffentliche Kurzfragebogenlinks, BQ-Verschiebungen und die optionale
 BQ-Modulanbindung. Diese Punkte sind keine verworfenen Ideen,

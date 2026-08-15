@@ -21,13 +21,12 @@ final class BasisQualificationService {
         int $expectedVersion,
         string $actorUid,
     ): array {
-        $store->basisQualificationJob($jobId);
-        return $store->setJobBasisQualificationRequired(
-            $jobId,
-            $required,
-            $expectedVersion,
-            trim($actorUid),
-        );
+        $job = $store->basisQualificationJob($jobId);
+        $derivedRequirement = ($job['professionCategory'] ?? '') === 'assistance';
+        if ($required !== $derivedRequirement) {
+            throw new ValidationException('Die BQ-Pflicht ergibt sich aus der Berufsgruppe und kann nicht separat geändert werden.');
+        }
+        return $job;
     }
 
     public function createRun(

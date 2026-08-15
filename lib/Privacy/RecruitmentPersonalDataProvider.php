@@ -20,6 +20,11 @@ final class RecruitmentPersonalDataProvider implements PersonalDataProvider {
         'message_audit'=>['Posteingangsaktivität','Nachvollziehbarkeit einer von dir ausgeführten Posteingangsaktion'],
         'document_comment'=>['Dokumentkommentar','Nachweis eines von dir gespeicherten Dokumentkommentars'],
         'document_field_link'=>['Dokumentfeld-Verknüpfung','Nachweis einer von dir gespeicherten Dokumentfeld-Verknüpfung'],
+        'mail_template'=>['Mailvorlage','Nachvollziehbarkeit einer von dir verwalteten Mailvorlage'],
+        'mail_template_revision'=>['Mailvorlagenrevision','Nachvollziehbarkeit einer von dir gespeicherten Vorlagenrevision'],
+        'mail_text_block'=>['Mailtextblock','Nachvollziehbarkeit eines von dir verwalteten Mailtextblocks'],
+        'status_mail_rule'=>['Statusmail-Regel','Nachvollziehbarkeit einer von dir verwalteten Statusmail-Regel'],
+        'mail_draft'=>['Statusmail-Entwurf','Nachvollziehbarkeit eines von dir erstellten oder freigegebenen Mailentwurfs'],
     ];
     public function __construct(private RecruitmentRepository $repository){}
     public function appId():string{return Application::APP_ID;}

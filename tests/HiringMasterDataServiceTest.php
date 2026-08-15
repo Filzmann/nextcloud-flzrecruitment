@@ -2,8 +2,6 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/bootstrap.php';
-
 use OCA\Recruitment\Exception\ValidationException;
 use OCA\Recruitment\Service\HiringMasterDataService;
 use RecruitmentTests\TestRunner;
@@ -52,6 +50,10 @@ TestRunner::test('contract master data rejects undeclared and malformed sensitiv
     assertThrows(static fn () => $service->validate(['salaryCurrency' => 'EURO']), ValidationException::class);
     assertThrows(static fn () => $service->validate(['maritalStatus' => 'ledig']), ValidationException::class);
     assertThrows(static fn () => $service->validate(['contractType' => 'freelance']), ValidationException::class);
+    assertThrows(static fn () => $service->validate(['salutation' => 'beliebig']), ValidationException::class);
+    assertThrows(static fn () => $service->validate(['title' => 'Freitext']), ValidationException::class);
+    assertThrows(static fn () => $service->validate(['healthInsuranceType' => 'unklar']), ValidationException::class);
+    assertThrows(static fn () => $service->validate(['taxClass' => '7']), ValidationException::class);
     assertThrows(static fn () => $service->validate(['contractTerm' => 'without_reason']), ValidationException::class);
     assertThrows(static fn () => $service->validate(['workingTimeModel' => 'on_demand']), ValidationException::class);
     assertThrows(static fn () => $service->validate(['payGrade' => '7']), ValidationException::class);
@@ -94,32 +96,59 @@ TestRunner::test('payroll projection exposes only released contract data and nev
     );
 });
 
-TestRunner::test('payroll projection is available during BQ until a negative outcome', static function (): void {
+TestRunner::test('payroll projection stays unavailable during BQ', static function (): void {
     $service = new HiringMasterDataService();
     $application = [
         'id' => 9,
         'status' => 'basis_qualification',
         'basisQualification' => ['id' => 5, 'label' => 'BQ 09/26', 'result' => 'pending'],
     ];
-    $projection = $service->payrollProjection(
-        $application,
-        ['givenName' => 'Sam', 'familyName' => 'Beispiel'],
-        ['publicTitle' => 'Assistenz'],
-        ['healthInsurance' => 'Beispielkasse'],
-    );
-
-    assertSame('BQ 09/26', $projection['basisQualification']['label']);
-    assertSame(false, array_key_exists('result', $projection['basisQualification']));
-    assertSame('Beispielkasse', $projection['hiringData']['healthInsurance']);
-    assertSame(false, array_key_exists('evaluationNote', $projection['basisQualification']));
-
     assertThrows(
-        static fn () => $service->payrollProjection(
-            array_replace($application, ['basisQualification' => ['id' => 5, 'result' => 'not_suitable']]),
-            [],
-            [],
-            [],
-        ),
+        static fn () => $service->payrollProjection($application, [], [], ['healthInsurance' => 'Beispielkasse']),
         ValidationException::class,
     );
+});
+
+TestRunner::test('PersRef view excludes LoBu-only and job-derived contract fields', static function (): void {
+    $service = new HiringMasterDataService();
+    $visible = $service->personnelProjection([
+        'city' => 'Berlin', 'iban' => 'DE89370400440532013000', 'taxId' => '123',
+        'healthInsurance' => 'Beispielkasse', 'socialSecurityNumber' => '12', 'payGrade' => '5',
+    ]);
+    assertSame('Berlin', $visible['city']);
+    foreach (['iban', 'bic', 'accountHolder', 'healthInsurance', 'healthInsuranceType', 'socialSecurityNumber', 'taxId', 'taxClass', 'workingTimeModel', 'contractTerm', 'payGrade', 'weeklyHours', 'vacationDays', 'workLocation', 'salaryAmount', 'salaryCurrency'] as $field) {
+        assertSame(false, array_key_exists($field, $visible), "Field must stay hidden from PersRef: {$field}");
+    }
+});
+
+TestRunner::test('LoBu projection starts at hire approval and derives contractual terms from the job', static function (): void {
+    $service = new HiringMasterDataService();
+    $projection = $service->payrollProjection(
+        ['id' => 7, 'status' => 'approved_for_hire'], ['givenName' => 'Alex'],
+        ['publicTitle' => 'Assistenz', 'professionCategory' => 'assistance', 'contractTerm' => 'permanent', 'payGrade' => '5', 'advertisedWeeklyHours' => 30.0, 'vacationDays' => 30.0, 'workLocation' => 'Berlin'],
+        ['iban' => 'DE89370400440532013000', 'salaryAmount' => 4000, 'salaryCurrency' => 'EUR'],
+    );
+    assertSame('kapovaz', $projection['hiringData']['workingTimeModel']);
+    assertSame('permanent', $projection['hiringData']['contractTerm']);
+    assertSame('5', $projection['hiringData']['payGrade']);
+    assertSame(30.0, $projection['hiringData']['weeklyHours']);
+    assertSame('Berlin', $projection['hiringData']['workLocation']);
+    assertSame(false, array_key_exists('salaryAmount', $projection['hiringData']));
+    assertSame(false, array_key_exists('salaryCurrency', $projection['hiringData']));
+    assertThrows(static fn() => $service->payrollProjection(['id' => 8, 'status' => 'basis_qualification'], [], [], []), ValidationException::class);
+});
+
+TestRunner::test('mail suggestions become safe empty-field defaults for the contract area', static function (): void {
+    $service = new HiringMasterDataService();
+    $defaults = $service->mailDefaults([
+        'salutation' => ['value' => 'Frau'], 'title' => ['value' => 'Dr.'],
+        'email' => ['value' => 'alex@example.invalid'], 'phone' => ['value' => '+49 30 123'],
+        'availableFrom' => ['value' => '01.10.2026'], 'location' => ['value' => 'Berlin'],
+        'iban' => ['value' => 'DE89370400440532013000'],
+    ]);
+    assertSame([
+        'salutation' => 'female', 'title' => 'dr', 'city' => 'Berlin',
+        'privateEmail' => 'alex@example.invalid', 'privatePhone' => '+49 30 123',
+        'plannedStartDate' => '2026-10-01',
+    ], $defaults);
 });

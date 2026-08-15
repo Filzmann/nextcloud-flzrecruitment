@@ -2,10 +2,9 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/bootstrap.php';
-
 use OCA\Recruitment\Contract\MailAttachmentStorage;
 use OCA\Recruitment\Contract\MailInboxStore;
+use OCA\Recruitment\Contract\PdfTextExtractor;
 use OCA\Recruitment\Exception\ConflictException;
 use OCA\Recruitment\Exception\ValidationException;
 use OCA\Recruitment\Service\ApplicationMailFieldExtractor;
@@ -27,12 +26,23 @@ final class MemoryMailAttachmentStorage implements MailAttachmentStorage {
     public function read(string $storagePath): string { return $this->files[$storagePath]; }
 }
 
+final class MemoryPdfTextExtractor implements PdfTextExtractor {
+    public array $contents = [];
+    public function available(): bool { return true; }
+    public function engineLabel(): string { return 'Test-PDF-Extraktor'; }
+    public function extract(string $pdfContent): string {
+        $this->contents[] = $pdfContent;
+        return "Wohnort Berlin\nDeutsch C1";
+    }
+}
+
 final class MemoryMailInboxStore implements MailInboxStore {
     /** @var array<int,array<string,mixed>> */
     public array $messages = [];
     /** @var array<string,int> */
     private array $mailboxes = [];
     public int $writeCount = 0;
+    public array $hiringData = [10 => ['city' => 'Potsdam']];
 
     public function ensureMailbox(array $mailbox): int {
         return $this->mailboxes[$mailbox['technicalKey']] ??= count($this->mailboxes) + 1;
@@ -66,13 +76,16 @@ final class MemoryMailInboxStore implements MailInboxStore {
         return array_values(array_filter($this->messages, static fn(array $message): bool => ($message['applicationId'] ?? null) === $applicationId));
     }
     public function inboxApplicationExists(int $applicationId): bool { return in_array($applicationId, [10, 11], true); }
-    public function assignInboxMessage(int $messageId, int $applicationId, int $expectedVersion, string $actorUid): array {
+    public function assignInboxMessage(int $messageId, int $applicationId, int $expectedVersion, string $actorUid, array $hiringDefaults = []): array {
         $message = $this->messages[$messageId];
         if ($message['version'] !== $expectedVersion) throw new ConflictException('Konflikt');
         $this->messages[$messageId]['state'] = 'assigned';
         $this->messages[$messageId]['applicationId'] = $applicationId;
         $this->messages[$messageId]['version']++;
         $this->messages[$messageId]['audit'][] = ['fromState' => $message['state'], 'toState' => 'assigned', 'actorUid' => $actorUid];
+        foreach ($hiringDefaults as $field => $value) {
+            if (($this->hiringData[$applicationId][$field] ?? '') === '') $this->hiringData[$applicationId][$field] = $value;
+        }
         return $this->messages[$messageId];
     }
     public function ignoreInboxMessage(int $messageId, int $expectedVersion, string $actorUid): array {
@@ -92,6 +105,7 @@ function syntheticMail(array $overrides = []): array {
         'mailbox' => ['technicalKey' => 'website', 'label' => 'Website-Bewerbungen', 'address' => 'bewerbung@example.invalid'],
         'externalMessageId' => '<demo-1@example.invalid>',
         'senderAddress' => 'alex@example.invalid',
+        'senderName' => 'Alex Beispiel',
         'recipients' => ['bewerbung@example.invalid'],
         'subject' => 'Bewerbung Assistenz',
         'receivedAt' => '2026-08-02T09:00:00+02:00',
@@ -103,7 +117,7 @@ function syntheticMail(array $overrides = []): array {
 TestRunner::test('mail inbox imports valid PDF applications idempotently and keeps originals immutable', static function (): void {
     $store = new MemoryMailInboxStore();
     $files = new MemoryMailAttachmentStorage();
-    $service = new MailInboxService(new ApplicationMailFieldExtractor(), $store, $files);
+    $service = new MailInboxService(new ApplicationMailFieldExtractor(), $store, $files, new MemoryPdfTextExtractor());
     $first = $service->import(syntheticMail(), 'importer');
     $duplicate = $service->import(syntheticMail(), 'importer');
 
@@ -118,10 +132,25 @@ TestRunner::test('mail inbox imports valid PDF applications idempotently and kee
     assertSame("%PDF-1.4\nsynthetisch", $files->files[$path]);
 });
 
+TestRunner::test('mail inbox extracts attached PDF text before scanning standard fields', static function (): void {
+    $store = new MemoryMailInboxStore();
+    $pdfText = new MemoryPdfTextExtractor();
+    $service = new MailInboxService(
+        new ApplicationMailFieldExtractor(),
+        $store,
+        new MemoryMailAttachmentStorage(),
+        $pdfText,
+    );
+    $message = $service->import(syntheticMail(), 'importer')['message'];
+    assertSame(["%PDF-1.4\nsynthetisch"], $pdfText->contents);
+    assertSame(['value' => 'Berlin', 'source' => 'resume_text_keyword'], $message['fieldSuggestions']['location']);
+    assertSame(['value' => 'C1', 'source' => 'resume_text_keyword'], $message['fieldSuggestions']['germanLanguageLevel']);
+});
+
 TestRunner::test('mail inbox rejects non-PDF and oversized attachments before persistence', static function (): void {
     $store = new MemoryMailInboxStore();
     $files = new MemoryMailAttachmentStorage();
-    $service = new MailInboxService(new ApplicationMailFieldExtractor(), $store, $files);
+    $service = new MailInboxService(new ApplicationMailFieldExtractor(), $store, $files, new MemoryPdfTextExtractor());
     assertThrows(static fn() => $service->import(syntheticMail(['attachments' => [[
         'originalName' => 'bewerbung.txt', 'mimeType' => 'text/plain', 'content' => 'not a pdf',
     ]]]), 'importer'), ValidationException::class);
@@ -131,7 +160,7 @@ TestRunner::test('mail inbox rejects non-PDF and oversized attachments before pe
 
 TestRunner::test('mail assignment is versioned, audited and limited to assignable states', static function (): void {
     $store = new MemoryMailInboxStore();
-    $service = new MailInboxService(new ApplicationMailFieldExtractor(), $store, new MemoryMailAttachmentStorage());
+    $service = new MailInboxService(new ApplicationMailFieldExtractor(), $store, new MemoryMailAttachmentStorage(), new MemoryPdfTextExtractor());
     $message = $service->import(syntheticMail(), 'importer')['message'];
     $assigned = $service->assign($message['id'], 10, 1, 'hr-user');
     assertSame('assigned', $assigned['state']);
@@ -144,4 +173,16 @@ TestRunner::test('mail assignment is versioned, audited and limited to assignabl
     assertThrows(static fn() => $service->ignore($message['id'], 2, 'hr-user'), ValidationException::class);
     assertSame($original['bodyText'], $store->messages[$message['id']]['bodyText']);
     assertSame($original['attachments'], $store->messages[$message['id']]['attachments']);
+});
+
+TestRunner::test('mail assignment prefills empty contract fields without replacing existing data', static function (): void {
+    $store = new MemoryMailInboxStore();
+    $service = new MailInboxService(new ApplicationMailFieldExtractor(), $store, new MemoryMailAttachmentStorage(), new MemoryPdfTextExtractor(), new \OCA\Recruitment\Service\HiringMasterDataService());
+    $message = $service->import(syntheticMail(['bodyText' => "Anrede: Frau\nTitel: Dr.\nE-Mail: alex@example.invalid\nTelefon: +49 30 123\nVerfügbar ab: 01.10.2026\nWohnort: Berlin"]), 'importer')['message'];
+    $service->assign($message['id'], 10, 1, 'hr-user');
+    assertSame('Potsdam', $store->hiringData[10]['city']);
+    assertSame('female', $store->hiringData[10]['salutation']);
+    assertSame('dr', $store->hiringData[10]['title']);
+    assertSame('alex@example.invalid', $store->hiringData[10]['privateEmail']);
+    assertSame('2026-10-01', $store->hiringData[10]['plannedStartDate']);
 });

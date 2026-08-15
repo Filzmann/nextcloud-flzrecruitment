@@ -5,7 +5,7 @@
     <name>AD Recruitment</name>
     <summary>Strukturierte Bewerbungs- und Interviewprozesse.</summary>
     <description>Verwaltet Stellen, Bewerbungen, Interviews und die berechtigte Vertragsvorbereitung in Nextcloud.</description>
-    <version>0.10.0-rc.1</version>
+    <version>0.11.0-rc.15</version>
     <licence>agpl</licence>
     <author>Simon</author>
     <namespace>Recruitment</namespace>
@@ -21,4 +21,12 @@
         <command>OCA\Recruitment\Command\SeedDemoCommand</command>
         <command>OCA\Recruitment\Command\SeedInboxCommand</command>
     </commands>
+    <background-jobs>
+        <job>OCA\Recruitment\BackgroundJob\DeliverStatusMailJob</job>
+        <job>OCA\Recruitment\BackgroundJob\CandidatePoolMaintenanceJob</job>
+    </background-jobs>
+    <settings>
+        <admin>OCA\Recruitment\Settings\Admin</admin>
+        <admin-section>OCA\Recruitment\Settings\AdminSection</admin-section>
+    </settings>
 </info>

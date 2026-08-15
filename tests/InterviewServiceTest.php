@@ -2,8 +2,6 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/bootstrap.php';
-
 use OCA\Recruitment\Contract\InterviewStore;
 use OCA\Recruitment\Contract\TemplateStore;
 use OCA\Recruitment\Exception\ConflictException;

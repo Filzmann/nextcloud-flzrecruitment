@@ -13,12 +13,16 @@ final class RecruitmentPermissionPolicy {
     public const EDIT_APPLICATIONS = 'edit_applications';
     public const INTERVIEW = 'interview';
     public const EDIT_HIRING_DATA = 'edit_hiring_data';
+    public const EDIT_PAYROLL_DATA = 'edit_payroll_data';
     public const VIEW_HIRING_DATA = 'view_hiring_data';
     public const MANAGE_DOCUMENTS = 'manage_documents';
     public const COMMUNICATE = 'communicate';
     public const MANAGE_FIRST_GUIDE_ACCESS = 'manage_first_guide_access';
     public const MANAGE_BASIS_QUALIFICATION = 'manage_basis_qualification';
+    public const MANAGE_MAIL_TEMPLATES = 'manage_mail_templates';
+    public const MANAGE_CANDIDATE_POOL = 'manage_candidate_pool';
     public const MANAGE_DELEGATIONS = 'manage_delegations';
+    public const OVERRIDE_STATUS_TRANSITIONS = 'override_status_transitions';
 
     public const DELEGATABLE_CAPABILITIES = [
         self::VIEW_DOSSIER,
@@ -35,7 +39,10 @@ final class RecruitmentPermissionPolicy {
     private const FULL_CAPABILITIES = [
         ...self::DELEGATABLE_CAPABILITIES,
         self::MANAGE_BASIS_QUALIFICATION,
+        self::MANAGE_MAIL_TEMPLATES,
+        self::MANAGE_CANDIDATE_POOL,
         self::MANAGE_DELEGATIONS,
+        self::OVERRIDE_STATUS_TRANSITIONS,
     ];
     private const RELEASED_STATUSES = ['approved_for_hire', 'hired'];
 
@@ -50,7 +57,7 @@ final class RecruitmentPermissionPolicy {
      */
     public function can(array $actor, string $capability, ?array $application = null): bool {
         if ($actor['isAdmin']) {
-            return in_array($capability, self::FULL_CAPABILITIES, true);
+            return $capability === self::EDIT_PAYROLL_DATA || in_array($capability, self::FULL_CAPABILITIES, true);
         }
         if (!$this->organization->isValid()) {
             return false;
@@ -59,7 +66,7 @@ final class RecruitmentPermissionPolicy {
         if ($this->hasRole($actor, 'staff_hr')) {
             return in_array($capability, self::FULL_CAPABILITIES, true);
         }
-        if ($capability === self::VIEW_HIRING_DATA
+        if (in_array($capability, [self::VIEW_HIRING_DATA, self::EDIT_PAYROLL_DATA], true)
             && $this->hasRole($actor, 'payroll')
             && $this->isPayrollEligible($application)) {
             return true;
@@ -109,10 +116,10 @@ final class RecruitmentPermissionPolicy {
 
     /** @param array{uid: string, isAdmin: bool, groupIds: list<string>} $actor */
     public function canSomewhere(array $actor, string $capability): bool {
-        if ($actor['isAdmin']) return in_array($capability, self::FULL_CAPABILITIES, true);
+        if ($actor['isAdmin']) return $capability === self::EDIT_PAYROLL_DATA || in_array($capability, self::FULL_CAPABILITIES, true);
         if (!$this->organization->isValid()) return false;
         if ($this->hasRole($actor, 'staff_hr')) return in_array($capability, self::FULL_CAPABILITIES, true);
-        if ($capability === self::VIEW_HIRING_DATA && $this->hasRole($actor, 'payroll')) return true;
+        if (in_array($capability, [self::VIEW_HIRING_DATA, self::EDIT_PAYROLL_DATA], true) && $this->hasRole($actor, 'payroll')) return true;
         $firstGuideGroup = trim((string)($this->settings['firstGuideGroupId'] ?? ''));
         if ($capability === self::VIEW_DOSSIER && $firstGuideGroup !== ''
             && in_array($firstGuideGroup, $actor['groupIds'], true) && $this->hasRole($actor, 'eb')) return true;
@@ -166,12 +173,6 @@ final class RecruitmentPermissionPolicy {
 
     /** @param array<string,mixed>|null $application */
     private function isPayrollEligible(?array $application): bool {
-        if ($this->isReleased($application)) return true;
-        if ($application === null || (string)($application['status'] ?? '') !== 'basis_qualification') return false;
-        return in_array(
-            (string)($application['basisQualification']['result'] ?? ''),
-            ['pending', 'suitable'],
-            true,
-        );
+        return $this->isReleased($application);
     }
 }

@@ -8,11 +8,13 @@ use DateTimeImmutable;
 use DateTimeZone;
 use OCA\Recruitment\Contract\ApplicationStatusStore;
 use OCA\Recruitment\Contract\BasisQualificationStore;
+use OCA\Recruitment\Contract\CandidatePoolStore;
 use OCA\Recruitment\Contract\InterviewStore;
 use OCA\Recruitment\Contract\HiringDataStore;
 use OCA\Recruitment\Contract\MailInboxStore;
 use OCA\Recruitment\Contract\DocumentFieldLinkStore;
 use OCA\Recruitment\Contract\DocumentReviewStore;
+use OCA\Recruitment\Contract\StatusMailOutboxStore;
 use OCA\Recruitment\Contract\RecruitmentStore;
 use OCA\Recruitment\Contract\TemplateStore;
 use OCA\Recruitment\Exception\ConflictException;
@@ -23,7 +25,7 @@ use OCP\IDBConnection;
 /**
  * Einziger QueryBuilder-Zugang für den ersten Recruitment-Durchstich.
  */
-final class RecruitmentRepository implements RecruitmentStore, ApplicationStatusStore, TemplateStore, InterviewStore, HiringDataStore, BasisQualificationStore, MailInboxStore, DocumentReviewStore, DocumentFieldLinkStore {
+final class RecruitmentRepository implements RecruitmentStore, ApplicationStatusStore, TemplateStore, InterviewStore, HiringDataStore, BasisQualificationStore, MailInboxStore, DocumentReviewStore, DocumentFieldLinkStore, StatusMailOutboxStore, CandidatePoolStore {
     public function __construct(private IDBConnection $db) {
     }
 
@@ -40,10 +42,18 @@ final class RecruitmentRepository implements RecruitmentStore, ApplicationStatus
             ['rec_message_audit',['id','from_state','to_state','changed_at'],['actor_uid'],'message_audit','changed_at'],
             ['rec_document_comments',['id','created_at'],['actor_uid'],'document_comment','created_at'],
             ['rec_document_field_links',['id','application_id','created_at'],['actor_uid'],'document_field_link','created_at'],
+            ['rec_mail_templates',['id','name','updated_at'],['actor_uid'],'mail_template','updated_at'],
+            ['rec_mail_template_revisions',['id','created_at'],['actor_uid'],'mail_template_revision','created_at'],
+            ['rec_mail_text_blocks',['id','label','updated_at'],['actor_uid'],'mail_text_block','updated_at'],
+            ['rec_status_mail_rules',['id','from_status','to_status','updated_at'],['actor_uid'],'status_mail_rule','updated_at'],
+            ['rec_mail_drafts',['id','application_id','state','created_at'],['actor_uid','approved_by'],'mail_draft','created_at'],
+            ['rec_pool_entries',['id','source_application_id','status','updated_at'],['actor_uid'],'candidate_pool_entry','updated_at'],
+            ['rec_pool_consents',['id','entry_id','action','occurred_at'],['actor_uid'],'candidate_pool_consent','occurred_at'],
+            ['rec_pool_matches',['id','entry_id','state','updated_at'],['reviewed_by_uid'],'candidate_pool_match','updated_at'],
         ] as [$table,$columns,$uidColumns,$kind,$dateColumn]){
             $qb=$this->db->getQueryBuilder();$conditions=[];foreach($uidColumns as $column)$conditions[]=$qb->expr()->eq($column,$qb->createNamedParameter($uid,IQueryBuilder::PARAM_STR));
             $rows=$qb->select(...$columns)->from($table)->where($qb->expr()->orX(...$conditions))->orderBy($dateColumn,'ASC')->setMaxResults($limit)->executeQuery()->fetchAllAssociative();
-            foreach($rows as $row){$item=['kind'=>$kind,'id'=>(int)$row['id'],'occurred_at'=>$row[$dateColumn]];if(isset($row['application_id'])&&$row['application_id']!==null)$item['application_id']=(int)$row['application_id'];if(isset($row['label']))$item['label']=(string)$row['label'];if(isset($row['status']))$item['status']=(string)$row['status'];if(isset($row['result']))$item['action']=(string)$row['result'];if(isset($row['action']))$item['action']=(string)$row['action'];if(isset($row['from_status']))$item['action']=(string)$row['from_status'].' → '.(string)$row['to_status'];if(isset($row['from_state']))$item['action']=(string)$row['from_state'].' → '.(string)$row['to_state'];if($kind==='permission_audit')$item['role']=(string)$row['subject_uid']===$uid?'subject':'actor';$result[]=$item;}
+            foreach($rows as $row){$item=['kind'=>$kind,'id'=>(int)$row['id'],'occurred_at'=>$row[$dateColumn]];if(isset($row['application_id'])&&$row['application_id']!==null)$item['application_id']=(int)$row['application_id'];if(isset($row['label']))$item['label']=(string)$row['label'];if(isset($row['name']))$item['label']=(string)$row['name'];if(isset($row['status']))$item['status']=(string)$row['status'];if(isset($row['state']))$item['status']=(string)$row['state'];if(isset($row['result']))$item['action']=(string)$row['result'];if(isset($row['action']))$item['action']=(string)$row['action'];if(isset($row['from_status']))$item['action']=(string)$row['from_status'].' → '.(string)$row['to_status'];if(isset($row['from_state']))$item['action']=(string)$row['from_state'].' → '.(string)$row['to_state'];if($kind==='permission_audit')$item['role']=(string)$row['subject_uid']===$uid?'subject':'actor';$result[]=$item;}
         }
         $jobs=$this->all('rec_jobs',['id','internal_title','responsible_users','created_at'],['id'=>'ASC']);foreach($jobs as $job)if(in_array($uid,$this->decode((string)$job['responsible_users']),true))$result[]=['kind'=>'job_responsibility','id'=>(int)$job['id'],'label'=>(string)$job['internal_title'],'occurred_at'=>$job['created_at']];
         usort($result,static fn(array $a,array $b):int=>strcmp((string)$a['occurred_at'],(string)$b['occurred_at']));return array_slice($result,0,$limit);
@@ -63,6 +73,12 @@ final class RecruitmentRepository implements RecruitmentStore, ApplicationStatus
             ],
             'basis_qualification_required' => [(bool)($job['basisQualificationRequired'] ?? false), IQueryBuilder::PARAM_BOOL],
             'profession_category' => [(string)($job['professionCategory'] ?? 'other'), IQueryBuilder::PARAM_STR],
+            'contract_term' => [$job['contractTerm'] === '' ? null : (string)$job['contractTerm'], $job['contractTerm'] === '' ? IQueryBuilder::PARAM_NULL : IQueryBuilder::PARAM_STR],
+            'pay_grade' => [$job['payGrade'] === '' ? null : (string)$job['payGrade'], $job['payGrade'] === '' ? IQueryBuilder::PARAM_NULL : IQueryBuilder::PARAM_STR],
+            'advertised_weekly_hours' => [$job['advertisedWeeklyHours'], $job['advertisedWeeklyHours'] === null ? IQueryBuilder::PARAM_NULL : IQueryBuilder::PARAM_STR],
+            'full_time_weekly_hours' => [$job['fullTimeWeeklyHours'], $job['fullTimeWeeklyHours'] === null ? IQueryBuilder::PARAM_NULL : IQueryBuilder::PARAM_STR],
+            'vacation_days' => [$job['vacationDays'], $job['vacationDays'] === null ? IQueryBuilder::PARAM_NULL : IQueryBuilder::PARAM_STR],
+            'work_location' => [(string)$job['workLocation'], IQueryBuilder::PARAM_STR],
             'version' => [1, IQueryBuilder::PARAM_INT],
         ]);
     }
@@ -412,8 +428,8 @@ final class RecruitmentRepository implements RecruitmentStore, ApplicationStatus
         ];
     }
 
-    public function assignInboxMessage(int $messageId, int $applicationId, int $expectedVersion, string $actorUid): array {
-        return $this->transitionInboxMessage($messageId, 'assigned', $expectedVersion, $actorUid, $applicationId, ['new', 'unclear', 'assigned']);
+    public function assignInboxMessage(int $messageId, int $applicationId, int $expectedVersion, string $actorUid, array $hiringDefaults = []): array {
+        return $this->transitionInboxMessage($messageId, 'assigned', $expectedVersion, $actorUid, $applicationId, ['new', 'unclear', 'assigned'], $hiringDefaults);
     }
 
     public function ignoreInboxMessage(int $messageId, int $expectedVersion, string $actorUid): array {
@@ -451,7 +467,7 @@ final class RecruitmentRepository implements RecruitmentStore, ApplicationStatus
         return [
             'jobs' => array_map([$this, 'mapJob'], $this->all(
                 'rec_jobs',
-                ['id', 'internal_title', 'public_title', 'active', 'responsible_users', 'responsible_groups', 'assignment_key', 'basis_qualification_required', 'profession_category', 'version'],
+                ['id', 'internal_title', 'public_title', 'active', 'responsible_users', 'responsible_groups', 'assignment_key', 'basis_qualification_required', 'profession_category', 'contract_term', 'pay_grade', 'advertised_weekly_hours', 'full_time_weekly_hours', 'vacation_days', 'work_location', 'version'],
                 ['internal_title' => 'ASC'],
             )),
             'people' => array_map([$this, 'mapPerson'], $this->all(
@@ -542,6 +558,44 @@ final class RecruitmentRepository implements RecruitmentStore, ApplicationStatus
         return $this->mapApplicationWithBasisQualification($row);
     }
 
+    public function statusMailPreparation(int $id, string $fromStatus, string $toStatus): ?array {
+        $ruleQb = $this->db->getQueryBuilder();
+        $rule = $ruleQb->select('template_id', 'default_timing')->from('rec_status_mail_rules')
+            ->where($ruleQb->expr()->eq('from_status', $ruleQb->createNamedParameter($fromStatus, IQueryBuilder::PARAM_STR)))
+            ->andWhere($ruleQb->expr()->eq('to_status', $ruleQb->createNamedParameter($toStatus, IQueryBuilder::PARAM_STR)))
+            ->andWhere($ruleQb->expr()->eq('enabled', $ruleQb->createNamedParameter(true, IQueryBuilder::PARAM_BOOL)))
+            ->executeQuery()->fetchAssociative();
+        if ($rule === false) return null;
+
+        $template = $this->findRow('rec_mail_templates', (int)$rule['template_id']);
+        if ($template === null || !(bool)$template['active']) return null;
+        $revisionQb = $this->db->getQueryBuilder();
+        $revision = $revisionQb->select('subject_template', 'body_template', 'body_format')->from('rec_mail_template_revisions')
+            ->where($revisionQb->expr()->eq('template_id', $revisionQb->createNamedParameter((int)$template['id'], IQueryBuilder::PARAM_INT)))
+            ->andWhere($revisionQb->expr()->eq('revision', $revisionQb->createNamedParameter((int)$template['current_revision'], IQueryBuilder::PARAM_INT)))
+            ->executeQuery()->fetchAssociative();
+        $application = $this->findApplication($id);
+        $person = $this->findRow('rec_people', (int)$application['personId']);
+        $job = $this->findRow('rec_jobs', (int)$application['jobId']);
+        if ($revision === false || $person === null || $job === null) {
+            throw new NotFoundException('Die konfigurierte Mailvorlage oder ihr Bewerbungskontext fehlt.');
+        }
+        $publicJobTitle = trim((string)$job['public_title']);
+        return [
+            'template' => [
+                'id' => (int)$template['id'], 'revision' => (int)$template['current_revision'],
+                'subject' => (string)$revision['subject_template'], 'body' => (string)$revision['body_template'],
+                'bodyFormat' => (string)($revision['body_format'] ?? 'plain'),
+            ],
+            'context' => [
+                'given_name' => (string)$person['given_name'], 'family_name' => (string)$person['family_name'],
+                'job_title' => $publicJobTitle !== '' ? $publicJobTitle : (string)$job['internal_title'],
+            ],
+            'recipient' => (string)$person['email'],
+            'defaultTiming' => (string)$rule['default_timing'],
+        ];
+    }
+
     public function applicationForInterview(int $id): array {
         $interview = $this->interview($id);
         return $this->findApplication((int)$interview['applicationId']);
@@ -609,7 +663,7 @@ final class RecruitmentRepository implements RecruitmentStore, ApplicationStatus
             ->from('rec_applications')
             ->where($qb->expr()->in(
                 'status',
-                $qb->createNamedParameter(['basis_qualification', 'approved_for_hire', 'hired'], IQueryBuilder::PARAM_STR_ARRAY),
+                $qb->createNamedParameter(['approved_for_hire', 'hired'], IQueryBuilder::PARAM_STR_ARRAY),
             ))
             ->orderBy('received_on', 'DESC')
             ->addOrderBy('id', 'DESC')
@@ -841,6 +895,258 @@ final class RecruitmentRepository implements RecruitmentStore, ApplicationStatus
         return $this->basisQualificationAssignment($assignmentId);
     }
 
+    /** @return array<string,mixed> */
+    public function mailConfiguration(): array {
+        $templateRows = $this->all('rec_mail_templates', ['*'], ['name' => 'ASC']);
+        return [
+            'templates' => array_map(fn(array $row): array => $this->mailTemplate((int)$row['id']), $templateRows),
+            'rules' => array_map([$this, 'mapStatusMailRule'], $this->all('rec_status_mail_rules', ['*'], ['from_status' => 'ASC', 'to_status' => 'ASC'])),
+            'textBlocks' => array_map([$this, 'mapMailTextBlock'], $this->all('rec_mail_text_blocks', ['*'], ['label' => 'ASC'])),
+        ];
+    }
+
+    public function createMailTemplate(string $name, string $subject, string $body, string $bodyFormat, string $actorUid): array {
+        $this->db->beginTransaction();
+        try {
+            $id = $this->insert('rec_mail_templates', [
+                'name' => [$name, IQueryBuilder::PARAM_STR], 'active' => [true, IQueryBuilder::PARAM_BOOL],
+                'current_revision' => [1, IQueryBuilder::PARAM_INT], 'version' => [1, IQueryBuilder::PARAM_INT],
+                'actor_uid' => [$actorUid, IQueryBuilder::PARAM_STR],
+            ]);
+            $this->insert('rec_mail_template_revisions', [
+                'template_id' => [$id, IQueryBuilder::PARAM_INT], 'revision' => [1, IQueryBuilder::PARAM_INT],
+                'subject_template' => [$subject, IQueryBuilder::PARAM_STR], 'body_template' => [$body, IQueryBuilder::PARAM_STR],
+                'body_format' => [$bodyFormat, IQueryBuilder::PARAM_STR],
+                'actor_uid' => [$actorUid, IQueryBuilder::PARAM_STR], 'created_at' => [$this->now(), IQueryBuilder::PARAM_DATETIME_IMMUTABLE],
+            ], false);
+            $this->db->commit();
+        } catch (\Throwable $error) { $this->db->rollBack(); throw $error; }
+        return $this->mailTemplate($id);
+    }
+
+    public function reviseMailTemplate(int $id, string $name, string $subject, string $body, string $bodyFormat, bool $active, int $expectedVersion, string $actorUid): array {
+        $template = $this->mailTemplate($id); $revision = (int)$template['revision'] + 1; $now = $this->now();
+        $this->db->beginTransaction();
+        try {
+            $qb = $this->db->getQueryBuilder();
+            $affected = $qb->update('rec_mail_templates')->set('name', $qb->createNamedParameter($name, IQueryBuilder::PARAM_STR))
+                ->set('active', $qb->createNamedParameter($active, IQueryBuilder::PARAM_BOOL))
+                ->set('current_revision', $qb->createNamedParameter($revision, IQueryBuilder::PARAM_INT))
+                ->set('version', $qb->createFunction('version + 1'))->set('actor_uid', $qb->createNamedParameter($actorUid, IQueryBuilder::PARAM_STR))
+                ->set('updated_at', $qb->createNamedParameter($now, IQueryBuilder::PARAM_DATETIME_IMMUTABLE))
+                ->where($qb->expr()->eq('id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT)))
+                ->andWhere($qb->expr()->eq('version', $qb->createNamedParameter($expectedVersion, IQueryBuilder::PARAM_INT)))->executeStatement();
+            if ($affected !== 1) throw new ConflictException('Die Mailvorlage wurde zwischenzeitlich geändert.');
+            $this->insert('rec_mail_template_revisions', [
+                'template_id' => [$id, IQueryBuilder::PARAM_INT], 'revision' => [$revision, IQueryBuilder::PARAM_INT],
+                'subject_template' => [$subject, IQueryBuilder::PARAM_STR], 'body_template' => [$body, IQueryBuilder::PARAM_STR],
+                'body_format' => [$bodyFormat, IQueryBuilder::PARAM_STR],
+                'actor_uid' => [$actorUid, IQueryBuilder::PARAM_STR], 'created_at' => [$now, IQueryBuilder::PARAM_DATETIME_IMMUTABLE],
+            ], false);
+            $this->db->commit();
+        } catch (\Throwable $error) { $this->db->rollBack(); throw $error; }
+        return $this->mailTemplate($id);
+    }
+
+    public function mailTemplate(int $id): array {
+        $row = $this->findRow('rec_mail_templates', $id); if ($row === null) throw new NotFoundException('Die Mailvorlage wurde nicht gefunden.');
+        $qb = $this->db->getQueryBuilder();
+        $revision = $qb->select('subject_template', 'body_template', 'body_format')->from('rec_mail_template_revisions')
+            ->where($qb->expr()->eq('template_id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT)))
+            ->andWhere($qb->expr()->eq('revision', $qb->createNamedParameter((int)$row['current_revision'], IQueryBuilder::PARAM_INT)))
+            ->executeQuery()->fetchAssociative();
+        if ($revision === false) throw new NotFoundException('Die aktuelle Mailvorlagenrevision wurde nicht gefunden.');
+        return $this->mapMailTemplate($row) + [
+            'subject' => (string)$revision['subject_template'], 'body' => (string)$revision['body_template'],
+            'bodyFormat' => (string)($revision['body_format'] ?? 'plain'),
+        ];
+    }
+
+    public function saveStatusMailRule(string $fromStatus, string $toStatus, int $templateId, bool $enabled, string $timing, int $expectedVersion, string $actorUid): array {
+        $qb = $this->db->getQueryBuilder();
+        $row = $qb->select('id', 'version')->from('rec_status_mail_rules')
+            ->where($qb->expr()->eq('from_status', $qb->createNamedParameter($fromStatus, IQueryBuilder::PARAM_STR)))
+            ->andWhere($qb->expr()->eq('to_status', $qb->createNamedParameter($toStatus, IQueryBuilder::PARAM_STR)))->executeQuery()->fetchAssociative();
+        if ($row === false) {
+            if ($expectedVersion !== 0) throw new ConflictException('Die Statusmail-Regel wurde zwischenzeitlich geändert.');
+            $id = $this->insert('rec_status_mail_rules', [
+                'from_status' => [$fromStatus, IQueryBuilder::PARAM_STR], 'to_status' => [$toStatus, IQueryBuilder::PARAM_STR],
+                'template_id' => [$templateId, IQueryBuilder::PARAM_INT], 'enabled' => [$enabled, IQueryBuilder::PARAM_BOOL],
+                'default_timing' => [$timing, IQueryBuilder::PARAM_STR], 'version' => [1, IQueryBuilder::PARAM_INT], 'actor_uid' => [$actorUid, IQueryBuilder::PARAM_STR],
+            ]);
+        } else {
+            $id = (int)$row['id']; $update = $this->db->getQueryBuilder();
+            $update->update('rec_status_mail_rules')->set('template_id', $update->createNamedParameter($templateId, IQueryBuilder::PARAM_INT))
+                ->set('enabled', $update->createNamedParameter($enabled, IQueryBuilder::PARAM_BOOL))->set('default_timing', $update->createNamedParameter($timing, IQueryBuilder::PARAM_STR))
+                ->set('version', $update->createFunction('version + 1'))->set('actor_uid', $update->createNamedParameter($actorUid, IQueryBuilder::PARAM_STR))
+                ->set('updated_at', $update->createNamedParameter($this->now(), IQueryBuilder::PARAM_DATETIME_IMMUTABLE))
+                ->where($update->expr()->eq('id', $update->createNamedParameter($id, IQueryBuilder::PARAM_INT)))
+                ->andWhere($update->expr()->eq('version', $update->createNamedParameter($expectedVersion, IQueryBuilder::PARAM_INT)));
+            if ($update->executeStatement() !== 1) throw new ConflictException('Die Statusmail-Regel wurde zwischenzeitlich geändert.');
+        }
+        return $this->mapStatusMailRule($this->findRow('rec_status_mail_rules', $id) ?? []);
+    }
+
+    public function createMailTextBlock(string $label, string $text, string $actorUid): array {
+        $id = $this->insert('rec_mail_text_blocks', [
+            'label' => [$label, IQueryBuilder::PARAM_STR], 'insert_text' => [$text, IQueryBuilder::PARAM_STR],
+            'active' => [true, IQueryBuilder::PARAM_BOOL], 'version' => [1, IQueryBuilder::PARAM_INT], 'actor_uid' => [$actorUid, IQueryBuilder::PARAM_STR],
+        ]);
+        return $this->mapMailTextBlock($this->findRow('rec_mail_text_blocks', $id) ?? []);
+    }
+
+    /** @return list<array<string,mixed>> */
+    public function mailDrafts(int $applicationId): array {
+        $qb = $this->db->getQueryBuilder();
+        $rows = $qb->select('*')->from('rec_mail_drafts')->where($qb->expr()->eq('application_id', $qb->createNamedParameter($applicationId, IQueryBuilder::PARAM_INT)))
+            ->orderBy('created_at', 'DESC')->executeQuery()->fetchAllAssociative();
+        return array_map([$this, 'mapMailDraft'], $rows);
+    }
+
+    public function mailDraft(int $id): array { $row = $this->findRow('rec_mail_drafts', $id); if ($row === null) throw new NotFoundException('Der Mailentwurf wurde nicht gefunden.'); return $this->mapMailDraft($row); }
+
+    public function saveMailDraft(int $id, string $subject, string $body, string $bodyFormat, int $expectedVersion): array {
+        $qb = $this->db->getQueryBuilder();
+        $affected = $qb->update('rec_mail_drafts')->set('subject', $qb->createNamedParameter($subject, IQueryBuilder::PARAM_STR))
+            ->set('body', $qb->createNamedParameter($body, IQueryBuilder::PARAM_STR))
+            ->set('body_format', $qb->createNamedParameter($bodyFormat, IQueryBuilder::PARAM_STR))->set('version', $qb->createFunction('version + 1'))
+            ->set('updated_at', $qb->createNamedParameter($this->now(), IQueryBuilder::PARAM_DATETIME_IMMUTABLE))
+            ->where($qb->expr()->eq('id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT)))
+            ->andWhere($qb->expr()->eq('state', $qb->createNamedParameter('draft', IQueryBuilder::PARAM_STR)))
+            ->andWhere($qb->expr()->eq('version', $qb->createNamedParameter($expectedVersion, IQueryBuilder::PARAM_INT)))->executeStatement();
+        if ($affected !== 1) throw new ConflictException('Der Mailentwurf wurde zwischenzeitlich geändert oder bereits freigegeben.');
+        return $this->mailDraft($id);
+    }
+
+    public function approveMailDraft(int $id, array $approved, int $expectedVersion, string $actorUid, string $jobKey): array {
+        $now = $this->now(); $scheduledAt = new DateTimeImmutable((string)$approved['scheduledAt']);
+        $this->db->beginTransaction();
+        try {
+            $qb = $this->db->getQueryBuilder();
+            $affected = $qb->update('rec_mail_drafts')->set('subject', $qb->createNamedParameter((string)$approved['subject'], IQueryBuilder::PARAM_STR))
+                ->set('body', $qb->createNamedParameter((string)$approved['body'], IQueryBuilder::PARAM_STR))
+                ->set('body_format', $qb->createNamedParameter((string)$approved['bodyFormat'], IQueryBuilder::PARAM_STR))
+                ->set('intended_recipient', $qb->createNamedParameter((string)$approved['intendedRecipient'], IQueryBuilder::PARAM_STR))
+                ->set('delivery_recipient', $qb->createNamedParameter((string)$approved['deliveryRecipient'], IQueryBuilder::PARAM_STR))
+                ->set('test_mode', $qb->createNamedParameter((bool)$approved['testMode'], IQueryBuilder::PARAM_BOOL))
+                ->set('scheduled_at', $qb->createNamedParameter($scheduledAt, IQueryBuilder::PARAM_DATETIME_IMMUTABLE))
+                ->set('state', $qb->createNamedParameter('approved', IQueryBuilder::PARAM_STR))->set('approved_by', $qb->createNamedParameter($actorUid, IQueryBuilder::PARAM_STR))
+                ->set('approved_at', $qb->createNamedParameter($now, IQueryBuilder::PARAM_DATETIME_IMMUTABLE))->set('version', $qb->createFunction('version + 1'))
+                ->set('updated_at', $qb->createNamedParameter($now, IQueryBuilder::PARAM_DATETIME_IMMUTABLE))
+                ->where($qb->expr()->eq('id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT)))
+                ->andWhere($qb->expr()->eq('state', $qb->createNamedParameter('draft', IQueryBuilder::PARAM_STR)))
+                ->andWhere($qb->expr()->eq('version', $qb->createNamedParameter($expectedVersion, IQueryBuilder::PARAM_INT)))->executeStatement();
+            if ($affected !== 1) throw new ConflictException('Der Mailentwurf wurde zwischenzeitlich geändert oder bereits freigegeben.');
+            $this->insert('rec_mail_outbox', [
+                'draft_id' => [$id, IQueryBuilder::PARAM_INT], 'job_key' => [$jobKey, IQueryBuilder::PARAM_STR], 'state' => ['pending', IQueryBuilder::PARAM_STR],
+                'attempts' => [0, IQueryBuilder::PARAM_INT], 'scheduled_at' => [$scheduledAt, IQueryBuilder::PARAM_DATETIME_IMMUTABLE],
+                'last_error_code' => [null, IQueryBuilder::PARAM_NULL], 'sent_at' => [null, IQueryBuilder::PARAM_NULL],
+            ]);
+            $this->db->commit();
+        } catch (\Throwable $error) { $this->db->rollBack(); throw $error; }
+        return $this->mailDraft($id);
+    }
+
+    public function cancelMailDraft(int $id, int $expectedVersion): array {
+        $qb = $this->db->getQueryBuilder();
+        $affected = $qb->update('rec_mail_drafts')->set('state', $qb->createNamedParameter('cancelled', IQueryBuilder::PARAM_STR))
+            ->set('version', $qb->createFunction('version + 1'))->set('updated_at', $qb->createNamedParameter($this->now(), IQueryBuilder::PARAM_DATETIME_IMMUTABLE))
+            ->where($qb->expr()->eq('id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT)))
+            ->andWhere($qb->expr()->eq('state', $qb->createNamedParameter('draft', IQueryBuilder::PARAM_STR)))
+            ->andWhere($qb->expr()->eq('version', $qb->createNamedParameter($expectedVersion, IQueryBuilder::PARAM_INT)))->executeStatement();
+        if ($affected !== 1) throw new ConflictException('Der Mailentwurf wurde zwischenzeitlich geändert oder bereits freigegeben.');
+        return $this->mailDraft($id);
+    }
+
+    public function claimDueMailJob(DateTimeImmutable $now): ?array {
+        $staleBefore = $now->modify('-15 minutes');
+        $stale = $this->db->getQueryBuilder();
+        $interrupted = $stale->select('id', 'draft_id', 'attempts')->from('rec_mail_outbox')
+            ->where($stale->expr()->eq('state', $stale->createNamedParameter('sending', IQueryBuilder::PARAM_STR)))
+            ->andWhere($stale->expr()->lte('updated_at', $stale->createNamedParameter($staleBefore, IQueryBuilder::PARAM_DATETIME_IMMUTABLE)))
+            ->executeQuery()->fetchAllAssociative();
+        foreach ($interrupted as $row) {
+            $recover = $this->db->getQueryBuilder();
+            $affected = $recover->update('rec_mail_outbox')
+                ->set('state', $recover->createNamedParameter('failed', IQueryBuilder::PARAM_STR))
+                ->set('last_error_code', $recover->createNamedParameter('worker_interrupted', IQueryBuilder::PARAM_STR))
+                ->set('scheduled_at', $recover->createNamedParameter($now, IQueryBuilder::PARAM_DATETIME_IMMUTABLE))
+                ->set('updated_at', $recover->createNamedParameter($now, IQueryBuilder::PARAM_DATETIME_IMMUTABLE))
+                ->where($recover->expr()->eq('id', $recover->createNamedParameter((int)$row['id'], IQueryBuilder::PARAM_INT)))
+                ->andWhere($recover->expr()->eq('state', $recover->createNamedParameter('sending', IQueryBuilder::PARAM_STR)))
+                ->andWhere($recover->expr()->lte('updated_at', $recover->createNamedParameter($staleBefore, IQueryBuilder::PARAM_DATETIME_IMMUTABLE)))
+                ->executeStatement();
+            if ($affected === 1 && (int)$row['attempts'] >= 5) {
+                $draft = $this->db->getQueryBuilder();
+                $draft->update('rec_mail_drafts')->set('state', $draft->createNamedParameter('failed', IQueryBuilder::PARAM_STR))
+                    ->set('version', $draft->createFunction('version + 1'))
+                    ->set('updated_at', $draft->createNamedParameter($now, IQueryBuilder::PARAM_DATETIME_IMMUTABLE))
+                    ->where($draft->expr()->eq('id', $draft->createNamedParameter((int)$row['draft_id'], IQueryBuilder::PARAM_INT)))
+                    ->executeStatement();
+            }
+        }
+        for ($attempt = 0; $attempt < 5; $attempt++) {
+            $select = $this->db->getQueryBuilder();
+            $row = $select->select('id', 'draft_id', 'attempts')->from('rec_mail_outbox')
+                ->where($select->expr()->in('state', $select->createNamedParameter(['pending', 'failed'], IQueryBuilder::PARAM_STR_ARRAY)))
+                ->andWhere($select->expr()->lte('scheduled_at', $select->createNamedParameter($now, IQueryBuilder::PARAM_DATETIME_IMMUTABLE)))
+                ->andWhere($select->expr()->lt('attempts', $select->createNamedParameter(5, IQueryBuilder::PARAM_INT)))
+                ->orderBy('scheduled_at', 'ASC')->addOrderBy('id', 'ASC')->setMaxResults(1)->executeQuery()->fetchAssociative();
+            if ($row === false) return null;
+            $update = $this->db->getQueryBuilder();
+            $affected = $update->update('rec_mail_outbox')->set('state', $update->createNamedParameter('sending', IQueryBuilder::PARAM_STR))
+                ->set('attempts', $update->createFunction('attempts + 1'))->set('updated_at', $update->createNamedParameter($now, IQueryBuilder::PARAM_DATETIME_IMMUTABLE))
+                ->where($update->expr()->eq('id', $update->createNamedParameter((int)$row['id'], IQueryBuilder::PARAM_INT)))
+                ->andWhere($update->expr()->in('state', $update->createNamedParameter(['pending', 'failed'], IQueryBuilder::PARAM_STR_ARRAY)))
+                ->andWhere($update->expr()->eq('attempts', $update->createNamedParameter((int)$row['attempts'], IQueryBuilder::PARAM_INT)))->executeStatement();
+            if ($affected !== 1) continue;
+            $draft = $this->mailDraft((int)$row['draft_id']);
+            return [
+                'id' => (int)$row['id'], 'draftId' => (int)$row['draft_id'], 'attempts' => (int)$row['attempts'] + 1,
+                'recipient' => (string)$draft['deliveryRecipient'], 'subject' => (string)$draft['subject'], 'body' => (string)$draft['body'],
+                'bodyFormat' => (string)$draft['bodyFormat'],
+            ];
+        }
+        return null;
+    }
+
+    public function markMailJobSent(int $jobId, int $draftId, DateTimeImmutable $sentAt): void {
+        $this->db->beginTransaction();
+        try {
+            $job = $this->db->getQueryBuilder();
+            $affected = $job->update('rec_mail_outbox')->set('state', $job->createNamedParameter('sent', IQueryBuilder::PARAM_STR))
+                ->set('sent_at', $job->createNamedParameter($sentAt, IQueryBuilder::PARAM_DATETIME_IMMUTABLE))
+                ->set('updated_at', $job->createNamedParameter($sentAt, IQueryBuilder::PARAM_DATETIME_IMMUTABLE))
+                ->where($job->expr()->eq('id', $job->createNamedParameter($jobId, IQueryBuilder::PARAM_INT)))
+                ->andWhere($job->expr()->eq('state', $job->createNamedParameter('sending', IQueryBuilder::PARAM_STR)))->executeStatement();
+            if ($affected !== 1) throw new ConflictException('Der Versandauftrag ist nicht mehr im erwarteten Zustand.');
+            $draft = $this->db->getQueryBuilder();
+            $draft->update('rec_mail_drafts')->set('state', $draft->createNamedParameter('sent', IQueryBuilder::PARAM_STR))
+                ->set('version', $draft->createFunction('version + 1'))->set('updated_at', $draft->createNamedParameter($sentAt, IQueryBuilder::PARAM_DATETIME_IMMUTABLE))
+                ->where($draft->expr()->eq('id', $draft->createNamedParameter($draftId, IQueryBuilder::PARAM_INT)))->executeStatement();
+            $this->db->commit();
+        } catch (\Throwable $error) { $this->db->rollBack(); throw $error; }
+    }
+
+    public function markMailJobFailed(int $jobId, int $draftId, string $errorCode, DateTimeImmutable $retryAt): void {
+        $this->db->beginTransaction();
+        try {
+            $job = $this->db->getQueryBuilder();
+            $affected = $job->update('rec_mail_outbox')->set('state', $job->createNamedParameter('failed', IQueryBuilder::PARAM_STR))
+                ->set('last_error_code', $job->createNamedParameter(substr($errorCode, 0, 64), IQueryBuilder::PARAM_STR))
+                ->set('scheduled_at', $job->createNamedParameter($retryAt, IQueryBuilder::PARAM_DATETIME_IMMUTABLE))
+                ->set('updated_at', $job->createNamedParameter($this->now(), IQueryBuilder::PARAM_DATETIME_IMMUTABLE))
+                ->where($job->expr()->eq('id', $job->createNamedParameter($jobId, IQueryBuilder::PARAM_INT)))
+                ->andWhere($job->expr()->eq('state', $job->createNamedParameter('sending', IQueryBuilder::PARAM_STR)))->executeStatement();
+            if ($affected !== 1) throw new ConflictException('Der Versandauftrag ist nicht mehr im erwarteten Zustand.');
+            $draft = $this->db->getQueryBuilder();
+            $draft->update('rec_mail_drafts')->set('state', $draft->createNamedParameter('failed', IQueryBuilder::PARAM_STR))
+                ->set('version', $draft->createFunction('version + 1'))->set('updated_at', $draft->createNamedParameter($this->now(), IQueryBuilder::PARAM_DATETIME_IMMUTABLE))
+                ->where($draft->expr()->eq('id', $draft->createNamedParameter($draftId, IQueryBuilder::PARAM_INT)))->executeStatement();
+            $this->db->commit();
+        } catch (\Throwable $error) { $this->db->rollBack(); throw $error; }
+    }
+
     public function transitionStatus(
         int $id,
         string $fromStatus,
@@ -849,6 +1155,8 @@ final class RecruitmentRepository implements RecruitmentStore, ApplicationStatus
         string $actorUid,
         ?string $areaKey,
         bool $enableFirstGuideAccess,
+        ?array $mailDraft = null,
+        bool $override = false,
     ): array {
         $now = $this->now();
         $this->db->beginTransaction();
@@ -879,10 +1187,41 @@ final class RecruitmentRepository implements RecruitmentStore, ApplicationStatus
                 'actor_uid' => [$actorUid, IQueryBuilder::PARAM_STR],
                 'changed_at' => [$now, IQueryBuilder::PARAM_DATETIME_IMMUTABLE],
             ], false);
+            if ($override) {
+                $this->insertAudit($actorUid, 'status_transition_overridden', '', $id, [
+                    'fromStatus' => $fromStatus,
+                    'toStatus' => $toStatus,
+                ]);
+            }
             if ($areaKey !== null && $enableFirstGuideAccess) {
                 $this->insertAudit($actorUid, 'first_guide_enabled', '', $id, [
                     'areaKey' => $areaKey,
                     'source' => 'hire_approval',
+                ]);
+            }
+            $mailDraftId = null;
+            if ($mailDraft !== null) {
+                $mailDraftId = $this->insert('rec_mail_drafts', [
+                    'application_id' => [$id, IQueryBuilder::PARAM_INT],
+                    'from_status' => [(string)$mailDraft['fromStatus'], IQueryBuilder::PARAM_STR],
+                    'to_status' => [(string)$mailDraft['toStatus'], IQueryBuilder::PARAM_STR],
+                    'template_id' => [(int)$mailDraft['templateId'], IQueryBuilder::PARAM_INT],
+                    'template_revision' => [(int)$mailDraft['templateRevision'], IQueryBuilder::PARAM_INT],
+                    'original_recipient' => [(string)$mailDraft['originalRecipient'], IQueryBuilder::PARAM_STR],
+                    'intended_recipient' => [null, IQueryBuilder::PARAM_NULL],
+                    'delivery_recipient' => [null, IQueryBuilder::PARAM_NULL],
+                    'subject' => [(string)$mailDraft['subject'], IQueryBuilder::PARAM_STR],
+                    'body' => [(string)$mailDraft['body'], IQueryBuilder::PARAM_STR],
+                    'body_format' => [(string)$mailDraft['bodyFormat'], IQueryBuilder::PARAM_STR],
+                    'state' => ['draft', IQueryBuilder::PARAM_STR],
+                    'default_timing' => [(string)$mailDraft['defaultTiming'], IQueryBuilder::PARAM_STR],
+                    'test_mode' => [false, IQueryBuilder::PARAM_BOOL],
+                    'scheduled_at' => [null, IQueryBuilder::PARAM_NULL],
+                    'actor_uid' => [(string)$mailDraft['actorUid'], IQueryBuilder::PARAM_STR],
+                    'approved_by' => [null, IQueryBuilder::PARAM_NULL],
+                    'client_key' => [(string)$mailDraft['clientKey'], IQueryBuilder::PARAM_STR],
+                    'version' => [1, IQueryBuilder::PARAM_INT],
+                    'approved_at' => [null, IQueryBuilder::PARAM_NULL],
                 ]);
             }
             $this->db->commit();
@@ -891,7 +1230,9 @@ final class RecruitmentRepository implements RecruitmentStore, ApplicationStatus
             throw $error;
         }
 
-        return $this->findApplication($id);
+        $result = $this->findApplication($id);
+        if (($mailDraftId ?? null) !== null) $result['mailDraft'] = $this->mailDraft((int)$mailDraftId);
+        return $result;
     }
 
     public function createTemplate(array $template): int {
@@ -1107,6 +1448,7 @@ final class RecruitmentRepository implements RecruitmentStore, ApplicationStatus
         string $actorUid,
         ?int $applicationId,
         array $allowedFrom,
+        array $hiringDefaults = [],
     ): array {
         $message = $this->inboxMessage($messageId);
         $this->db->beginTransaction();
@@ -1123,13 +1465,51 @@ final class RecruitmentRepository implements RecruitmentStore, ApplicationStatus
             if ($qb->executeStatement() !== 1) {
                 throw new ConflictException('Die Eingangsnachricht wurde zwischenzeitlich geändert.');
             }
-            $this->insertInboxAudit($messageId, (string)$message['state'], $toState, $actorUid, ['applicationId' => $applicationId]);
+            $prefilled = $applicationId === null ? [] : $this->prefillHiringData($applicationId, $hiringDefaults);
+            $this->insertInboxAudit($messageId, (string)$message['state'], $toState, $actorUid, [
+                'applicationId' => $applicationId,
+                'prefilledHiringFields' => $prefilled,
+            ]);
             $this->db->commit();
         } catch (\Throwable $error) {
             $this->db->rollBack();
             throw $error;
         }
         return $this->inboxMessage($messageId);
+    }
+
+    /** @param array<string,string> $defaults
+     *  @return list<string>
+     */
+    private function prefillHiringData(int $applicationId, array $defaults): array {
+        if ($defaults === []) return [];
+        $stored = $this->hiringData($applicationId);
+        $data = $stored['data'];
+        $filled = [];
+        foreach ($defaults as $field => $value) {
+            if (trim((string)($data[$field] ?? '')) !== '') continue;
+            $data[$field] = $value;
+            $filled[] = $field;
+        }
+        if ($filled === []) return [];
+        if ($stored['version'] === 0) {
+            $this->insert('rec_hiring_data', [
+                'application_id' => [$applicationId, IQueryBuilder::PARAM_INT],
+                'data_json' => [$this->encode($data), IQueryBuilder::PARAM_STR],
+                'version' => [1, IQueryBuilder::PARAM_INT],
+            ]);
+        } else {
+            $qb = $this->db->getQueryBuilder();
+            $affected = $qb->update('rec_hiring_data')
+                ->set('data_json', $qb->createNamedParameter($this->encode($data), IQueryBuilder::PARAM_STR))
+                ->set('version', $qb->createFunction('version + 1'))
+                ->set('updated_at', $qb->createNamedParameter($this->now(), IQueryBuilder::PARAM_DATETIME_IMMUTABLE))
+                ->where($qb->expr()->eq('application_id', $qb->createNamedParameter($applicationId, IQueryBuilder::PARAM_INT)))
+                ->andWhere($qb->expr()->eq('version', $qb->createNamedParameter($stored['version'], IQueryBuilder::PARAM_INT)))
+                ->executeStatement();
+            if ($affected !== 1) throw new ConflictException('Die Vertragsdaten wurden zwischenzeitlich geändert.');
+        }
+        return $filled;
     }
 
     /** @param array<string,mixed> $details */
@@ -1142,6 +1522,94 @@ final class RecruitmentRepository implements RecruitmentStore, ApplicationStatus
             'details_json' => [$this->encode($details), IQueryBuilder::PARAM_STR],
             'changed_at' => [$this->now(), IQueryBuilder::PARAM_DATETIME_IMMUTABLE],
         ], false);
+    }
+
+    public function candidatePoolApplicationContext(int $applicationId): array {
+        $application = $this->findApplication($applicationId);
+        $job = $this->findRow('rec_jobs', (int)$application['jobId']);
+        if ($job === null) throw new NotFoundException('Die zugehörige Stelle wurde nicht gefunden.');
+        return ['application' => $application, 'job' => $this->mapJob($job)];
+    }
+
+    public function candidatePoolEntryForApplication(int $applicationId): ?array {
+        $qb = $this->db->getQueryBuilder();
+        $row = $qb->select('*')->from('rec_pool_entries')->where($qb->expr()->eq('source_application_id', $qb->createNamedParameter($applicationId, IQueryBuilder::PARAM_INT)))->executeQuery()->fetchAssociative();
+        return $row === false ? null : $this->mapCandidatePoolEntry($row);
+    }
+
+    public function createCandidatePoolEntry(array $entry): array {
+        $id = $this->insert('rec_pool_entries', [
+            'person_id' => [(int)$entry['personId'], IQueryBuilder::PARAM_INT], 'source_application_id' => [(int)$entry['sourceApplicationId'], IQueryBuilder::PARAM_INT],
+            'status' => [(string)$entry['status'], IQueryBuilder::PARAM_STR], 'profession_category' => [(string)$entry['professionCategory'], IQueryBuilder::PARAM_STR],
+            'desired_weekly_hours' => [$entry['desiredWeeklyHours'], $entry['desiredWeeklyHours'] === null ? IQueryBuilder::PARAM_NULL : IQueryBuilder::PARAM_STR],
+            'desired_weekly_hours_max' => [$entry['desiredWeeklyHoursMax'], $entry['desiredWeeklyHoursMax'] === null ? IQueryBuilder::PARAM_NULL : IQueryBuilder::PARAM_STR],
+            'area_keys_json' => [$this->encode($entry['areaKeys']), IQueryBuilder::PARAM_STR], 'consent_notice_version' => [(string)$entry['consentNoticeVersion'], IQueryBuilder::PARAM_STR],
+            'requested_at' => [new DateTimeImmutable((string)$entry['requestedAt']), IQueryBuilder::PARAM_DATETIME_IMMUTABLE], 'consented_at' => [null, IQueryBuilder::PARAM_NULL],
+            'expires_at' => [null, IQueryBuilder::PARAM_NULL], 'reminder_sent_at' => [null, IQueryBuilder::PARAM_NULL], 'withdrawn_at' => [null, IQueryBuilder::PARAM_NULL],
+            'actor_uid' => [(string)$entry['actorUid'], IQueryBuilder::PARAM_STR], 'version' => [1, IQueryBuilder::PARAM_INT],
+        ]);
+        return $this->candidatePoolEntry($id);
+    }
+
+    public function candidatePoolEntry(int $id): array {
+        $row = $this->findRow('rec_pool_entries', $id);
+        if ($row === null) throw new NotFoundException('Der Rückstellungsvorgang wurde nicht gefunden.');
+        return $this->mapCandidatePoolEntry($row);
+    }
+
+    public function updateCandidatePoolEntry(int $id, string $fromStatus, array $changes): array {
+        $allowed = ['status', 'areaKeys', 'consentedAt', 'expiresAt', 'reminderSentAt', 'withdrawnAt', 'actorUid'];
+        $columns = ['areaKeys' => 'area_keys_json', 'consentedAt' => 'consented_at', 'expiresAt' => 'expires_at', 'reminderSentAt' => 'reminder_sent_at', 'withdrawnAt' => 'withdrawn_at', 'actorUid' => 'actor_uid'];
+        $qb = $this->db->getQueryBuilder()->update('rec_pool_entries');
+        foreach ($changes as $key => $value) {
+            if (!in_array($key, $allowed, true)) continue;
+            $column = $columns[$key] ?? $key;
+            if ($key === 'areaKeys') { $value = $this->encode($value); $type = IQueryBuilder::PARAM_STR; }
+            elseif (in_array($key, ['consentedAt', 'expiresAt', 'reminderSentAt', 'withdrawnAt'], true)) { $value = $value === null ? null : new DateTimeImmutable((string)$value); $type = $value === null ? IQueryBuilder::PARAM_NULL : IQueryBuilder::PARAM_DATETIME_IMMUTABLE; }
+            else $type = IQueryBuilder::PARAM_STR;
+            $qb->set($column, $qb->createNamedParameter($value, $type));
+        }
+        $qb->set('version', $qb->createFunction('version + 1'))->set('updated_at', $qb->createNamedParameter($this->now(), IQueryBuilder::PARAM_DATETIME_IMMUTABLE))
+            ->where($qb->expr()->eq('id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT)))->andWhere($qb->expr()->eq('status', $qb->createNamedParameter($fromStatus, IQueryBuilder::PARAM_STR)));
+        if ($qb->executeStatement() !== 1) throw new ConflictException('Der Rückstellungsvorgang wurde zwischenzeitlich geändert.');
+        return $this->candidatePoolEntry($id);
+    }
+
+    public function appendCandidatePoolConsent(array $event): void {
+        $this->insert('rec_pool_consents', [
+            'entry_id' => [(int)$event['entryId'], IQueryBuilder::PARAM_INT], 'action' => [(string)$event['action'], IQueryBuilder::PARAM_STR],
+            'notice_version' => [(string)$event['noticeVersion'], IQueryBuilder::PARAM_STR], 'evidence_type' => [(string)$event['evidenceType'], IQueryBuilder::PARAM_STR],
+            'evidence_reference' => [(string)$event['evidenceReference'], IQueryBuilder::PARAM_STR], 'actor_uid' => [(string)$event['actorUid'], IQueryBuilder::PARAM_STR],
+            'occurred_at' => [new DateTimeImmutable((string)$event['occurredAt']), IQueryBuilder::PARAM_DATETIME_IMMUTABLE],
+            'valid_until' => [$event['validUntil'] === null ? null : new DateTimeImmutable((string)$event['validUntil']), $event['validUntil'] === null ? IQueryBuilder::PARAM_NULL : IQueryBuilder::PARAM_DATETIME_IMMUTABLE],
+        ], false);
+    }
+
+    public function candidatePoolEntries(): array { return array_map([$this, 'mapCandidatePoolEntry'], $this->all('rec_pool_entries', ['*'], ['expires_at' => 'ASC'])); }
+    public function activeCandidatePoolEntries(): array {
+        $qb = $this->db->getQueryBuilder(); $rows = $qb->select('*')->from('rec_pool_entries')->where($qb->expr()->eq('status', $qb->createNamedParameter('active', IQueryBuilder::PARAM_STR)))->executeQuery()->fetchAllAssociative();
+        return array_map([$this, 'mapCandidatePoolEntry'], $rows);
+    }
+    public function activeCandidatePoolJobs(): array {
+        $rows = $this->all('rec_jobs', ['id', 'active', 'profession_category', 'advertised_weekly_hours'], ['id' => 'ASC']);
+        return array_map(static fn(array $row): array => ['id' => (int)$row['id'], 'active' => (bool)$row['active'], 'professionCategory' => (string)$row['profession_category'], 'weeklyHoursMin' => $row['advertised_weekly_hours'] === null ? null : (float)$row['advertised_weekly_hours'], 'weeklyHoursMax' => $row['advertised_weekly_hours'] === null ? null : (float)$row['advertised_weekly_hours']], $rows);
+    }
+    public function candidatePoolMatch(int $entryId, int $jobId): ?array {
+        $qb = $this->db->getQueryBuilder(); $row = $qb->select('*')->from('rec_pool_matches')->where($qb->expr()->eq('entry_id', $qb->createNamedParameter($entryId, IQueryBuilder::PARAM_INT)))->andWhere($qb->expr()->eq('job_id', $qb->createNamedParameter($jobId, IQueryBuilder::PARAM_INT)))->executeQuery()->fetchAssociative();
+        return $row === false ? null : $row;
+    }
+    public function createCandidatePoolMatch(array $match): void {
+        $this->insert('rec_pool_matches', ['entry_id' => [(int)$match['entryId'], IQueryBuilder::PARAM_INT], 'job_id' => [(int)$match['jobId'], IQueryBuilder::PARAM_INT], 'state' => [(string)$match['state'], IQueryBuilder::PARAM_STR], 'reasons_json' => [$this->encode($match['reasons']), IQueryBuilder::PARAM_STR], 'reviewed_by_uid' => [null, IQueryBuilder::PARAM_NULL], 'version' => [1, IQueryBuilder::PARAM_INT]]);
+    }
+
+    private function mapCandidatePoolEntry(array $row): array {
+        return ['id' => (int)$row['id'], 'personId' => (int)$row['person_id'], 'sourceApplicationId' => (int)$row['source_application_id'], 'status' => (string)$row['status'], 'professionCategory' => (string)$row['profession_category'], 'desiredWeeklyHours' => $row['desired_weekly_hours'] === null ? null : (float)$row['desired_weekly_hours'], 'desiredWeeklyHoursMax' => $row['desired_weekly_hours_max'] === null ? null : (float)$row['desired_weekly_hours_max'], 'areaKeys' => $this->decode((string)$row['area_keys_json']), 'consentNoticeVersion' => (string)$row['consent_notice_version'], 'requestedAt' => $row['requested_at'], 'consentedAt' => $row['consented_at'], 'expiresAt' => $row['expires_at'], 'reminderSentAt' => $row['reminder_sent_at'], 'withdrawnAt' => $row['withdrawn_at'], 'matches' => $this->candidatePoolMatchesForEntry((int)$row['id']), 'version' => (int)$row['version']];
+    }
+
+    private function candidatePoolMatchesForEntry(int $entryId): array {
+        $qb = $this->db->getQueryBuilder();
+        $rows = $qb->select('id', 'job_id', 'state', 'reasons_json', 'created_at')->from('rec_pool_matches')->where($qb->expr()->eq('entry_id', $qb->createNamedParameter($entryId, IQueryBuilder::PARAM_INT)))->orderBy('created_at', 'DESC')->executeQuery()->fetchAllAssociative();
+        return array_map(fn(array $match): array => ['id' => (int)$match['id'], 'jobId' => (int)$match['job_id'], 'state' => (string)$match['state'], 'reasons' => $this->decode((string)$match['reasons_json']), 'createdAt' => $match['created_at']], $rows);
     }
 
     /**
@@ -1227,6 +1695,10 @@ final class RecruitmentRepository implements RecruitmentStore, ApplicationStatus
 
     /** @return array<string,mixed> */
     private function mapJob(array $row): array {
+        $professionCategory = (bool)($row['basis_qualification_required'] ?? false)
+            && in_array((string)($row['profession_category'] ?? ''), ['', 'other'], true)
+                ? 'assistance'
+                : ((string)($row['profession_category'] ?? '') ?: 'other');
         return [
             'id' => (int)$row['id'],
             'internalTitle' => (string)$row['internal_title'],
@@ -1235,11 +1707,14 @@ final class RecruitmentRepository implements RecruitmentStore, ApplicationStatus
             'responsibleUsers' => $this->decode((string)$row['responsible_users']),
             'responsibleGroups' => $this->decode((string)$row['responsible_groups']),
             'assignmentKey' => (string)($row['assignment_key'] ?? ''),
-            'basisQualificationRequired' => (bool)($row['basis_qualification_required'] ?? false),
-            'professionCategory' => (bool)($row['basis_qualification_required'] ?? false)
-                && in_array((string)($row['profession_category'] ?? ''), ['', 'other'], true)
-                    ? 'assistance'
-                    : ((string)($row['profession_category'] ?? '') ?: 'other'),
+            'basisQualificationRequired' => $professionCategory === 'assistance',
+            'professionCategory' => $professionCategory,
+            'contractTerm' => (string)($row['contract_term'] ?? ''), 'payGrade' => (string)($row['pay_grade'] ?? ''),
+            'advertisedWeeklyHours' => ($row['advertised_weekly_hours'] ?? null) === null ? null : (float)$row['advertised_weekly_hours'],
+            'fullTimeWeeklyHours' => ($row['full_time_weekly_hours'] ?? null) === null ? null : (float)$row['full_time_weekly_hours'],
+            'vacationDays' => ($row['vacation_days'] ?? null) === null ? null : (float)$row['vacation_days'],
+            'workLocation' => (string)($row['work_location'] ?? 'Berlin'),
+            'workingTimeModel' => $professionCategory === 'assistance' ? 'kapovaz' : 'fixed',
             'version' => (int)$row['version'],
         ];
     }
@@ -1407,6 +1882,49 @@ final class RecruitmentRepository implements RecruitmentStore, ApplicationStatus
             'active' => (bool)$row['active'],
             'revision' => (int)$row['revision'],
             'version' => (int)$row['version'],
+        ];
+    }
+
+    /** @return array<string,mixed> */
+    private function mapMailTemplate(array $row): array {
+        return [
+            'id' => (int)$row['id'], 'name' => (string)$row['name'], 'active' => (bool)$row['active'],
+            'revision' => (int)$row['current_revision'], 'version' => (int)$row['version'],
+            'actorUid' => (string)$row['actor_uid'], 'createdAt' => (string)$row['created_at'], 'updatedAt' => (string)$row['updated_at'],
+        ];
+    }
+
+    /** @return array<string,mixed> */
+    private function mapStatusMailRule(array $row): array {
+        return [
+            'id' => (int)$row['id'], 'fromStatus' => (string)$row['from_status'], 'toStatus' => (string)$row['to_status'],
+            'templateId' => (int)$row['template_id'], 'enabled' => (bool)$row['enabled'], 'defaultTiming' => (string)$row['default_timing'],
+            'version' => (int)$row['version'], 'actorUid' => (string)$row['actor_uid'],
+        ];
+    }
+
+    /** @return array<string,mixed> */
+    private function mapMailTextBlock(array $row): array {
+        return [
+            'id' => (int)$row['id'], 'label' => (string)$row['label'], 'insertText' => (string)$row['insert_text'],
+            'active' => (bool)$row['active'], 'version' => (int)$row['version'],
+        ];
+    }
+
+    /** @return array<string,mixed> */
+    private function mapMailDraft(array $row): array {
+        return [
+            'id' => (int)$row['id'], 'applicationId' => (int)$row['application_id'], 'fromStatus' => (string)$row['from_status'],
+            'toStatus' => (string)$row['to_status'], 'templateId' => (int)$row['template_id'], 'templateRevision' => (int)$row['template_revision'],
+            'originalRecipient' => (string)$row['original_recipient'],
+            'intendedRecipient' => $row['intended_recipient'] === null ? null : (string)$row['intended_recipient'],
+            'deliveryRecipient' => $row['delivery_recipient'] === null ? null : (string)$row['delivery_recipient'],
+            'subject' => (string)$row['subject'], 'body' => (string)$row['body'],
+            'bodyFormat' => (string)($row['body_format'] ?? 'plain'), 'status' => (string)$row['state'],
+            'defaultTiming' => (string)$row['default_timing'],
+            'testMode' => (bool)$row['test_mode'], 'scheduledAt' => $row['scheduled_at'] === null ? null : (string)$row['scheduled_at'],
+            'actorUid' => (string)$row['actor_uid'], 'approvedBy' => $row['approved_by'] === null ? null : (string)$row['approved_by'],
+            'version' => (int)$row['version'], 'createdAt' => (string)$row['created_at'], 'updatedAt' => (string)$row['updated_at'],
         ];
     }
 

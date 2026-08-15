@@ -126,6 +126,7 @@ const window = {
     RecruitmentUiData: { csvList: () => [], desiredHoursLabel: () => '', sourceLabel: (value) => value, statusLabel: (value) => value },
     RecruitmentDialogOverlay: { createController: () => ({ open() {}, close() {} }) },
     RecruitmentApplicationWorkbench: { canMoveApplication: () => false, filterApplications: () => [], groupApplicationsByStatus: () => ({}) },
+    RecruitmentSettingsNavigation: { sections: () => [], resolveActiveSection: () => '' },
     RecruitmentPdfLightbox: { open: async (options) => { calls.push(['lightbox', options]); return { close() {} } } },
 }
 window.window = window
