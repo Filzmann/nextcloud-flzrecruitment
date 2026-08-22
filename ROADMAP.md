@@ -194,6 +194,12 @@ Status: fachlich beschrieben, Sicherheitsentscheidung ausstehend
   administrativ definierte Aktivitäten je Bewerbung temporär aktivieren.
 - Vorlage und Revision, Verantwortliche, Frist, Status, Abschluss, Abbruch,
   Ablauf und erneute Freigabe nachvollziehbar speichern.
+- Für Interviews einen QR-Code anzeigen, der einen sicheren Gerätewechsel auf
+  ein anderes Endgerät, beispielsweise ein Tablet, ermöglicht, damit das
+  Interview dort ausgeführt und gespeichert werden kann. Der Zugang bleibt
+  befristet, widerrufbar, serverseitig berechtigungsgeprüft und eng auf genau
+  diese Interviewinstanz begrenzt; der QR-Code enthält keine Bewerbungs- oder
+  Interviewinhalte.
 - Für Online-Kurzfragebögen einen zufälligen, befristeten, widerrufbaren und
   eng auf genau einen Fragebogen begrenzten Zugang ohne Nextcloud-Konto
   bereitstellen.
