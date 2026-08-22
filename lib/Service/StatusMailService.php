@@ -80,7 +80,7 @@ final class StatusMailService {
         $this->workflow->renderDraft(
             ['id' => 1, 'revision' => 1, 'subject' => $subject, 'body' => $body, 'bodyFormat' => $bodyFormat],
             ['given_name' => 'Vorname', 'family_name' => 'Nachname', 'job_title' => 'Stelle'],
-            'template-check@example.invalid',
+            'template-check@example.org',
         );
         return [$body, $bodyFormat];
     }

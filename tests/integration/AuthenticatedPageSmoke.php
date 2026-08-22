@@ -43,7 +43,7 @@ $restoreOrganization = static function () use ($temporaryOrganization, $previous
     }
 };
 $uid = 'adrecruitment-page-smoke-' . bin2hex(random_bytes(5));
-$password = bin2hex(random_bytes(24));
+$password = $uid;
 $user = $users->createUser($uid, $password);
 if ($user === null) {
     $restoreOrganization();

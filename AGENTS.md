@@ -133,5 +133,8 @@ Bewerbermanagement orientierten Prozess innerhalb der AD-Suite ab:
 - Für Git-, Sandbox-, DDEV-/`occ`-Sicherheit, Verifikation und Learning Candidates gilt der lokal mitgeführte Skill `work-in-nextcloud-app`.
 - Jede Verhaltensänderung folgt dem lokalen Skill `test-driven-change`.
 - DDEV-Mount: `/var/www/html/html/custom_apps/adrecruitment`.
+- Ausschließlich lokale Test- und Demokonten verwenden ihre UID zugleich als
+  Passwort (`username=password`); dieser Vertrag gilt niemals für produktive
+  Konten oder Zugangsdaten.
 - Schnelle Tests: `php tests/run.php` und `node tests/run-js.mjs`.
 - Controller-, Dependency-Injection-, Migrations- und echte Persistenzänderungen werden zusätzlich in DDEV geprüft.
