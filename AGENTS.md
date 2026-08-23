@@ -138,3 +138,22 @@ Bewerbermanagement orientierten Prozess innerhalb der AD-Suite ab:
   Konten oder Zugangsdaten.
 - Schnelle Tests: `php tests/run.php` und `node tests/run-js.mjs`.
 - Controller-, Dependency-Injection-, Migrations- und echte Persistenzänderungen werden zusätzlich in DDEV geprüft.
+
+## Parent-Governance-Vertrag: 1
+
+- Die für dieses Subrepository anwendbaren Regeln des Parent-Workspaces sind
+  verbindlich. Dazu gehören insbesondere app-übergreifende ADRs und
+  öffentliche Verträge, Repositorygrenzen sowie Workspace-, Delivery- und
+  Release-Gates.
+- Diese lokale `AGENTS.md` und die lokalen Skills bleiben die vollständige,
+  ohne Parent-Checkout arbeitsfähige Repository-Steuerung. Die anwendbaren
+  Parent-Regeln werden dafür hier oder in den lokalen Skills mitgeführt.
+- Repository-lokale Regeln dürfen Parent-Verträge konkretisieren und verschärfen,
+  aber nicht abschwächen oder umgehen.
+- Bei einem Widerspruch gilt bis zur Klärung die strengere Regel. Die Arbeit
+  stoppt, bis die kanonische Quelle bestimmt, die Regelprojektionen
+  synchronisiert und eine erforderliche Entscheidung dokumentiert ist.
+- Ist der Parent-Workspace nicht verfügbar, bleibt die lokale Steuerung
+  wirksam. Vor Cross-App-, Release- oder Delivery-Arbeit muss ein vermuteter
+  neuerer Parent-Stand oder eine Regelungslücke zuerst gegen den Parent
+  geprüft werden.
