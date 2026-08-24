@@ -13,8 +13,12 @@ use OCA\Recruitment\Contract\OutboundMailTransport;
 use OCA\Recruitment\Contract\StatusMailOutboxStore;
 use OCA\Recruitment\Contract\DocumentReviewStore;
 use OCA\Recruitment\Listener\StandaloneNavigationListener;
+use OCA\Recruitment\Permission\NextcloudRecruitmentPermissionSource;
+use OCA\Recruitment\Permission\RecruitmentPermissionProviderListener;
+use OCA\Recruitment\Permission\RecruitmentPermissionSourceInterface;
 use OCA\Recruitment\Privacy\RecruitmentPrivacyProviderListener;
 use OCA\FilzmannDataProtection\PublicApi\V1\RegisterPersonalDataProvidersEvent;
+use OCA\FilzmannPermissionMatrix\PublicApi\V1\RegisterPermissionProvidersEvent;
 use OCA\Recruitment\Repository\RecruitmentRepository;
 use OCA\Recruitment\Service\AppDataMailAttachmentStorage;
 use OCA\Recruitment\Service\NextcloudOutboundMailTransport;
@@ -35,6 +39,8 @@ final class Application extends App implements IBootstrap {
     public function register(IRegistrationContext $context): void {
         $context->registerEventListener(LoadAdditionalEntriesEvent::class, StandaloneNavigationListener::class);
         $context->registerEventListener(RegisterPersonalDataProvidersEvent::class, RecruitmentPrivacyProviderListener::class);
+        $context->registerEventListener(RegisterPermissionProvidersEvent::class, RecruitmentPermissionProviderListener::class);
+        $context->registerServiceAlias(RecruitmentPermissionSourceInterface::class, NextcloudRecruitmentPermissionSource::class);
         $context->registerServiceAlias(MailInboxStore::class, RecruitmentRepository::class);
         $context->registerServiceAlias(CandidatePoolStore::class, RecruitmentRepository::class);
         $context->registerServiceAlias(MailAttachmentStorage::class, AppDataMailAttachmentStorage::class);
