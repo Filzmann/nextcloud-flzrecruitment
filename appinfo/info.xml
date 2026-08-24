@@ -5,7 +5,7 @@
     <name>AD Recruitment</name>
     <summary>Strukturierte Bewerbungs- und Interviewprozesse.</summary>
     <description>Verwaltet Stellen, Bewerbungen, Interviews und die berechtigte Vertragsvorbereitung in Nextcloud.</description>
-    <version>0.11.0-rc.17</version>
+    <version>0.11.0-rc.18</version>
     <licence>agpl</licence>
     <author>Simon</author>
     <namespace>Recruitment</namespace>

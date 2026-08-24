@@ -43,7 +43,10 @@ final class MemoryMailInboxStore implements MailInboxStore {
     private array $mailboxes = [];
     public int $writeCount = 0;
     public array $hiringData = [10 => ['city' => 'Potsdam']];
-    public array $applicationData = [10 => ['previousExperience' => '', 'germanLanguageLevel' => 'B1']];
+    public array $applicationData = [
+        10 => ['previousExperience' => '', 'germanLanguageLevel' => 'B1', 'desiredWeeklyHours' => null, 'desiredWeeklyHoursMax' => null],
+        11 => ['desiredWeeklyHours' => 20.0, 'desiredWeeklyHoursMax' => 25.0],
+    ];
 
     public function ensureMailbox(array $mailbox): int {
         return $this->mailboxes[$mailbox['technicalKey']] ??= count($this->mailboxes) + 1;
@@ -200,13 +203,14 @@ TestRunner::test('mail assignment prefills empty contract fields without replaci
 TestRunner::test('mail assignment applies only explicitly accepted and corrected suggestions', static function (): void {
     $store = new MemoryMailInboxStore();
     $service = new MailInboxService(new ApplicationMailFieldExtractor(), $store, new MemoryMailAttachmentStorage(), new MemoryPdfTextExtractor(), new \OCA\Recruitment\Service\HiringMasterDataService());
-    $message = $service->import(syntheticMail(['bodyText' => "E-Mail: alex@example.invalid\nTelefon: +49 30 123\nVerfügbar ab: 01.10.2026\nWohnort: Berlin\nBerufserfahrung: Zwei Jahre Assistenz\nDeutschkenntnisse: C1"]), 'importer')['message'];
+    $message = $service->import(syntheticMail(['bodyText' => "E-Mail: alex@example.invalid\nTelefon: +49 30 123\nVerfügbar ab: 01.10.2026\nWohnort: Berlin\nGewünschte Wochenstunden: 25 bis 30\nBerufserfahrung: Zwei Jahre Assistenz\nDeutschkenntnisse: C1"]), 'importer')['message'];
 
     $service->assign($message['id'], 10, 1, 'hr-user', [
         'email' => 'korrigiert@example.invalid',
         'availableFrom' => '2026-11-01',
         'previousExperience' => 'Drei Jahre Assistenz',
         'germanLanguageLevel' => 'C1',
+        'desiredWeeklyHours' => '24-32',
     ]);
 
     assertSame('korrigiert@example.invalid', $store->hiringData[10]['privateEmail']);
@@ -215,9 +219,16 @@ TestRunner::test('mail assignment applies only explicitly accepted and corrected
     assertSame('Potsdam', $store->hiringData[10]['city']);
     assertSame('Drei Jahre Assistenz', $store->applicationData[10]['previousExperience']);
     assertSame('B1', $store->applicationData[10]['germanLanguageLevel']);
+    assertSame(24.0, $store->applicationData[10]['desiredWeeklyHours']);
+    assertSame(32.0, $store->applicationData[10]['desiredWeeklyHoursMax']);
 
-    $service->assign($message['id'], 11, 2, 'hr-user', ['germanLanguageLevel' => 'native']);
+    $service->assign($message['id'], 11, 2, 'hr-user', [
+        'germanLanguageLevel' => 'native',
+        'desiredWeeklyHours' => '40',
+    ]);
     assertSame('native', $store->applicationData[11]['germanLanguageLevel']);
+    assertSame(20.0, $store->applicationData[11]['desiredWeeklyHours']);
+    assertSame(25.0, $store->applicationData[11]['desiredWeeklyHoursMax']);
 });
 
 TestRunner::test('mail assignment rejects manipulated suggestion fields without mutation', static function (): void {
@@ -236,6 +247,10 @@ TestRunner::test('mail assignment rejects manipulated suggestion fields without 
     );
     assertThrows(
         static fn() => $service->assign($message['id'], 10, 1, 'hr-user', ['germanLanguageLevel' => 'C3']),
+        ValidationException::class,
+    );
+    assertThrows(
+        static fn() => $service->assign($message['id'], 10, 1, 'hr-user', ['desiredWeeklyHours' => '40-20']),
         ValidationException::class,
     );
     assertSame($before, $store->messages[$message['id']]);

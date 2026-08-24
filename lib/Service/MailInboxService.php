@@ -32,10 +32,12 @@ final class MailInboxService {
     private const APPLICATION_SUGGESTIONS = [
         'previousExperience' => 'previousExperience',
         'germanLanguageLevel' => 'germanLanguageLevel',
+        'desiredWeeklyHours' => 'desiredWeeklyHours',
     ];
 
     private HiringMasterDataService $hiringMasterData;
     private ApplicationFieldValueService $applicationFieldValues;
+    private DesiredWeeklyHoursService $desiredWeeklyHours;
 
     public function __construct(
         private ApplicationMailFieldExtractor $extractor,
@@ -44,9 +46,11 @@ final class MailInboxService {
         private PdfTextExtractor $pdfTextExtractor,
         ?HiringMasterDataService $hiringMasterData = null,
         ?ApplicationFieldValueService $applicationFieldValues = null,
+        ?DesiredWeeklyHoursService $desiredWeeklyHours = null,
     ) {
         $this->hiringMasterData = $hiringMasterData ?? new HiringMasterDataService();
         $this->applicationFieldValues = $applicationFieldValues ?? new ApplicationFieldValueService();
+        $this->desiredWeeklyHours = $desiredWeeklyHours ?? new DesiredWeeklyHoursService();
     }
 
     /**
@@ -148,7 +152,7 @@ final class MailInboxService {
     /**
      * @param array<string,mixed> $availableSuggestions
      * @param array<string,mixed> $acceptedSuggestions
-     * @return array{0:array<string,string|float|null>,1:array<string,string>}
+     * @return array{0:array<string,string|float|null>,1:array<string,mixed>}
      */
     private function acceptedDefaults(array $availableSuggestions, array $acceptedSuggestions): array {
         $confirmedHiring = [];
@@ -170,6 +174,10 @@ final class MailInboxService {
             }
             if (isset(self::APPLICATION_SUGGESTIONS[$key])) {
                 $field = self::APPLICATION_SUGGESTIONS[$key];
+                if ($field === 'desiredWeeklyHours') {
+                    $applicationDefaults = [...$applicationDefaults, ...$this->desiredWeeklyHours->parseSuggestion($normalized)];
+                    continue;
+                }
                 $applicationDefaults[$field] = $this->applicationFieldValues->normalize($field, $normalized);
                 continue;
             }

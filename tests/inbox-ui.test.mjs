@@ -97,6 +97,7 @@ const baseMessage = {
         name: { value: 'Alex Beispiel' },
         email: { value: 'alex@example.invalid' },
         previousExperience: { value: 'Zwei Jahre Assistenz' },
+        desiredWeeklyHours: { value: '25 bis 30' },
     },
     attachments: [{
         id: 31,
@@ -158,15 +159,22 @@ const emailAcceptance = descendants(assignmentForm).find((node) => node.name ===
 const emailSuggestion = descendants(assignmentForm).find((node) => node.name === 'suggestion-email')
 const experienceAcceptance = descendants(assignmentForm).find((node) => node.name === 'accept-previousExperience')
 const experienceSuggestion = descendants(assignmentForm).find((node) => node.name === 'suggestion-previousExperience')
+const hoursAcceptance = descendants(assignmentForm).find((node) => node.name === 'accept-desiredWeeklyHours')
+const hoursMinimum = descendants(assignmentForm).find((node) => node.name === 'suggestion-desiredWeeklyHours-min')
+const hoursMaximum = descendants(assignmentForm).find((node) => node.name === 'suggestion-desiredWeeklyHours-max')
 emailAcceptance.checked = true
 emailSuggestion.value = 'korrigiert@example.invalid'
 experienceAcceptance.checked = true
 experienceSuggestion.value = 'Drei Jahre Assistenz'
+hoursAcceptance.checked = true
+hoursMinimum.value = '24'
+hoursMaximum.value = '32'
 assignmentForm.dispatch('submit', { preventDefault() {} })
 await waitFor(() => calls.some(([action]) => action === 'assign'), 'Inbox assignment request was not sent')
 assert.deepEqual(calls.find(([action]) => action === 'assign'), ['assign', 21, 7, 1, {
     email: 'korrigiert@example.invalid',
     previousExperience: 'Drei Jahre Assistenz',
+    desiredWeeklyHours: '24-32',
 }])
 
 await waitFor(() => findByText(content, 'Bereits zugeordnet'), 'Inbox list was not restored after assignment')

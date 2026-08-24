@@ -13,6 +13,12 @@ use OCA\Recruitment\Exception\ValidationException;
  * Anwendungsfälle für Stellen, Personen und Bewerbungen.
  */
 final class RecruitmentService {
+    private DesiredWeeklyHoursService $desiredWeeklyHours;
+
+    public function __construct(?DesiredWeeklyHoursService $desiredWeeklyHours = null) {
+        $this->desiredWeeklyHours = $desiredWeeklyHours ?? new DesiredWeeklyHoursService();
+    }
+
     /**
      * @param list<string> $responsibleUsers
      * @param list<string> $responsibleGroups
@@ -115,25 +121,9 @@ final class RecruitmentService {
         if (!in_array($source, ['manual', 'email_import', 'referral', 'other'], true)) {
             throw new ValidationException('Der Eingangskanal ist ungültig.');
         }
-        if ($desiredWeeklyHours !== null
-            && (!is_finite($desiredWeeklyHours) || $desiredWeeklyHours <= 0 || $desiredWeeklyHours > 80)) {
-            throw new ValidationException('Die gewünschten Wochenstunden müssen größer als 0 und höchstens 80 sein.');
-        }
-        if ($desiredWeeklyHoursMax !== null
-            && (!is_finite($desiredWeeklyHoursMax) || $desiredWeeklyHoursMax <= 0 || $desiredWeeklyHoursMax > 80)) {
-            throw new ValidationException('Die Obergrenze der gewünschten Wochenstunden muss größer als 0 und höchstens 80 sein.');
-        }
-        if ($desiredWeeklyHours === null && $desiredWeeklyHoursMax !== null) {
-            throw new ValidationException('Für einen Wunschstundenbereich ist ein Von-Wert erforderlich.');
-        }
-        if ($desiredWeeklyHours !== null && $desiredWeeklyHoursMax !== null) {
-            if ($desiredWeeklyHoursMax < $desiredWeeklyHours) {
-                throw new ValidationException('Die Obergrenze der Wunschstunden darf nicht unter dem Von-Wert liegen.');
-            }
-            if ($desiredWeeklyHoursMax === $desiredWeeklyHours) {
-                $desiredWeeklyHoursMax = null;
-            }
-        }
+        $desiredHours = $this->desiredWeeklyHours->normalize($desiredWeeklyHours, $desiredWeeklyHoursMax);
+        $desiredWeeklyHours = $desiredHours['desiredWeeklyHours'];
+        $desiredWeeklyHoursMax = $desiredHours['desiredWeeklyHoursMax'];
 
         $date = DateTimeImmutable::createFromFormat('!Y-m-d', $receivedOn);
         if ($date === false || $date->format('Y-m-d') !== $receivedOn) {

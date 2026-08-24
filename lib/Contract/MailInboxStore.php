@@ -23,7 +23,7 @@ interface MailInboxStore {
     public function inboxApplicationExists(int $applicationId): bool;
     /** @return array<string,mixed> */
     /** @param array<string,string> $hiringDefaults
-     *  @param array<string,string> $applicationDefaults
+     *  @param array<string,mixed> $applicationDefaults
      */
     public function assignInboxMessage(int $messageId, int $applicationId, int $expectedVersion, string $actorUid, array $hiringDefaults = [], array $applicationDefaults = []): array;
     /** @return array<string,mixed> */

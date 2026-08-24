@@ -179,8 +179,9 @@ und sichere Vorbelegung umgesetzt; Einzelauswahl und OCR offen
   verwerfen; vorhandene Werte werden weiterhin niemals still überschrieben.
 - Umgesetzt: Vorschläge für Vorerfahrung und Deutschniveau ebenfalls einzeln,
   korrigierbar und ausschließlich in leere Bewerbungsfelder übernehmen.
-- Offen: den Wunschstunden-Vorschlag kontrolliert als Einzelwert oder Bereich
-  in das Bewerbungsfeld übernehmen.
+- Umgesetzt: den Wunschstunden-Vorschlag kontrolliert und korrigierbar als
+  Einzelwert oder Bereich mit derselben Fachregel wie bei der
+  Bewerbungsanlage in ein leeres Bewerbungsfeld übernehmen.
 - Besonders sensible Vertragsdaten nicht automatisch aus unsicheren Quellen
   übernehmen.
 - Unterstützte Dateiformate, OCR-Bedarf, Qualitätsgrenzen und Umgang mit

@@ -603,6 +603,7 @@
             salutation: 'Anrede', title: 'Titel', email: 'Private E-Mail', phone: 'Telefon',
             availableFrom: 'Geplanter Eintritt', location: 'Wohnort',
             previousExperience: 'Vorerfahrung', germanLanguageLevel: 'Deutschniveau',
+            desiredWeeklyHours: 'Wunschstunden',
         }
         const controls = new Map()
         const fields = []
@@ -611,6 +612,7 @@
             if (!suggestion) continue
             const accepted = input(`accept-${key}`, 'checkbox')
             let editor
+            let read
             if (key === 'germanLanguageLevel') {
                 const level = ({ muttersprachlich: 'native', 'nicht bewertet': 'not_assessed' })[String(suggestion).toLowerCase()] || String(suggestion).toUpperCase()
                 editor = select(`suggestion-${key}`, [
@@ -620,10 +622,18 @@
                 ], level)
             } else if (key === 'previousExperience') {
                 editor = element('textarea', { name: `suggestion-${key}`, rows: 3, maxLength: 8000, value: suggestion })
+            } else if (key === 'desiredWeeklyHours') {
+                const match = String(suggestion).replace(',', '.').match(/(\d+(?:\.\d+)?)\s*(?:(?:-|bis)\s*(\d+(?:\.\d+)?))?/i)
+                const minimum = element('input', { name: `suggestion-${key}-min`, type: 'number', min: 0.01, max: 80, step: 0.5, required: true, value: match?.[1] || '' })
+                const maximum = element('input', { name: `suggestion-${key}-max`, type: 'number', min: 0.01, max: 80, step: 0.5, value: match?.[2] || '' })
+                editor = element('div', { className: 'adrecruitment-hours-range' }, [
+                    field('Von', minimum), field('Bis (optional)', maximum),
+                ])
+                read = () => maximum.value === '' ? minimum.value : `${minimum.value}-${maximum.value}`
             } else {
                 editor = input(`suggestion-${key}`, key === 'email' ? 'email' : 'text', false, suggestion)
             }
-            controls.set(key, { accepted, editor })
+            controls.set(key, { accepted, read: read || (() => editor.value) })
             fields.push(element('div', { className: 'adrecruitment-suggestion-choice' }, [
                 element('label', {}, [accepted, element('span', { text: `${label} übernehmen` })]),
                 field(`Wert für ${label}`, editor),
@@ -638,7 +648,7 @@
             node,
             values: () => Object.fromEntries(Array.from(controls.entries())
                 .filter(([, control]) => control.accepted.checked)
-                .map(([key, control]) => [key, control.editor.value])),
+                .map(([key, control]) => [key, control.read()])),
         }
     }
 

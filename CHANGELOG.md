@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.11.0-rc.18
+
+- Wunschstunden-Vorschläge beim Zuordnen als korrigierbaren Einzelwert oder
+  Von-bis-Bereich auswählbar gemacht und ausschließlich in eine noch leere
+  Bewerbungsangabe übernommen.
+- Mailübernahme und Bewerbungsanlage auf dieselbe Fachregel für Werte größer
+  als null bis höchstens 80 Stunden, geordnete Bereiche und die
+  Einzelwertnormalisierung gleicher Grenzen zusammengeführt.
+
 ## 0.11.0-rc.17
 
 - Vorerfahrung und Deutschniveau aus Eingangsnachrichten ebenfalls einzeln

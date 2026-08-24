@@ -1481,7 +1481,7 @@ final class RecruitmentRepository implements RecruitmentStore, ApplicationStatus
         return $this->inboxMessage($messageId);
     }
 
-    /** @param array<string,string> $defaults
+    /** @param array<string,mixed> $defaults
      *  @return list<string>
      */
     private function prefillHiringData(int $applicationId, array $defaults): array {
@@ -1529,6 +1529,17 @@ final class RecruitmentRepository implements RecruitmentStore, ApplicationStatus
         $qb = $this->db->getQueryBuilder();
         $qb->update('rec_applications');
         $filled = [];
+        if (array_key_exists('desiredWeeklyHours', $defaults)) {
+            if (($row['desired_weekly_hours'] ?? null) === null) {
+                $minimum = $defaults['desiredWeeklyHours'];
+                $maximum = $defaults['desiredWeeklyHoursMax'] ?? null;
+                $qb->set('desired_weekly_hours', $qb->createNamedParameter($minimum, IQueryBuilder::PARAM_STR));
+                $qb->set('desired_weekly_hours_max', $qb->createNamedParameter($maximum, $maximum === null ? IQueryBuilder::PARAM_NULL : IQueryBuilder::PARAM_STR));
+                $filled[] = 'desiredWeeklyHours';
+                if ($maximum !== null) $filled[] = 'desiredWeeklyHoursMax';
+            }
+            unset($defaults['desiredWeeklyHours'], $defaults['desiredWeeklyHoursMax']);
+        }
         foreach ($defaults as $field => $value) {
             $column = $columns[$field] ?? null;
             if ($column === null) throw new \LogicException('Ungültiges Bewerbungsfeld.');
