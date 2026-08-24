@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.11.0-rc.16
+
+- Beim Zuordnen einer Eingangsnachricht Kontakt-, Wohnort- und
+  Eintrittsvorschläge einzeln auswählbar und vor der Übernahme korrigierbar
+  gemacht; nicht markierte Werte werden verworfen.
+- Bestätigte Vorschläge serverseitig auf tatsächlich erkannte und für die
+  Vertragsvorbereitung freigegebene Felder begrenzt; ungültige oder
+  manipulierte Werte werden ohne Zuordnungs- oder Datenmutation abgewiesen.
+
 ## 0.11.0-rc.15
 
 - Bewerberpool-Grundkonfiguration wieder in das Recruitment-Modul eingeordnet

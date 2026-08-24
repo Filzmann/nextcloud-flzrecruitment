@@ -336,7 +336,11 @@ AppConfig-Auswahl kennt aktuell ausschließlich die regelbasierte Verarbeitung.
 Ein lokales Server-Modell ist als nicht aktivierbare Zukunftsoption sichtbar;
 seine spätere Aktivierung setzt einen installierten, ausschließlich lokalen
 Provider sowie eigene Datenschutz-, Qualitäts-, Ressourcen- und
-Fehlergrenzentests voraus. Die bestätigte Mailzuordnung übernimmt
-einen eng erlaubten Satz normalisierter Vorschläge transaktional nur in leere
-Vertragsfelder. Die Nachrichtenzuordnung und Vorbelegung schlagen gemeinsam
-fehl; protokolliert werden nur die betroffenen Feldnamen, keine Werte.
+Fehlergrenzentests voraus. Die bestätigte Mailzuordnung übernimmt nur die
+dabei einzeln ausgewählten und gegebenenfalls korrigierten Werte aus einem
+eng erlaubten Satz normalisierter Vorschläge transaktional in leere
+Vertragsfelder. Nicht ausgewählte, unbekannte, nicht tatsächlich erkannte
+oder ungültig korrigierte Werte werden nicht übernommen; manipulierte
+Requests scheitern vor jeder Mutation. Die Nachrichtenzuordnung und
+Vorbelegung schlagen gemeinsam fehl; protokolliert werden nur die betroffenen
+Feldnamen, keine Werte.

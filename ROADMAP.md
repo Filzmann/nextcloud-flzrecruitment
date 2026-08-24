@@ -174,8 +174,11 @@ und sichere Vorbelegung umgesetzt; Einzelauswahl und OCR offen
 - Umgesetzt: Stammdaten aus Nachrichtentexten, lokal ausgelesenen Text-PDFs
   und vom Adapter normalisiertem Lebenslauftext als Vorschläge mit Quelle
   bereitstellen.
-- Vorschläge einzeln bestätigen, korrigieren oder verwerfen lassen und
-  vorhandene Werte niemals still überschreiben.
+- Umgesetzt: die beim Zuordnen übernehmbaren Kontakt- und Eintrittsvorschläge
+  einzeln bestätigen, vor der Übernahme korrigieren oder durch Nichtauswahl
+  verwerfen; vorhandene Werte werden weiterhin niemals still überschrieben.
+- Offen: weitere bewerbungsbezogene Vorschläge einzeln in die jeweils
+  zuständigen Bewerbungsfelder übernehmen.
 - Besonders sensible Vertragsdaten nicht automatisch aus unsicheren Quellen
   übernehmen.
 - Unterstützte Dateiformate, OCR-Bedarf, Qualitätsgrenzen und Umgang mit

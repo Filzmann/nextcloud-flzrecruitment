@@ -549,14 +549,21 @@
                     label: `Bewerbung #${application.id} · ${statusLabel(application.status)}`,
                 })), message.applicationId || '')
                 : input('applicationId', 'number', true, message.applicationId || '')
+            const suggestionSelection = renderAssignableMailSuggestions(message.fieldSuggestions)
             const form = element('form', { className: 'adrecruitment-inline-form adrecruitment-card' }, [
                 field('Vorhandene Bewerbung', applicationControl, 'Falls keine Auswahl sichtbar ist, kann die Bewerbungs-ID eingetragen werden.'),
+                suggestionSelection.node,
                 button(message.state === 'assigned' ? 'Zuordnung korrigieren' : 'Bewerbung zuordnen'),
             ])
             form.addEventListener('submit', (event) => {
                 event.preventDefault()
                 run(
-                    () => api.assignInboxMessage(message.id, Number(new FormData(form).get('applicationId')), message.version),
+                    () => api.assignInboxMessage(
+                        message.id,
+                        Number(new FormData(form).get('applicationId')),
+                        message.version,
+                        suggestionSelection.values(),
+                    ),
                     'Eingangsnachricht wurde zugeordnet.',
                     () => renderInbox(),
                 )
@@ -589,6 +596,37 @@
         }
         card.append(facts.childElementCount ? facts : emptyState('Keine zusätzlichen Felder erkannt.'))
         return card
+    }
+
+    function renderAssignableMailSuggestions(suggestions) {
+        const labels = {
+            salutation: 'Anrede', title: 'Titel', email: 'Private E-Mail', phone: 'Telefon',
+            availableFrom: 'Geplanter Eintritt', location: 'Wohnort',
+        }
+        const controls = new Map()
+        const fields = []
+        for (const [key, label] of Object.entries(labels)) {
+            const suggestion = suggestions?.[key]?.value
+            if (!suggestion) continue
+            const accepted = input(`accept-${key}`, 'checkbox')
+            const editor = input(`suggestion-${key}`, key === 'email' ? 'email' : 'text', false, suggestion)
+            controls.set(key, { accepted, editor })
+            fields.push(element('div', { className: 'adrecruitment-suggestion-choice' }, [
+                element('label', {}, [accepted, element('span', { text: `${label} übernehmen` })]),
+                field(`Wert für ${label}`, editor),
+            ]))
+        }
+        const node = element('fieldset', { className: 'adrecruitment-suggestion-selection' }, [
+            element('legend', { text: 'Vorschläge einzeln übernehmen' }),
+            element('p', { text: 'Nur markierte Werte werden übernommen. Werte können vor der Zuordnung korrigiert werden.' }),
+            ...(fields.length ? fields : [emptyState('Keine übernehmbaren Kontakt- oder Eintrittsdaten erkannt.')]),
+        ])
+        return {
+            node,
+            values: () => Object.fromEntries(Array.from(controls.entries())
+                .filter(([, control]) => control.accepted.checked)
+                .map(([key, control]) => [key, control.editor.value])),
+        }
     }
 
     let documentCommentSequence = 0

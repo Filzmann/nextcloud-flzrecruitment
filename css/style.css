@@ -171,6 +171,40 @@
     flex: 1 1 240px;
 }
 
+.adrecruitment-suggestion-selection {
+    flex: 1 1 100%;
+    display: grid;
+    gap: 10px;
+    min-width: 0;
+    padding: 12px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-large);
+}
+
+.adrecruitment-suggestion-selection > p {
+    margin: 0;
+}
+
+.adrecruitment-suggestion-choice {
+    display: grid;
+    grid-template-columns: minmax(180px, auto) minmax(220px, 1fr);
+    gap: 10px;
+    align-items: center;
+}
+
+.adrecruitment-suggestion-choice label {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.adrecruitment-suggestion-choice input[type="text"],
+.adrecruitment-suggestion-choice input[type="email"] {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+}
+
 .adrecruitment-table-wrap {
     max-width: 100%;
     overflow-x: auto;
@@ -765,6 +799,10 @@
 
     .adrecruitment-inline-form {
         align-items: stretch;
+    }
+
+    .adrecruitment-suggestion-choice {
+        grid-template-columns: 1fr;
     }
 
     .adrecruitment-pdf-lightbox-layout {

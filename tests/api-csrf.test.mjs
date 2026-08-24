@@ -113,7 +113,7 @@ function loadApi({
         [() => api.inbox(), '/api/inbox', 'GET', null],
         [() => api.inboxMessage(21), '/api/inbox/21', 'GET', null],
         [() => api.applicationMessages(16), '/api/applications/16/messages', 'GET', null],
-        [() => api.assignInboxMessage(21, 16, 2), '/api/inbox/21/assign', 'POST', { applicationId: 16, version: 2 }],
+        [() => api.assignInboxMessage(21, 16, 2, { email: 'korrigiert@example.invalid' }), '/api/inbox/21/assign', 'POST', { applicationId: 16, version: 2, acceptedSuggestions: { email: 'korrigiert@example.invalid' } }],
         [() => api.ignoreInboxMessage(21, 2), '/api/inbox/21/ignore', 'POST', { version: 2 }],
         [() => api.attachmentComments(31), '/api/attachments/31/comments', 'GET', null],
         [() => api.createDocumentComment(31, { kind: 'free', body: 'Hinweis' }), '/api/attachments/31/comments', 'POST', { kind: 'free', body: 'Hinweis' }],

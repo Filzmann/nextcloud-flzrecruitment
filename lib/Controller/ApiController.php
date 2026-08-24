@@ -185,10 +185,10 @@ final class ApiController extends Controller {
     }
 
     #[NoAdminRequired]
-    public function assignInboxMessage(int $id, int $applicationId, int $version): JSONResponse {
-        return $this->respond(function () use ($id, $applicationId, $version): array {
+    public function assignInboxMessage(int $id, int $applicationId, int $version, array $acceptedSuggestions = []): JSONResponse {
+        return $this->respond(function () use ($id, $applicationId, $version, $acceptedSuggestions): array {
             $this->access->requireManageUnassignedInbox();
-            return $this->inboxService->assign($id, $applicationId, $version, $this->access->currentUid());
+            return $this->inboxService->assign($id, $applicationId, $version, $this->access->currentUid(), $acceptedSuggestions);
         });
     }
 

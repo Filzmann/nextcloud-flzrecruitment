@@ -179,10 +179,50 @@ TestRunner::test('mail assignment prefills empty contract fields without replaci
     $store = new MemoryMailInboxStore();
     $service = new MailInboxService(new ApplicationMailFieldExtractor(), $store, new MemoryMailAttachmentStorage(), new MemoryPdfTextExtractor(), new \OCA\Recruitment\Service\HiringMasterDataService());
     $message = $service->import(syntheticMail(['bodyText' => "Anrede: Frau\nTitel: Dr.\nE-Mail: alex@example.invalid\nTelefon: +49 30 123\nVerfügbar ab: 01.10.2026\nWohnort: Berlin"]), 'importer')['message'];
-    $service->assign($message['id'], 10, 1, 'hr-user');
+    $service->assign($message['id'], 10, 1, 'hr-user', [
+        'salutation' => 'Frau',
+        'title' => 'Dr.',
+        'email' => 'alex@example.invalid',
+        'availableFrom' => '01.10.2026',
+        'location' => 'Berlin',
+    ]);
     assertSame('Potsdam', $store->hiringData[10]['city']);
     assertSame('female', $store->hiringData[10]['salutation']);
     assertSame('dr', $store->hiringData[10]['title']);
     assertSame('alex@example.invalid', $store->hiringData[10]['privateEmail']);
     assertSame('2026-10-01', $store->hiringData[10]['plannedStartDate']);
+});
+
+TestRunner::test('mail assignment applies only explicitly accepted and corrected suggestions', static function (): void {
+    $store = new MemoryMailInboxStore();
+    $service = new MailInboxService(new ApplicationMailFieldExtractor(), $store, new MemoryMailAttachmentStorage(), new MemoryPdfTextExtractor(), new \OCA\Recruitment\Service\HiringMasterDataService());
+    $message = $service->import(syntheticMail(['bodyText' => "E-Mail: alex@example.invalid\nTelefon: +49 30 123\nVerfügbar ab: 01.10.2026\nWohnort: Berlin"]), 'importer')['message'];
+
+    $service->assign($message['id'], 10, 1, 'hr-user', [
+        'email' => 'korrigiert@example.invalid',
+        'availableFrom' => '2026-11-01',
+    ]);
+
+    assertSame('korrigiert@example.invalid', $store->hiringData[10]['privateEmail']);
+    assertSame('2026-11-01', $store->hiringData[10]['plannedStartDate']);
+    assertSame(null, $store->hiringData[10]['privatePhone'] ?? null);
+    assertSame('Potsdam', $store->hiringData[10]['city']);
+});
+
+TestRunner::test('mail assignment rejects manipulated suggestion fields without mutation', static function (): void {
+    $store = new MemoryMailInboxStore();
+    $service = new MailInboxService(new ApplicationMailFieldExtractor(), $store, new MemoryMailAttachmentStorage(), new MemoryPdfTextExtractor(), new \OCA\Recruitment\Service\HiringMasterDataService());
+    $message = $service->import(syntheticMail(), 'importer')['message'];
+    $before = $store->messages[$message['id']];
+
+    assertThrows(
+        static fn() => $service->assign($message['id'], 10, 1, 'hr-user', ['taxId' => 'DEMO']),
+        ValidationException::class,
+    );
+    assertThrows(
+        static fn() => $service->assign($message['id'], 10, 1, 'hr-user', ['email' => 'keine-mailadresse']),
+        ValidationException::class,
+    );
+    assertSame($before, $store->messages[$message['id']]);
+    assertSame(['city' => 'Potsdam'], $store->hiringData[10]);
 });

@@ -21,6 +21,14 @@ final class MailInboxService {
     public const MAX_ATTACHMENT_BYTES = 15 * 1024 * 1024;
     public const MAX_TOTAL_ATTACHMENT_BYTES = 50 * 1024 * 1024;
     public const MAX_BODY_BYTES = 2 * 1024 * 1024;
+    private const ASSIGNABLE_SUGGESTIONS = [
+        'salutation' => 'salutation',
+        'title' => 'title',
+        'email' => 'privateEmail',
+        'phone' => 'privatePhone',
+        'availableFrom' => 'plannedStartDate',
+        'location' => 'city',
+    ];
 
     private HiringMasterDataService $hiringMasterData;
 
@@ -100,7 +108,13 @@ final class MailInboxService {
     public function message(int $messageId): array { return $this->store->inboxMessage($messageId); }
 
     /** @return array<string,mixed> */
-    public function assign(int $messageId, int $applicationId, int $expectedVersion, string $actorUid): array {
+    public function assign(
+        int $messageId,
+        int $applicationId,
+        int $expectedVersion,
+        string $actorUid,
+        array $acceptedSuggestions = [],
+    ): array {
         if (!$this->store->inboxApplicationExists($applicationId)) {
             throw new ValidationException('Die ausgewählte Bewerbung existiert nicht.');
         }
@@ -108,13 +122,47 @@ final class MailInboxService {
         if (!in_array((string)$message['state'], [self::STATE_NEW, self::STATE_UNCLEAR, self::STATE_ASSIGNED], true)) {
             throw new ValidationException('Diese Nachricht kann in ihrem aktuellen Zustand nicht zugeordnet werden.');
         }
+        $hiringDefaults = $this->acceptedHiringDefaults(
+            (array)($message['fieldSuggestions'] ?? []),
+            $acceptedSuggestions,
+        );
         return $this->store->assignInboxMessage(
             $messageId,
             $applicationId,
             $expectedVersion,
             $actorUid,
-            $this->hiringMasterData->mailDefaults((array)($message['fieldSuggestions'] ?? [])),
+            $hiringDefaults,
         );
+    }
+
+    /**
+     * @param array<string,mixed> $availableSuggestions
+     * @param array<string,mixed> $acceptedSuggestions
+     * @return array<string,string|float|null>
+     */
+    private function acceptedHiringDefaults(array $availableSuggestions, array $acceptedSuggestions): array {
+        $confirmed = [];
+        foreach ($acceptedSuggestions as $key => $value) {
+            if (!is_string($key)
+                || !isset(self::ASSIGNABLE_SUGGESTIONS[$key])
+                || !isset($availableSuggestions[$key]['value'])
+                || !is_scalar($value)) {
+                throw new ValidationException('Ein bestätigter Mailvorschlag ist ungültig.');
+            }
+            $normalized = trim((string)$value);
+            if ($normalized === '' || strlen($normalized) > 255) {
+                throw new ValidationException('Ein bestätigter Mailvorschlag ist ungültig.');
+            }
+            $confirmed[$key] = ['value' => $normalized];
+        }
+
+        $defaults = $this->hiringMasterData->mailDefaults($confirmed);
+        foreach ($confirmed as $key => $_suggestion) {
+            if (!array_key_exists(self::ASSIGNABLE_SUGGESTIONS[$key], $defaults)) {
+                throw new ValidationException('Ein bestätigter Mailvorschlag hat ein ungültiges Format.');
+            }
+        }
+        return $defaults;
     }
 
     /** @return array<string,mixed> */

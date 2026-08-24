@@ -203,8 +203,8 @@ namespace OCA\Recruitment\Service {
         public function messages(): array { $this->calls[] = ['messages', []]; return [['id' => 21, 'applicationId' => null]]; }
         public function message(int $id): array { $this->calls[] = ['message', [$id]]; return ['id' => $id, 'applicationId' => null, 'version' => 1]; }
         public function messagesForApplication(int $id): array { $this->calls[] = ['messagesForApplication', [$id]]; return [['id' => 21, 'applicationId' => $id]]; }
-        public function assign(int $id, int $applicationId, int $version, string $actorUid): array {
-            $this->calls[] = ['assign', [$id, $applicationId, $version, $actorUid]];
+        public function assign(int $id, int $applicationId, int $version, string $actorUid, array $acceptedSuggestions = []): array {
+            $this->calls[] = ['assign', [$id, $applicationId, $version, $actorUid, $acceptedSuggestions]];
             return ['id' => $id, 'applicationId' => $applicationId, 'state' => 'assigned', 'version' => $version + 1];
         }
         public function ignore(int $id, int $version, string $actorUid): array {
@@ -348,9 +348,9 @@ namespace {
     $response = $controller->inbox();
     $assert($response->getData()['messages'][0]['id'] === 21, 'Authorized inbox data is not forwarded.');
     $assert($access->required === ['manage_unassigned_inbox'], 'Inbox does not require its global gate.');
-    $response = $controller->assignInboxMessage(21, 7, 1);
+    $response = $controller->assignInboxMessage(21, 7, 1, ['email' => 'korrigiert@example.invalid']);
     $assert($response->getData()['applicationId'] === 7, 'Inbox assignment is not forwarded.');
-    $assert($inbox->calls[1] === ['assign', [21, 7, 1, 'editor-user']], 'Inbox assignment uses the wrong arguments.');
+    $assert($inbox->calls[1] === ['assign', [21, 7, 1, 'editor-user', ['email' => 'korrigiert@example.invalid']]], 'Inbox assignment uses the wrong arguments.');
 
     $documentReview->calls = [];
     $response = $controller->attachmentDocument(31);

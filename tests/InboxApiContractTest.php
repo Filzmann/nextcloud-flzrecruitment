@@ -16,5 +16,6 @@ TestRunner::test('inbox HTTP surface separates global inbox access from scoped d
     }
     assertTrue(str_contains($controller, 'requireManageUnassignedInbox()'), 'Unassigned inbox actions have no global server-side gate');
     assertTrue(str_contains($controller, 'RecruitmentAccessService::VIEW'), 'Assigned mail has no application dossier gate');
+    assertTrue(str_contains($controller, 'array $acceptedSuggestions = []'), 'Inbox assignment does not expose explicit suggestion confirmation');
     assertTrue(str_contains($controller, '#[NoCSRFRequired]'), 'Read endpoints are not declared explicitly');
 });

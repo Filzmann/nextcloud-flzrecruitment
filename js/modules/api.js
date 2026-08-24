@@ -90,7 +90,7 @@
         inbox: () => request('/api/inbox'),
         inboxMessage: (id) => request(`/api/inbox/${id}`),
         applicationMessages: (applicationId) => request(`/api/applications/${applicationId}/messages`),
-        assignInboxMessage: (id, applicationId, version) => request(`/api/inbox/${id}/assign`, 'POST', { applicationId, version }),
+        assignInboxMessage: (id, applicationId, version, acceptedSuggestions = {}) => request(`/api/inbox/${id}/assign`, 'POST', { applicationId, version, acceptedSuggestions }),
         ignoreInboxMessage: (id, version) => request(`/api/inbox/${id}/ignore`, 'POST', { version }),
         documentUrl: (attachmentId) => root.OC.generateUrl(`/apps/adrecruitment/api/attachments/${attachmentId}/document`),
         attachmentComments: (attachmentId) => request(`/api/attachments/${attachmentId}/comments`),

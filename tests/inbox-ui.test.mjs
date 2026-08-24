@@ -57,6 +57,7 @@ class FakeFormData {
         this.values = new Map()
         for (const control of descendants(form)) {
             if (!control.name) continue
+            if (control.type === 'checkbox' && !control.checked) continue
             if (control.tagName === 'SELECT') {
                 const selected = control.children.find((option) => option.selected) ?? control.children[0]
                 this.values.set(control.name, selected?.value ?? '')
@@ -149,9 +150,13 @@ assert.equal(calls.find(([action]) => action === 'lightbox')[1].url, '/apps/adre
 assert.equal(descendants(content).some((node) => node.tagName === 'IFRAME'), false)
 
 const assignmentForm = descendants(content).find((node) => node.tagName === 'FORM' && findByText(node, 'Bewerbung zuordnen'))
+const emailAcceptance = descendants(assignmentForm).find((node) => node.name === 'accept-email')
+const emailSuggestion = descendants(assignmentForm).find((node) => node.name === 'suggestion-email')
+emailAcceptance.checked = true
+emailSuggestion.value = 'korrigiert@example.invalid'
 assignmentForm.dispatch('submit', { preventDefault() {} })
 await waitFor(() => calls.some(([action]) => action === 'assign'), 'Inbox assignment request was not sent')
-assert.deepEqual(calls.find(([action]) => action === 'assign'), ['assign', 21, 7, 1])
+assert.deepEqual(calls.find(([action]) => action === 'assign'), ['assign', 21, 7, 1, { email: 'korrigiert@example.invalid' }])
 
 await waitFor(() => findByText(content, 'Bereits zugeordnet'), 'Inbox list was not restored after assignment')
 const assignedCard = descendants(content).find((node) => node.className.includes('adrecruitment-card') && findByText(node, 'Bereits zugeordnet'))
