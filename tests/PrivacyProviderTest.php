@@ -28,19 +28,30 @@ namespace OCA\Recruitment\Repository {
     }
 }
 namespace {
-    use OCA\LocalBase\Privacy\PersonalDataProviderRegistryEvent; use OCA\LocalBase\Privacy\PersonalDataRequest; use OCA\LocalBase\Privacy\PersonalDataSubject;
+    use OCA\FilzmannDataProtection\PublicApi\V1\DataSubjectRef; use OCA\FilzmannDataProtection\PublicApi\V1\PersonalDataRequest; use OCA\FilzmannDataProtection\PublicApi\V1\RegisterPersonalDataProvidersEvent;
     use OCA\Recruitment\Privacy\RecruitmentPersonalDataProvider; use OCA\Recruitment\Privacy\RecruitmentPrivacyProviderListener; use OCA\Recruitment\Repository\RecruitmentRepository;
     $provider=new RecruitmentPersonalDataProvider(new RecruitmentRepository());
-    $report=$provider->collect(new PersonalDataRequest(new PersonalDataSubject(PersonalDataSubject::NEXTCLOUD_USER,'self'),'de',PersonalDataRequest::PURPOSE_SELF_SERVICE,50));
-    $items=array_map(static fn($item)=>$item->toArray(),$report->items());
-    $types=array_column($items,'dataType');
+    $descriptor=$provider->descriptor();if($descriptor->appId()!=='adrecruitment'||$descriptor->contractVersion()!=='1.0'||!$descriptor->supportsSubjectType('nextcloud-user'))throw new RuntimeException('Recruitment-Provider beschreibt den Standalone-V1-Vertrag nicht korrekt.');
+    $subject=new DataSubjectRef('nextcloud-user','self');
+    $report=$provider->collect(new PersonalDataRequest($subject,'de','access-report',50,[]));
+    $items=array_map(static fn($item)=>[
+        'categoryId'=>$item->categoryId(),'categoryLabel'=>$item->categoryLabel(),'reference'=>$item->reference(),
+        'summary'=>$item->summary(),'purpose'=>$item->purpose(),'source'=>$item->source(),
+        'recipientCategories'=>$item->recipientCategories(),'retention'=>$item->retention(),
+        'thirdCountryTransfer'=>$item->thirdCountryTransfer(),'automatedDecision'=>$item->automatedDecision(),
+        'thirdPartyContentNotice'=>$item->thirdPartyContentNotice(),'attributes'=>$item->attributes(),
+    ],$report->entries());
+    $types=array_column($items,'categoryLabel');
     foreach(['Bewerbungszuständigkeit','Stellenverantwortung','Statusänderung','Interviewbearbeitung','Berechtigungsnachweis','BQ-Durchlauf','BQ-Bearbeitung','Posteingangsaktivität','Dokumentkommentar','Dokumentfeld-Verknüpfung','Mailvorlage','Mailvorlagenrevision','Mailtextblock','Statusmail-Regel','Statusmail-Entwurf'] as $type)if(!in_array($type,$types,true))throw new RuntimeException('Recruitment-Datenklasse fehlt: '.$type);
     $encoded=json_encode($items,JSON_THROW_ON_ERROR|JSON_UNESCAPED_UNICODE);
     foreach(['01.08.26, 08:00 Uhr','09.08.26, 17:00 Uhr','Abgeschlossen','Bewerbungsnummer'] as $expected)if(!str_contains($encoded,$expected))throw new RuntimeException('Menschenlesbare Recruitment-Angabe fehlt: '.$expected);
     foreach(['given_name','family_name','email','phone','answers_json','body_text','selected_text','evaluation_note','original_recipient','delivery_recipient','private@example.invalid','Andere Person'] as $forbidden)if(str_contains($encoded,$forbidden))throw new RuntimeException('Recruitment-Auskunft enthält Bewerber- oder technische Inhalte: '.$forbidden);
-    if(!$report->isComplete()||$report->processing()->toArray()['categories']===[])throw new RuntimeException('Recruitment-Vollständigkeit oder Verarbeitungsangaben fehlen.');
-    if((new RecruitmentPersonalDataProvider(new RecruitmentRepository()))->collect(new PersonalDataRequest(new PersonalDataSubject(PersonalDataSubject::NEXTCLOUD_USER,'foreign'),'de',PersonalDataRequest::PURPOSE_SELF_SERVICE,50))->items()!==[])throw new RuntimeException('Fremde interne Daten werden ausgegeben.');
-    $registry=new PersonalDataProviderRegistryEvent();(new RecruitmentPrivacyProviderListener($provider))->handle($registry);if(array_keys($registry->providers())!==['adrecruitment'])throw new RuntimeException('Recruitment-Provider ist nicht registriert.');
-    $bootstrap=file_get_contents(__DIR__.'/../lib/AppInfo/Application.php');if($bootstrap===false||!str_contains($bootstrap,'RecruitmentPrivacyProviderListener::class'))throw new RuntimeException('Recruitment-Provider fehlt im Nextcloud-Bootstrap.');
+    if($report->status()!=='complete'||$items[0]['recipientCategories']===[])throw new RuntimeException('Recruitment-Vollständigkeit oder Verarbeitungsangaben fehlen.');
+    $foreign=$provider->collect(new PersonalDataRequest(new DataSubjectRef('nextcloud-user','foreign'),'de','access-report',50,[]));if($foreign->status()!=='not_applicable'||$foreign->entries()!==[])throw new RuntimeException('Fremde interne Daten werden ausgegeben.');
+    $unsupported=$provider->collect(new PersonalDataRequest(new DataSubjectRef('external-applicant','self'),'de','access-report',50,[]));if($unsupported->status()!=='not_applicable'||$unsupported->entries()!==[])throw new RuntimeException('Ein nicht unterstützter Subject-Typ erhält interne Recruitment-Daten.');
+    if($provider->collect(new PersonalDataRequest($subject,'de','access-report',1,[]))->status()!=='partial')throw new RuntimeException('Ein begrenzter Recruitment-Bericht behauptet Vollständigkeit.');
+    try{$provider->collect((new PersonalDataRequest($subject,'de','access-report',50,['adrecruitment'=>'opaque']))->forProvider('adrecruitment',50));throw new RuntimeException('Ein unbekannter Provider-Cursor wurde akzeptiert.');}catch(InvalidArgumentException){}
+    $registry=new RegisterPersonalDataProvidersEvent();(new RecruitmentPrivacyProviderListener($provider))->handle($registry);if(array_keys($registry->providers())!==['adrecruitment'])throw new RuntimeException('Recruitment-Provider ist nicht registriert.');
+    $bootstrap=file_get_contents(__DIR__.'/../lib/AppInfo/Application.php');if($bootstrap===false||!str_contains($bootstrap,'registerEventListener(RegisterPersonalDataProvidersEvent::class, RecruitmentPrivacyProviderListener::class)')||str_contains($bootstrap,'PersonalDataProviderRegistryEvent'))throw new RuntimeException('Recruitment-Provider fehlt am exklusiven Standalone-V1-Bootstrap.');
     echo "AD Recruitment privacy provider test passed\n";
 }

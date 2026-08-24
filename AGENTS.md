@@ -121,7 +121,9 @@ Bewerbermanagement orientierten Prozess innerhalb der AD-Suite ab:
   Tabellenpräfix `rec_` bleiben bei der App-ID-Umbenennung stabil, damit
   bestehende Installationen ihre Klassen und Fachdaten ohne Tabellenkopie
   weiterverwenden.
-- Der `PersonalDataProvider` für Nextcloud-Nutzer*innen umfasst alle internen
+- Der `PersonalDataProvider` registriert sich für Nextcloud-Nutzer*innen lazy
+  über den öffentlichen Standalone-V1-Vertrag von
+  `filzmann_data_protection` und umfasst alle internen
   UID-Bezüge in Zuständigkeiten, Status-, Interview-, BQ-, Posteingangs-,
   Berechtigungs-, Dokument- und Statusmail-Bearbeitungsnachweisen. Bewerberakten werden
   diesem Subject-Typ nicht über eine bloße E-Mail-Übereinstimmung zugeordnet;

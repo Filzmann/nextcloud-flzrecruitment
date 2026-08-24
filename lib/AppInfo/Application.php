@@ -14,7 +14,7 @@ use OCA\Recruitment\Contract\StatusMailOutboxStore;
 use OCA\Recruitment\Contract\DocumentReviewStore;
 use OCA\Recruitment\Listener\StandaloneNavigationListener;
 use OCA\Recruitment\Privacy\RecruitmentPrivacyProviderListener;
-use OCA\LocalBase\Privacy\PersonalDataProviderRegistryEvent;
+use OCA\FilzmannDataProtection\PublicApi\V1\RegisterPersonalDataProvidersEvent;
 use OCA\Recruitment\Repository\RecruitmentRepository;
 use OCA\Recruitment\Service\AppDataMailAttachmentStorage;
 use OCA\Recruitment\Service\NextcloudOutboundMailTransport;
@@ -34,7 +34,7 @@ final class Application extends App implements IBootstrap {
 
     public function register(IRegistrationContext $context): void {
         $context->registerEventListener(LoadAdditionalEntriesEvent::class, StandaloneNavigationListener::class);
-        $context->registerEventListener(PersonalDataProviderRegistryEvent::class, RecruitmentPrivacyProviderListener::class);
+        $context->registerEventListener(RegisterPersonalDataProvidersEvent::class, RecruitmentPrivacyProviderListener::class);
         $context->registerServiceAlias(MailInboxStore::class, RecruitmentRepository::class);
         $context->registerServiceAlias(CandidatePoolStore::class, RecruitmentRepository::class);
         $context->registerServiceAlias(MailAttachmentStorage::class, AppDataMailAttachmentStorage::class);

@@ -3,8 +3,8 @@ declare(strict_types=1);
 
 namespace OCA\Recruitment\Privacy;
 
-use DateTimeImmutable; use DateTimeInterface;
-use OCA\LocalBase\Privacy\PersonalDataItem; use OCA\LocalBase\Privacy\PersonalDataProcessingInfo; use OCA\LocalBase\Privacy\PersonalDataProvider; use OCA\LocalBase\Privacy\PersonalDataReport; use OCA\LocalBase\Privacy\PersonalDataRequest; use OCA\LocalBase\Privacy\PersonalDataSubject;
+use DateTimeImmutable; use DateTimeInterface; use InvalidArgumentException;
+use OCA\FilzmannDataProtection\PublicApi\V1\PersonalDataEntry; use OCA\FilzmannDataProtection\PublicApi\V1\PersonalDataPage; use OCA\FilzmannDataProtection\PublicApi\V1\PersonalDataProvider; use OCA\FilzmannDataProtection\PublicApi\V1\PersonalDataRequest; use OCA\FilzmannDataProtection\PublicApi\V1\ProviderDescriptor;
 use OCA\Recruitment\AppInfo\Application; use OCA\Recruitment\Repository\RecruitmentRepository;
 
 final class RecruitmentPersonalDataProvider implements PersonalDataProvider {
@@ -27,22 +27,16 @@ final class RecruitmentPersonalDataProvider implements PersonalDataProvider {
         'mail_draft'=>['Statusmail-Entwurf','Nachvollziehbarkeit eines von dir erstellten oder freigegebenen Mailentwurfs'],
     ];
     public function __construct(private RecruitmentRepository $repository){}
-    public function appId():string{return Application::APP_ID;}
-    public function supportedSubjectTypes():array{return [PersonalDataSubject::NEXTCLOUD_USER];}
-    public function collect(PersonalDataRequest $request):PersonalDataReport{
-        $rows=$this->repository->personalDataForNextcloudUid($request->subject()->id(),$request->limit());$complete=count($rows)<$request->limit();$items=[];
-        foreach(array_slice($rows,0,$request->limit()) as $row)$items[]=$this->item($row);
-        return new PersonalDataReport($items,new PersonalDataProcessingInfo(
-            purposes:['Durchführung und Nachvollziehbarkeit des Recruitingprozesses','Steuerung fachlicher Zuständigkeiten und Berechtigungen'],
-            categories:['Nextcloud-Kennung in Zuständigkeiten und Bearbeitungsnachweisen','Zeitpunkt und Art interner Recruitingaktivitäten'],
-            recipients:['Berechtigte Recruiting-Mitarbeiter*innen im jeweiligen Scope','Berechtigte Lohn- oder Erstbegleitungsrollen für ausdrücklich freigegebene Teilbereiche','Nextcloud-Administrator*innen mit Verwaltungsrechten'],
-            source:'Eigene interne Bearbeitungshandlungen sowie fachliche Zuordnungen durch berechtigte Personen',
-            retentionCriteria:self::RETENTION,
-            thirdCountryTransfers:'Durch AD Recruitment sind keine Drittlandübermittlungen vorgesehen.',
-            automatedDecisionMaking:'AD Recruitment trifft keine ausschließlich automatisierte Entscheidung mit rechtlicher oder vergleichbar erheblicher Wirkung.'
-        ),$complete,$complete?[]:['Ausgabelimit erreicht; weitere interne Recruitment-Bezüge können vorhanden sein.'],'AD Recruitment');
+    public function descriptor():ProviderDescriptor{return new ProviderDescriptor(Application::APP_ID,'AD Recruitment','1.0',['nextcloud-user'],['personal-data'],500);}
+    public function collect(PersonalDataRequest $request):PersonalDataPage{
+        if($request->subject()->subjectType()!=='nextcloud-user')return new PersonalDataPage('not_applicable');
+        if($request->cursor()!==null)throw new InvalidArgumentException('AD Recruitment does not support cursor paging.');
+        $limit=$request->pageLimit();$rows=$this->repository->personalDataForNextcloudUid($request->subject()->subjectId(),$limit+1);$complete=count($rows)<=$limit;$items=[];
+        foreach(array_slice($rows,0,$limit) as $row)$items[]=$this->item($row);
+        if($items===[])return new PersonalDataPage('not_applicable');
+        return new PersonalDataPage($complete?'complete':'partial',$items,$complete?[]:['Ausgabelimit erreicht; weitere interne Recruitment-Bezüge können vorhanden sein.']);
     }
-    private function item(array $row):PersonalDataItem{
+    private function item(array $row):PersonalDataEntry{
         [$type,$purpose]=self::TYPES[(string)$row['kind']]??['Recruitment-Aktivität','Nachvollziehbarkeit einer internen Recruitingaktivität'];
         $attributes=['Gespeichert am'=>self::dateTime($row['occurred_at']??'')];
         if(isset($row['application_id']))$attributes['Bewerbungsnummer']=(string)$row['application_id'];
@@ -50,7 +44,13 @@ final class RecruitmentPersonalDataProvider implements PersonalDataProvider {
         if(isset($row['status']))$attributes['Status']=self::translate((string)$row['status']);
         if(isset($row['action']))$attributes['Vorgang']=self::translate((string)$row['action']);
         if(isset($row['role']))$attributes['Bezug']=$row['role']==='subject'?'Deine Kennung war Gegenstand des Nachweises':'Du hast den Vorgang ausgeführt';
-        return new PersonalDataItem((string)$row['kind'],$type.' vom '.self::dateTime($row['occurred_at']??''),'recruitment-'.(string)$row['kind'].':'.(string)$row['id'],$attributes,$purpose,self::RETENTION,'Folgende internen Recruitment-Bezüge sind mit deiner Kennung gespeichert:','Inhalte der Bewerbungsakte und Identitäten anderer Personen werden in diesem internen Nutzerbericht nicht ausgegeben.',$type);
+        return new PersonalDataEntry(
+            (string)$row['kind'],$type,'recruitment-'.(string)$row['kind'].':'.(string)$row['id'],$type.' vom '.self::dateTime($row['occurred_at']??''),$purpose,
+            'Eigene interne Bearbeitungshandlungen sowie fachliche Zuordnungen durch berechtigte Personen',
+            ['Berechtigte Recruiting-Mitarbeiter*innen im jeweiligen Scope','Berechtigte Lohn- oder Erstbegleitungsrollen für ausdrücklich freigegebene Teilbereiche','Nextcloud-Administrator*innen mit Verwaltungsrechten'],
+            self::RETENTION,'Durch AD Recruitment sind keine Drittlandübermittlungen vorgesehen.','AD Recruitment trifft keine ausschließlich automatisierte Entscheidung mit rechtlicher oder vergleichbar erheblicher Wirkung.',
+            'Inhalte der Bewerbungsakte und Identitäten anderer Personen werden in diesem internen Nutzerbericht nicht ausgegeben.',$attributes
+        );
     }
     private static function translate(string $value):string{return ['received'=>'Eingegangen','completed'=>'Abgeschlossen','approved'=>'Genehmigt','suitable'=>'Geeignet','access_granted'=>'Zugriff erteilt'][$value]??str_replace(['_','→'],[' ',' → '],$value);}
     private static function dateTime(mixed $value):string{if($value instanceof DateTimeInterface)return $value->format('d.m.y, H:i').' Uhr';try{return(new DateTimeImmutable((string)$value))->format('d.m.y, H:i').' Uhr';}catch(\Throwable){return(string)$value;}}
