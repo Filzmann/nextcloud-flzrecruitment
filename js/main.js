@@ -602,6 +602,7 @@
         const labels = {
             salutation: 'Anrede', title: 'Titel', email: 'Private E-Mail', phone: 'Telefon',
             availableFrom: 'Geplanter Eintritt', location: 'Wohnort',
+            previousExperience: 'Vorerfahrung', germanLanguageLevel: 'Deutschniveau',
         }
         const controls = new Map()
         const fields = []
@@ -609,7 +610,19 @@
             const suggestion = suggestions?.[key]?.value
             if (!suggestion) continue
             const accepted = input(`accept-${key}`, 'checkbox')
-            const editor = input(`suggestion-${key}`, key === 'email' ? 'email' : 'text', false, suggestion)
+            let editor
+            if (key === 'germanLanguageLevel') {
+                const level = ({ muttersprachlich: 'native', 'nicht bewertet': 'not_assessed' })[String(suggestion).toLowerCase()] || String(suggestion).toUpperCase()
+                editor = select(`suggestion-${key}`, [
+                    ...['A1', 'A2', 'B1', 'B2', 'C1', 'C2'].map((value) => ({ value, label: value })),
+                    { value: 'native', label: 'Muttersprachlich' },
+                    { value: 'not_assessed', label: 'Nicht bewertet' },
+                ], level)
+            } else if (key === 'previousExperience') {
+                editor = element('textarea', { name: `suggestion-${key}`, rows: 3, maxLength: 8000, value: suggestion })
+            } else {
+                editor = input(`suggestion-${key}`, key === 'email' ? 'email' : 'text', false, suggestion)
+            }
             controls.set(key, { accepted, editor })
             fields.push(element('div', { className: 'adrecruitment-suggestion-choice' }, [
                 element('label', {}, [accepted, element('span', { text: `${label} übernehmen` })]),

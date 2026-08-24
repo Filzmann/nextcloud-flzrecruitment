@@ -21,7 +21,7 @@ final class MailInboxService {
     public const MAX_ATTACHMENT_BYTES = 15 * 1024 * 1024;
     public const MAX_TOTAL_ATTACHMENT_BYTES = 50 * 1024 * 1024;
     public const MAX_BODY_BYTES = 2 * 1024 * 1024;
-    private const ASSIGNABLE_SUGGESTIONS = [
+    private const HIRING_SUGGESTIONS = [
         'salutation' => 'salutation',
         'title' => 'title',
         'email' => 'privateEmail',
@@ -29,8 +29,13 @@ final class MailInboxService {
         'availableFrom' => 'plannedStartDate',
         'location' => 'city',
     ];
+    private const APPLICATION_SUGGESTIONS = [
+        'previousExperience' => 'previousExperience',
+        'germanLanguageLevel' => 'germanLanguageLevel',
+    ];
 
     private HiringMasterDataService $hiringMasterData;
+    private ApplicationFieldValueService $applicationFieldValues;
 
     public function __construct(
         private ApplicationMailFieldExtractor $extractor,
@@ -38,7 +43,11 @@ final class MailInboxService {
         private MailAttachmentStorage $attachments,
         private PdfTextExtractor $pdfTextExtractor,
         ?HiringMasterDataService $hiringMasterData = null,
-    ) { $this->hiringMasterData = $hiringMasterData ?? new HiringMasterDataService(); }
+        ?ApplicationFieldValueService $applicationFieldValues = null,
+    ) {
+        $this->hiringMasterData = $hiringMasterData ?? new HiringMasterDataService();
+        $this->applicationFieldValues = $applicationFieldValues ?? new ApplicationFieldValueService();
+    }
 
     /**
      * @param array<string,mixed> $mail
@@ -122,7 +131,7 @@ final class MailInboxService {
         if (!in_array((string)$message['state'], [self::STATE_NEW, self::STATE_UNCLEAR, self::STATE_ASSIGNED], true)) {
             throw new ValidationException('Diese Nachricht kann in ihrem aktuellen Zustand nicht zugeordnet werden.');
         }
-        $hiringDefaults = $this->acceptedHiringDefaults(
+        [$hiringDefaults, $applicationDefaults] = $this->acceptedDefaults(
             (array)($message['fieldSuggestions'] ?? []),
             $acceptedSuggestions,
         );
@@ -132,37 +141,48 @@ final class MailInboxService {
             $expectedVersion,
             $actorUid,
             $hiringDefaults,
+            $applicationDefaults,
         );
     }
 
     /**
      * @param array<string,mixed> $availableSuggestions
      * @param array<string,mixed> $acceptedSuggestions
-     * @return array<string,string|float|null>
+     * @return array{0:array<string,string|float|null>,1:array<string,string>}
      */
-    private function acceptedHiringDefaults(array $availableSuggestions, array $acceptedSuggestions): array {
-        $confirmed = [];
+    private function acceptedDefaults(array $availableSuggestions, array $acceptedSuggestions): array {
+        $confirmedHiring = [];
+        $applicationDefaults = [];
         foreach ($acceptedSuggestions as $key => $value) {
             if (!is_string($key)
-                || !isset(self::ASSIGNABLE_SUGGESTIONS[$key])
                 || !isset($availableSuggestions[$key]['value'])
                 || !is_scalar($value)) {
                 throw new ValidationException('Ein bestätigter Mailvorschlag ist ungültig.');
             }
             $normalized = trim((string)$value);
-            if ($normalized === '' || strlen($normalized) > 255) {
+            if ($normalized === '') {
                 throw new ValidationException('Ein bestätigter Mailvorschlag ist ungültig.');
             }
-            $confirmed[$key] = ['value' => $normalized];
+            if (isset(self::HIRING_SUGGESTIONS[$key])) {
+                if (strlen($normalized) > 255) throw new ValidationException('Ein bestätigter Mailvorschlag ist ungültig.');
+                $confirmedHiring[$key] = ['value' => $normalized];
+                continue;
+            }
+            if (isset(self::APPLICATION_SUGGESTIONS[$key])) {
+                $field = self::APPLICATION_SUGGESTIONS[$key];
+                $applicationDefaults[$field] = $this->applicationFieldValues->normalize($field, $normalized);
+                continue;
+            }
+            throw new ValidationException('Ein bestätigter Mailvorschlag ist ungültig.');
         }
 
-        $defaults = $this->hiringMasterData->mailDefaults($confirmed);
-        foreach ($confirmed as $key => $_suggestion) {
-            if (!array_key_exists(self::ASSIGNABLE_SUGGESTIONS[$key], $defaults)) {
+        $hiringDefaults = $this->hiringMasterData->mailDefaults($confirmedHiring);
+        foreach ($confirmedHiring as $key => $_suggestion) {
+            if (!array_key_exists(self::HIRING_SUGGESTIONS[$key], $hiringDefaults)) {
                 throw new ValidationException('Ein bestätigter Mailvorschlag hat ein ungültiges Format.');
             }
         }
-        return $defaults;
+        return [$hiringDefaults, $applicationDefaults];
     }
 
     /** @return array<string,mixed> */

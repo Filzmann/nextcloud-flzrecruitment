@@ -177,8 +177,10 @@ und sichere Vorbelegung umgesetzt; Einzelauswahl und OCR offen
 - Umgesetzt: die beim Zuordnen übernehmbaren Kontakt- und Eintrittsvorschläge
   einzeln bestätigen, vor der Übernahme korrigieren oder durch Nichtauswahl
   verwerfen; vorhandene Werte werden weiterhin niemals still überschrieben.
-- Offen: weitere bewerbungsbezogene Vorschläge einzeln in die jeweils
-  zuständigen Bewerbungsfelder übernehmen.
+- Umgesetzt: Vorschläge für Vorerfahrung und Deutschniveau ebenfalls einzeln,
+  korrigierbar und ausschließlich in leere Bewerbungsfelder übernehmen.
+- Offen: den Wunschstunden-Vorschlag kontrolliert als Einzelwert oder Bereich
+  in das Bewerbungsfeld übernehmen.
 - Besonders sensible Vertragsdaten nicht automatisch aus unsicheren Quellen
   übernehmen.
 - Unterstützte Dateiformate, OCR-Bedarf, Qualitätsgrenzen und Umgang mit

@@ -199,7 +199,9 @@
 }
 
 .adrecruitment-suggestion-choice input[type="text"],
-.adrecruitment-suggestion-choice input[type="email"] {
+.adrecruitment-suggestion-choice input[type="email"],
+.adrecruitment-suggestion-choice select,
+.adrecruitment-suggestion-choice textarea {
     box-sizing: border-box;
     width: 100%;
     min-width: 0;

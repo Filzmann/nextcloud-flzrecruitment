@@ -43,6 +43,7 @@ final class MemoryMailInboxStore implements MailInboxStore {
     private array $mailboxes = [];
     public int $writeCount = 0;
     public array $hiringData = [10 => ['city' => 'Potsdam']];
+    public array $applicationData = [10 => ['previousExperience' => '', 'germanLanguageLevel' => 'B1']];
 
     public function ensureMailbox(array $mailbox): int {
         return $this->mailboxes[$mailbox['technicalKey']] ??= count($this->mailboxes) + 1;
@@ -76,7 +77,7 @@ final class MemoryMailInboxStore implements MailInboxStore {
         return array_values(array_filter($this->messages, static fn(array $message): bool => ($message['applicationId'] ?? null) === $applicationId));
     }
     public function inboxApplicationExists(int $applicationId): bool { return in_array($applicationId, [10, 11], true); }
-    public function assignInboxMessage(int $messageId, int $applicationId, int $expectedVersion, string $actorUid, array $hiringDefaults = []): array {
+    public function assignInboxMessage(int $messageId, int $applicationId, int $expectedVersion, string $actorUid, array $hiringDefaults = [], array $applicationDefaults = []): array {
         $message = $this->messages[$messageId];
         if ($message['version'] !== $expectedVersion) throw new ConflictException('Konflikt');
         $this->messages[$messageId]['state'] = 'assigned';
@@ -85,6 +86,9 @@ final class MemoryMailInboxStore implements MailInboxStore {
         $this->messages[$messageId]['audit'][] = ['fromState' => $message['state'], 'toState' => 'assigned', 'actorUid' => $actorUid];
         foreach ($hiringDefaults as $field => $value) {
             if (($this->hiringData[$applicationId][$field] ?? '') === '') $this->hiringData[$applicationId][$field] = $value;
+        }
+        foreach ($applicationDefaults as $field => $value) {
+            if (($this->applicationData[$applicationId][$field] ?? '') === '') $this->applicationData[$applicationId][$field] = $value;
         }
         return $this->messages[$messageId];
     }
@@ -196,17 +200,24 @@ TestRunner::test('mail assignment prefills empty contract fields without replaci
 TestRunner::test('mail assignment applies only explicitly accepted and corrected suggestions', static function (): void {
     $store = new MemoryMailInboxStore();
     $service = new MailInboxService(new ApplicationMailFieldExtractor(), $store, new MemoryMailAttachmentStorage(), new MemoryPdfTextExtractor(), new \OCA\Recruitment\Service\HiringMasterDataService());
-    $message = $service->import(syntheticMail(['bodyText' => "E-Mail: alex@example.invalid\nTelefon: +49 30 123\nVerfügbar ab: 01.10.2026\nWohnort: Berlin"]), 'importer')['message'];
+    $message = $service->import(syntheticMail(['bodyText' => "E-Mail: alex@example.invalid\nTelefon: +49 30 123\nVerfügbar ab: 01.10.2026\nWohnort: Berlin\nBerufserfahrung: Zwei Jahre Assistenz\nDeutschkenntnisse: C1"]), 'importer')['message'];
 
     $service->assign($message['id'], 10, 1, 'hr-user', [
         'email' => 'korrigiert@example.invalid',
         'availableFrom' => '2026-11-01',
+        'previousExperience' => 'Drei Jahre Assistenz',
+        'germanLanguageLevel' => 'C1',
     ]);
 
     assertSame('korrigiert@example.invalid', $store->hiringData[10]['privateEmail']);
     assertSame('2026-11-01', $store->hiringData[10]['plannedStartDate']);
     assertSame(null, $store->hiringData[10]['privatePhone'] ?? null);
     assertSame('Potsdam', $store->hiringData[10]['city']);
+    assertSame('Drei Jahre Assistenz', $store->applicationData[10]['previousExperience']);
+    assertSame('B1', $store->applicationData[10]['germanLanguageLevel']);
+
+    $service->assign($message['id'], 11, 2, 'hr-user', ['germanLanguageLevel' => 'native']);
+    assertSame('native', $store->applicationData[11]['germanLanguageLevel']);
 });
 
 TestRunner::test('mail assignment rejects manipulated suggestion fields without mutation', static function (): void {
@@ -221,6 +232,10 @@ TestRunner::test('mail assignment rejects manipulated suggestion fields without 
     );
     assertThrows(
         static fn() => $service->assign($message['id'], 10, 1, 'hr-user', ['email' => 'keine-mailadresse']),
+        ValidationException::class,
+    );
+    assertThrows(
+        static fn() => $service->assign($message['id'], 10, 1, 'hr-user', ['germanLanguageLevel' => 'C3']),
         ValidationException::class,
     );
     assertSame($before, $store->messages[$message['id']]);

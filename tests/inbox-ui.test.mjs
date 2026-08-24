@@ -93,7 +93,11 @@ const baseMessage = {
     state: 'new',
     version: 1,
     bodyText: 'Name: Alex Beispiel',
-    fieldSuggestions: { name: { value: 'Alex Beispiel' }, email: { value: 'alex@example.invalid' } },
+    fieldSuggestions: {
+        name: { value: 'Alex Beispiel' },
+        email: { value: 'alex@example.invalid' },
+        previousExperience: { value: 'Zwei Jahre Assistenz' },
+    },
     attachments: [{
         id: 31,
         originalName: 'Bewerbung.pdf',
@@ -152,11 +156,18 @@ assert.equal(descendants(content).some((node) => node.tagName === 'IFRAME'), fal
 const assignmentForm = descendants(content).find((node) => node.tagName === 'FORM' && findByText(node, 'Bewerbung zuordnen'))
 const emailAcceptance = descendants(assignmentForm).find((node) => node.name === 'accept-email')
 const emailSuggestion = descendants(assignmentForm).find((node) => node.name === 'suggestion-email')
+const experienceAcceptance = descendants(assignmentForm).find((node) => node.name === 'accept-previousExperience')
+const experienceSuggestion = descendants(assignmentForm).find((node) => node.name === 'suggestion-previousExperience')
 emailAcceptance.checked = true
 emailSuggestion.value = 'korrigiert@example.invalid'
+experienceAcceptance.checked = true
+experienceSuggestion.value = 'Drei Jahre Assistenz'
 assignmentForm.dispatch('submit', { preventDefault() {} })
 await waitFor(() => calls.some(([action]) => action === 'assign'), 'Inbox assignment request was not sent')
-assert.deepEqual(calls.find(([action]) => action === 'assign'), ['assign', 21, 7, 1, { email: 'korrigiert@example.invalid' }])
+assert.deepEqual(calls.find(([action]) => action === 'assign'), ['assign', 21, 7, 1, {
+    email: 'korrigiert@example.invalid',
+    previousExperience: 'Drei Jahre Assistenz',
+}])
 
 await waitFor(() => findByText(content, 'Bereits zugeordnet'), 'Inbox list was not restored after assignment')
 const assignedCard = descendants(content).find((node) => node.className.includes('adrecruitment-card') && findByText(node, 'Bereits zugeordnet'))

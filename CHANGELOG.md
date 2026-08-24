@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.11.0-rc.17
+
+- Vorerfahrung und Deutschniveau aus Eingangsnachrichten ebenfalls einzeln
+  auswählbar, korrigierbar und ausschließlich in leere Bewerbungsfelder
+  übernehmbar gemacht.
+- Die gemeinsame Wertgrenze für Mail- und PDF-Übernahmen normalisiert
+  Deutschniveaus auf A1 bis C2, `native` oder `not_assessed` und weist
+  ungültige Werte vor der atomaren Zuordnung ab.
+
 ## 0.11.0-rc.16
 
 - Beim Zuordnen einer Eingangsnachricht Kontakt-, Wohnort- und

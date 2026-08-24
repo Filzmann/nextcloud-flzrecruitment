@@ -339,7 +339,9 @@ Provider sowie eigene Datenschutz-, Qualitäts-, Ressourcen- und
 Fehlergrenzentests voraus. Die bestätigte Mailzuordnung übernimmt nur die
 dabei einzeln ausgewählten und gegebenenfalls korrigierten Werte aus einem
 eng erlaubten Satz normalisierter Vorschläge transaktional in leere
-Vertragsfelder. Nicht ausgewählte, unbekannte, nicht tatsächlich erkannte
+Vertrags- beziehungsweise Bewerbungsfelder. Vorerfahrung und Deutschniveau
+verwenden dabei dieselbe kanonische Wertnormalisierung wie die kontrollierte
+PDF-Feldverknüpfung. Nicht ausgewählte, unbekannte, nicht tatsächlich erkannte
 oder ungültig korrigierte Werte werden nicht übernommen; manipulierte
 Requests scheitern vor jeder Mutation. Die Nachrichtenzuordnung und
 Vorbelegung schlagen gemeinsam fehl; protokolliert werden nur die betroffenen

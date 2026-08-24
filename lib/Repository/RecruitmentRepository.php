@@ -428,8 +428,8 @@ final class RecruitmentRepository implements RecruitmentStore, ApplicationStatus
         ];
     }
 
-    public function assignInboxMessage(int $messageId, int $applicationId, int $expectedVersion, string $actorUid, array $hiringDefaults = []): array {
-        return $this->transitionInboxMessage($messageId, 'assigned', $expectedVersion, $actorUid, $applicationId, ['new', 'unclear', 'assigned'], $hiringDefaults);
+    public function assignInboxMessage(int $messageId, int $applicationId, int $expectedVersion, string $actorUid, array $hiringDefaults = [], array $applicationDefaults = []): array {
+        return $this->transitionInboxMessage($messageId, 'assigned', $expectedVersion, $actorUid, $applicationId, ['new', 'unclear', 'assigned'], $hiringDefaults, $applicationDefaults);
     }
 
     public function ignoreInboxMessage(int $messageId, int $expectedVersion, string $actorUid): array {
@@ -1449,6 +1449,7 @@ final class RecruitmentRepository implements RecruitmentStore, ApplicationStatus
         ?int $applicationId,
         array $allowedFrom,
         array $hiringDefaults = [],
+        array $applicationDefaults = [],
     ): array {
         $message = $this->inboxMessage($messageId);
         $this->db->beginTransaction();
@@ -1466,9 +1467,11 @@ final class RecruitmentRepository implements RecruitmentStore, ApplicationStatus
                 throw new ConflictException('Die Eingangsnachricht wurde zwischenzeitlich geändert.');
             }
             $prefilled = $applicationId === null ? [] : $this->prefillHiringData($applicationId, $hiringDefaults);
+            $prefilledApplication = $applicationId === null ? [] : $this->prefillApplicationData($applicationId, $applicationDefaults);
             $this->insertInboxAudit($messageId, (string)$message['state'], $toState, $actorUid, [
                 'applicationId' => $applicationId,
                 'prefilledHiringFields' => $prefilled,
+                'prefilledApplicationFields' => $prefilledApplication,
             ]);
             $this->db->commit();
         } catch (\Throwable $error) {
@@ -1509,6 +1512,36 @@ final class RecruitmentRepository implements RecruitmentStore, ApplicationStatus
                 ->executeStatement();
             if ($affected !== 1) throw new ConflictException('Die Vertragsdaten wurden zwischenzeitlich geändert.');
         }
+        return $filled;
+    }
+
+    /** @param array<string,string> $defaults
+     *  @return list<string>
+     */
+    private function prefillApplicationData(int $applicationId, array $defaults): array {
+        if ($defaults === []) return [];
+        $columns = [
+            'previousExperience' => 'previous_experience',
+            'germanLanguageLevel' => 'german_language_level',
+        ];
+        $row = $this->findRow('rec_applications', $applicationId);
+        if ($row === null) throw new NotFoundException('Die Bewerbung wurde nicht gefunden.');
+        $qb = $this->db->getQueryBuilder();
+        $qb->update('rec_applications');
+        $filled = [];
+        foreach ($defaults as $field => $value) {
+            $column = $columns[$field] ?? null;
+            if ($column === null) throw new \LogicException('Ungültiges Bewerbungsfeld.');
+            if (trim((string)($row[$column] ?? '')) !== '') continue;
+            $qb->set($column, $qb->createNamedParameter($value, IQueryBuilder::PARAM_STR));
+            $filled[] = $field;
+        }
+        if ($filled === []) return [];
+        $qb->set('version', $qb->createFunction('version + 1'))
+            ->set('updated_at', $qb->createNamedParameter($this->now(), IQueryBuilder::PARAM_DATETIME_IMMUTABLE))
+            ->where($qb->expr()->eq('id', $qb->createNamedParameter($applicationId, IQueryBuilder::PARAM_INT)))
+            ->andWhere($qb->expr()->eq('version', $qb->createNamedParameter((int)$row['version'], IQueryBuilder::PARAM_INT)));
+        if ($qb->executeStatement() !== 1) throw new ConflictException('Die Bewerbungsdaten wurden zwischenzeitlich geändert.');
         return $filled;
     }
 
