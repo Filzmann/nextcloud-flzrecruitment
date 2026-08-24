@@ -38,6 +38,7 @@ final class MailInboxService {
     private HiringMasterDataService $hiringMasterData;
     private ApplicationFieldValueService $applicationFieldValues;
     private DesiredWeeklyHoursService $desiredWeeklyHours;
+    private RecruitmentService $recruitment;
 
     public function __construct(
         private ApplicationMailFieldExtractor $extractor,
@@ -47,10 +48,12 @@ final class MailInboxService {
         ?HiringMasterDataService $hiringMasterData = null,
         ?ApplicationFieldValueService $applicationFieldValues = null,
         ?DesiredWeeklyHoursService $desiredWeeklyHours = null,
+        ?RecruitmentService $recruitment = null,
     ) {
         $this->hiringMasterData = $hiringMasterData ?? new HiringMasterDataService();
         $this->applicationFieldValues = $applicationFieldValues ?? new ApplicationFieldValueService();
         $this->desiredWeeklyHours = $desiredWeeklyHours ?? new DesiredWeeklyHoursService();
+        $this->recruitment = $recruitment ?? new RecruitmentService($this->desiredWeeklyHours);
     }
 
     /**
@@ -144,6 +147,62 @@ final class MailInboxService {
             $applicationId,
             $expectedVersion,
             $actorUid,
+            $hiringDefaults,
+            $applicationDefaults,
+        );
+    }
+
+    /** @return array{personId:int,applicationId:int,message:array<string,mixed>} */
+    public function createAndAssignApplication(
+        int $messageId,
+        int $expectedVersion,
+        int $jobId,
+        string $givenName,
+        string $familyName,
+        string $email,
+        string $phone,
+        string $assigneeUid,
+        array $acceptedSuggestions,
+        string $actorUid,
+    ): array {
+        if (!$this->store->inboxJobExists($jobId)) {
+            throw new ValidationException('Die ausgewählte Stelle ist nicht verfügbar.');
+        }
+        $message = $this->store->inboxMessage($messageId);
+        if (!in_array((string)$message['state'], [self::STATE_NEW, self::STATE_UNCLEAR], true)) {
+            throw new ValidationException('Aus dieser Nachricht kann keine neue Bewerbung angelegt werden.');
+        }
+        [$hiringDefaults, $applicationDefaults] = $this->acceptedDefaults(
+            (array)($message['fieldSuggestions'] ?? []),
+            $acceptedSuggestions,
+        );
+        $person = $this->recruitment->personData($givenName, $familyName, $email, $phone);
+        try {
+            $receivedAt = $message['receivedAt'] ?? null;
+            if (!$receivedAt instanceof \DateTimeInterface
+                && (!is_string($receivedAt) || trim($receivedAt) === '')) {
+                throw new ValidationException('Das Empfangsdatum der Nachricht ist ungültig.');
+            }
+            $receivedOn = $receivedAt instanceof \DateTimeInterface
+                ? $receivedAt->format('Y-m-d')
+                : (new DateTimeImmutable((string)$receivedAt))->format('Y-m-d');
+        } catch (\Throwable) {
+            throw new ValidationException('Das Empfangsdatum der Nachricht ist ungültig.');
+        }
+        $application = $this->recruitment->applicationData(
+            $jobId,
+            'email_import',
+            $receivedOn,
+            $assigneeUid,
+            isset($applicationDefaults['desiredWeeklyHours']) ? (float)$applicationDefaults['desiredWeeklyHours'] : null,
+            isset($applicationDefaults['desiredWeeklyHoursMax']) ? (float)$applicationDefaults['desiredWeeklyHoursMax'] : null,
+        );
+        return $this->store->createAndAssignInboxApplication(
+            $messageId,
+            $expectedVersion,
+            $actorUid,
+            $person,
+            $application,
             $hiringDefaults,
             $applicationDefaults,
         );

@@ -47,6 +47,9 @@ final class MemoryMailInboxStore implements MailInboxStore {
         10 => ['previousExperience' => '', 'germanLanguageLevel' => 'B1', 'desiredWeeklyHours' => null, 'desiredWeeklyHoursMax' => null],
         11 => ['desiredWeeklyHours' => 20.0, 'desiredWeeklyHoursMax' => 25.0],
     ];
+    public array $people = [];
+    public array $applications = [];
+    public bool $failAtomicCreation = false;
 
     public function ensureMailbox(array $mailbox): int {
         return $this->mailboxes[$mailbox['technicalKey']] ??= count($this->mailboxes) + 1;
@@ -80,6 +83,38 @@ final class MemoryMailInboxStore implements MailInboxStore {
         return array_values(array_filter($this->messages, static fn(array $message): bool => ($message['applicationId'] ?? null) === $applicationId));
     }
     public function inboxApplicationExists(int $applicationId): bool { return in_array($applicationId, [10, 11], true); }
+    public function inboxJobExists(int $jobId): bool { return $jobId === 4; }
+    public function createAndAssignInboxApplication(
+        int $messageId,
+        int $expectedVersion,
+        string $actorUid,
+        array $person,
+        array $application,
+        array $hiringDefaults = [],
+        array $applicationDefaults = [],
+    ): array {
+        $snapshot = [$this->messages, $this->people, $this->applications, $this->hiringData, $this->applicationData];
+        try {
+            $message = $this->messages[$messageId];
+            if ($message['version'] !== $expectedVersion || !in_array($message['state'], ['new', 'unclear'], true)) {
+                throw new ConflictException('Konflikt');
+            }
+            $personId = count($this->people) + 1;
+            $applicationId = count($this->applications) + 100;
+            $this->people[$personId] = ['id' => $personId] + $person;
+            $this->applications[$applicationId] = ['id' => $applicationId, 'personId' => $personId] + $application;
+            if ($this->failAtomicCreation) throw new ConflictException('Erzwungener Testkonflikt');
+            $this->applicationData[$applicationId] = [
+                'desiredWeeklyHours' => $application['desiredWeeklyHours'],
+                'desiredWeeklyHoursMax' => $application['desiredWeeklyHoursMax'],
+            ];
+            $assigned = $this->assignInboxMessage($messageId, $applicationId, $expectedVersion, $actorUid, $hiringDefaults, $applicationDefaults);
+            return ['personId' => $personId, 'applicationId' => $applicationId, 'message' => $assigned];
+        } catch (\Throwable $error) {
+            [$this->messages, $this->people, $this->applications, $this->hiringData, $this->applicationData] = $snapshot;
+            throw $error;
+        }
+    }
     public function assignInboxMessage(int $messageId, int $applicationId, int $expectedVersion, string $actorUid, array $hiringDefaults = [], array $applicationDefaults = []): array {
         $message = $this->messages[$messageId];
         if ($message['version'] !== $expectedVersion) throw new ConflictException('Konflikt');
@@ -255,4 +290,68 @@ TestRunner::test('mail assignment rejects manipulated suggestion fields without 
     );
     assertSame($before, $store->messages[$message['id']]);
     assertSame(['city' => 'Potsdam'], $store->hiringData[10]);
+});
+
+TestRunner::test('inbox creates person, application and assignment atomically', static function (): void {
+    $store = new MemoryMailInboxStore();
+    $service = new MailInboxService(new ApplicationMailFieldExtractor(), $store, new MemoryMailAttachmentStorage(), new MemoryPdfTextExtractor());
+    $message = $service->import(syntheticMail(['bodyText' => "Name: Ari Beispiel\nE-Mail: ari@example.invalid\nGewünschte Wochenstunden: 20-30\nBerufserfahrung: Zwei Jahre Assistenz"]), 'importer')['message'];
+
+    $created = $service->createAndAssignApplication(
+        $message['id'], 1, 4, 'Ari', 'Beispiel', 'ari@example.invalid', '+49 30 123', '',
+        ['email' => 'ari@example.invalid', 'desiredWeeklyHours' => '20-30', 'previousExperience' => 'Drei Jahre Assistenz'],
+        'hr-user',
+    );
+
+    assertSame(1, $created['personId']);
+    assertSame(100, $created['applicationId']);
+    assertSame('assigned', $created['message']['state']);
+    assertSame('Ari', $store->people[1]['givenName']);
+    assertSame(4, $store->applications[100]['jobId']);
+    assertSame('email_import', $store->applications[100]['source']);
+    assertSame(20.0, $store->applications[100]['desiredWeeklyHours']);
+    assertSame(30.0, $store->applications[100]['desiredWeeklyHoursMax']);
+    assertSame('Drei Jahre Assistenz', $store->applicationData[100]['previousExperience']);
+    assertSame('ari@example.invalid', $store->hiringData[100]['privateEmail']);
+
+    $before = [$store->people, $store->applications, $store->messages];
+    assertThrows(
+        static fn() => $service->createAndAssignApplication(
+            $message['id'], 1, 4, 'Ari', 'Beispiel', 'ari@example.invalid', '', '', [], 'hr-user',
+        ),
+        ValidationException::class,
+    );
+    assertSame($before, [$store->people, $store->applications, $store->messages]);
+});
+
+TestRunner::test('inbox creation rejects unavailable jobs and rolls back a late conflict', static function (): void {
+    $store = new MemoryMailInboxStore();
+    $service = new MailInboxService(new ApplicationMailFieldExtractor(), $store, new MemoryMailAttachmentStorage(), new MemoryPdfTextExtractor());
+    $message = $service->import(syntheticMail(), 'importer')['message'];
+    $before = [$store->people, $store->applications, $store->messages];
+
+    assertThrows(
+        static fn() => $service->createAndAssignApplication(
+            $message['id'], 1, 999, 'Ari', 'Beispiel', 'ari@example.invalid', '', '', [], 'hr-user',
+        ),
+        ValidationException::class,
+    );
+    assertSame($before, [$store->people, $store->applications, $store->messages]);
+
+    assertThrows(
+        static fn() => $service->createAndAssignApplication(
+            $message['id'], 1, 5, 'Ari', 'Beispiel', 'ari@example.invalid', '', '', [], 'hr-user',
+        ),
+        ValidationException::class,
+    );
+    assertSame($before, [$store->people, $store->applications, $store->messages]);
+
+    $store->failAtomicCreation = true;
+    assertThrows(
+        static fn() => $service->createAndAssignApplication(
+            $message['id'], 1, 4, 'Ari', 'Beispiel', 'ari@example.invalid', '', '', [], 'hr-user',
+        ),
+        ConflictException::class,
+    );
+    assertSame($before, [$store->people, $store->applications, $store->messages]);
 });

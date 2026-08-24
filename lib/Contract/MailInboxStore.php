@@ -21,11 +21,27 @@ interface MailInboxStore {
     /** @return list<array<string,mixed>> */
     public function inboxMessagesForApplication(int $applicationId): array;
     public function inboxApplicationExists(int $applicationId): bool;
+    public function inboxJobExists(int $jobId): bool;
     /** @return array<string,mixed> */
     /** @param array<string,string> $hiringDefaults
      *  @param array<string,mixed> $applicationDefaults
      */
     public function assignInboxMessage(int $messageId, int $applicationId, int $expectedVersion, string $actorUid, array $hiringDefaults = [], array $applicationDefaults = []): array;
+    /** @param array<string,mixed> $person
+     *  @param array<string,mixed> $application
+     *  @param array<string,mixed> $hiringDefaults
+     *  @param array<string,mixed> $applicationDefaults
+     *  @return array{personId:int,applicationId:int,message:array<string,mixed>}
+     */
+    public function createAndAssignInboxApplication(
+        int $messageId,
+        int $expectedVersion,
+        string $actorUid,
+        array $person,
+        array $application,
+        array $hiringDefaults = [],
+        array $applicationDefaults = [],
+    ): array;
     /** @return array<string,mixed> */
     public function ignoreInboxMessage(int $messageId, int $expectedVersion, string $actorUid): array;
 }

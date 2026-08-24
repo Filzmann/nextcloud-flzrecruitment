@@ -541,6 +541,55 @@
         view.append(renderMailSuggestions(message.fieldSuggestions))
         view.append(renderMailAttachments(message.attachments, message.applicationId, () => openInboxMessage(message.id)))
 
+        if (['new', 'unclear'].includes(message.state) && state.capabilities.edit_applications) {
+            const jobs = (state.data?.jobs || []).filter((job) => job.active)
+            if (jobs.length) {
+                const suggestedName = String(message.fieldSuggestions?.name?.value || '').trim()
+                const nameParts = suggestedName ? suggestedName.split(/\s+/) : []
+                const familyName = nameParts.length > 1 ? nameParts.pop() : ''
+                const givenName = nameParts.join(' ') || suggestedName
+                const suggestionSelection = renderAssignableMailSuggestions(message.fieldSuggestions)
+                const creationForm = element('form', { className: 'adrecruitment-inline-form adrecruitment-card' }, [
+                    element('h3', { text: 'Neue Bewerbung aus diesem Eingang' }),
+                    field('Stelle', select('jobId', jobs.map((job) => ({
+                        value: job.id,
+                        label: job.publicTitle || job.internalTitle || `Stelle #${job.id}`,
+                    })), jobs[0].id, true)),
+                    field('Vorname', input('givenName', 'text', true, givenName)),
+                    field('Nachname', input('familyName', 'text', true, familyName)),
+                    field('E-Mail', input('email', 'email', false, message.fieldSuggestions?.email?.value || message.senderAddress || '')),
+                    field('Telefon', input('phone', 'text', false, message.fieldSuggestions?.phone?.value || '')),
+                    field('Zuständige Person (UID, optional)', input('assigneeUid')),
+                    suggestionSelection.node,
+                    button('Person und Bewerbung anlegen'),
+                ])
+                creationForm.addEventListener('submit', (event) => {
+                    event.preventDefault()
+                    const data = new FormData(creationForm)
+                    run(
+                        () => api.createApplicationFromInbox(message.id, {
+                            version: message.version,
+                            jobId: Number(data.get('jobId')),
+                            givenName: data.get('givenName'),
+                            familyName: data.get('familyName'),
+                            email: data.get('email'),
+                            phone: data.get('phone'),
+                            assigneeUid: data.get('assigneeUid'),
+                            acceptedSuggestions: suggestionSelection.values(),
+                        }),
+                        'Person und Bewerbung wurden angelegt und der Eingang wurde zugeordnet.',
+                        () => renderInbox(),
+                    )
+                })
+                view.append(creationForm)
+            } else {
+                view.append(element('section', { className: 'adrecruitment-card' }, [
+                    element('h3', { text: 'Neue Bewerbung anlegen' }),
+                    element('p', { text: 'Es ist keine aktive Stelle verfügbar. Legen Sie zuerst eine Stelle an oder aktivieren Sie eine vorhandene Stelle.' }),
+                ]))
+            }
+        }
+
         if (['new', 'unclear', 'assigned'].includes(message.state)) {
             const candidates = state.data?.applications || []
             const applicationControl = candidates.length

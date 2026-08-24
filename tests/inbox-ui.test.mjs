@@ -113,13 +113,14 @@ const messages = [
 const calls = []
 const api = {
     bootstrap: async () => ({
-        data: { jobs: [], people: [], applications: [{ id: 7, status: 'received' }], templates: [], applicationStatuses: [] },
+        data: { jobs: [{ id: 4, publicTitle: 'Assistenz', active: true }], people: [], applications: [{ id: 7, status: 'received' }], templates: [], applicationStatuses: [] },
         capabilities: { manage_unassigned_inbox: true, manage_documents: true, edit_applications: true },
         areas: [],
     }),
     inbox: async () => ({ messages }),
     inboxMessage: async (id) => messages.find((message) => message.id === id),
     assignInboxMessage: async (...args) => { calls.push(['assign', ...args]); return {} },
+    createApplicationFromInbox: async (...args) => { calls.push(['create-application', ...args]); return { personId: 8, applicationId: 9 } },
     ignoreInboxMessage: async (...args) => { calls.push(['ignore', ...args]); return {} },
     documentUrl: (id) => `/apps/adrecruitment/api/attachments/${id}/document`,
     attachmentFieldContext: async (...args) => { calls.push(['field-context', ...args]); return { targetField: args[1], value: '', version: 3 } },
@@ -154,6 +155,26 @@ await waitFor(() => calls.some(([action]) => action === 'lightbox'), 'PDF lightb
 assert.equal(calls.find(([action]) => action === 'lightbox')[1].url, '/apps/adrecruitment/api/attachments/31/document')
 assert.equal(descendants(content).some((node) => node.tagName === 'IFRAME'), false)
 
+const creationForm = descendants(content).find((node) => node.tagName === 'FORM' && findByText(node, 'Person und Bewerbung anlegen'))
+const creationEmailAcceptance = descendants(creationForm).find((node) => node.name === 'accept-email')
+creationEmailAcceptance.checked = true
+creationForm.dispatch('submit', { preventDefault() {} })
+await waitFor(() => calls.some(([action]) => action === 'create-application'), 'Inbox application creation request was not sent')
+assert.deepEqual(JSON.parse(JSON.stringify(calls.find(([action]) => action === 'create-application'))), ['create-application', 21, {
+    version: 1,
+    jobId: 4,
+    givenName: 'Alex',
+    familyName: 'Beispiel',
+    email: 'alex@example.invalid',
+    phone: '',
+    assigneeUid: '',
+    acceptedSuggestions: { email: 'alex@example.invalid' },
+}])
+
+await waitFor(() => findByText(content, 'Nachricht prüfen'), 'Inbox list was not restored after application creation')
+findByText(content, 'Nachricht prüfen').dispatch('click')
+await waitFor(() => findByText(content, 'Unveränderter Mailtext'), 'Inbox detail was not reopened')
+
 const assignmentForm = descendants(content).find((node) => node.tagName === 'FORM' && findByText(node, 'Bewerbung zuordnen'))
 const emailAcceptance = descendants(assignmentForm).find((node) => node.name === 'accept-email')
 const emailSuggestion = descendants(assignmentForm).find((node) => node.name === 'suggestion-email')
@@ -171,7 +192,7 @@ hoursMinimum.value = '24'
 hoursMaximum.value = '32'
 assignmentForm.dispatch('submit', { preventDefault() {} })
 await waitFor(() => calls.some(([action]) => action === 'assign'), 'Inbox assignment request was not sent')
-assert.deepEqual(calls.find(([action]) => action === 'assign'), ['assign', 21, 7, 1, {
+assert.deepEqual(JSON.parse(JSON.stringify(calls.find(([action]) => action === 'assign'))), ['assign', 21, 7, 1, {
     email: 'korrigiert@example.invalid',
     previousExperience: 'Drei Jahre Assistenz',
     desiredWeeklyHours: '24-32',

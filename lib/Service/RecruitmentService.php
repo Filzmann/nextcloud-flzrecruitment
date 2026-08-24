@@ -84,6 +84,11 @@ final class RecruitmentService {
         string $email,
         string $phone,
     ): int {
+        return $store->createPerson($this->personData($givenName, $familyName, $email, $phone));
+    }
+
+    /** @return array{givenName:string,familyName:string,email:string,phone:string} */
+    public function personData(string $givenName, string $familyName, string $email, string $phone): array {
         $givenName = trim($givenName);
         $familyName = trim($familyName);
         $email = trim($email);
@@ -94,12 +99,12 @@ final class RecruitmentService {
             throw new ValidationException('Die E-Mail-Adresse ist ungültig.');
         }
 
-        return $store->createPerson([
+        return [
             'givenName' => $givenName,
             'familyName' => $familyName,
             'email' => $email,
             'phone' => trim($phone),
-        ]);
+        ];
     }
 
     public function createApplication(
@@ -118,6 +123,19 @@ final class RecruitmentService {
         if (!$store->jobExists($jobId)) {
             throw new NotFoundException('Die Stelle wurde nicht gefunden.');
         }
+        $application = $this->applicationData($jobId, $source, $receivedOn, $assigneeUid, $desiredWeeklyHours, $desiredWeeklyHoursMax);
+        return $store->createApplication(['personId' => $personId] + $application);
+    }
+
+    /** @return array<string,mixed> */
+    public function applicationData(
+        int $jobId,
+        string $source,
+        string $receivedOn,
+        string $assigneeUid,
+        ?float $desiredWeeklyHours = null,
+        ?float $desiredWeeklyHoursMax = null,
+    ): array {
         if (!in_array($source, ['manual', 'email_import', 'referral', 'other'], true)) {
             throw new ValidationException('Der Eingangskanal ist ungültig.');
         }
@@ -130,15 +148,14 @@ final class RecruitmentService {
             throw new ValidationException('Das Eingangsdatum ist ungültig.');
         }
 
-        return $store->createApplication([
-            'personId' => $personId,
+        return [
             'jobId' => $jobId,
             'source' => $source,
             'receivedOn' => $receivedOn,
             'assigneeUid' => trim($assigneeUid),
             'desiredWeeklyHours' => $desiredWeeklyHours,
             'desiredWeeklyHoursMax' => $desiredWeeklyHoursMax,
-        ]);
+        ];
     }
 
     /** @return array<string,list<array<string,mixed>>> */

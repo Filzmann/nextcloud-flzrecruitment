@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.11.0-rc.19
+
+- Person und Bewerbung direkt aus einer neuen oder unklaren Eingangsnachricht
+  für eine aktive Stelle kontrolliert anlegbar gemacht; Personendaten bleiben
+  vor dem Speichern korrigierbar und weitere Vorschläge einzeln bestätigbar.
+- Person, Bewerbung, leere bestätigte Zielfelder, Nachrichtenzuordnung und
+  Audit in einer Transaktion zusammengeführt; fremde Stellen, unzulässige
+  Zustände und veraltete Versionen bleiben ohne Teilobjekte.
+- Den neuen CSRF-geschützten Schreibpfad serverseitig gemeinsam durch globale
+  Posteingangsberechtigung und `edit_applications` begrenzt.
+
 ## 0.11.0-rc.18
 
 - Wunschstunden-Vorschläge beim Zuordnen als korrigierbaren Einzelwert oder

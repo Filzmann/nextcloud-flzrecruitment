@@ -11,11 +11,12 @@ TestRunner::test('inbox HTTP surface separates global inbox access from scoped d
     $routes = file_get_contents($root . '/appinfo/routes.php');
     $controller = file_get_contents($root . '/lib/Controller/ApiController.php');
     assertTrue($routes !== false && $controller !== false);
-    foreach (['api#inbox', 'api#inboxMessage', 'api#applicationMessages', 'api#assignInboxMessage', 'api#ignoreInboxMessage'] as $route) {
+    foreach (['api#inbox', 'api#inboxMessage', 'api#applicationMessages', 'api#assignInboxMessage', 'api#createApplicationFromInbox', 'api#ignoreInboxMessage'] as $route) {
         assertTrue(str_contains($routes, $route), "Missing inbox route {$route}");
     }
     assertTrue(str_contains($controller, 'requireManageUnassignedInbox()'), 'Unassigned inbox actions have no global server-side gate');
     assertTrue(str_contains($controller, 'RecruitmentAccessService::VIEW'), 'Assigned mail has no application dossier gate');
     assertTrue(str_contains($controller, 'array $acceptedSuggestions = []'), 'Inbox assignment does not expose explicit suggestion confirmation');
+    assertTrue(str_contains($controller, 'createApplicationFromInbox'), 'Inbox cannot create a person and application atomically');
     assertTrue(str_contains($controller, '#[NoCSRFRequired]'), 'Read endpoints are not declared explicitly');
 });

@@ -128,8 +128,9 @@ Status: erster Durchstich umgesetzt; Ausbau offen
 
 ### RECR-MAIL-INBOX – Postfacheingang und manuelle Zuordnung
 
-Status: Importkern, privater Eingang, lokale PDF-Textextraktion und manuelle
-Zuordnung umgesetzt; realer Empfangsadapter und Postfachadministration offen
+Status: Importkern, privater Eingang, lokale PDF-Textextraktion, manuelle
+Zuordnung und kontrollierte Neuanlage umgesetzt; realer Empfangsadapter und
+Postfachadministration offen
 
 - Mehrere administrativ konfigurierte Bewerbungspostfächer über einen
   freigegebenen Empfangsadapter anbinden.
@@ -153,9 +154,11 @@ Zuordnung umgesetzt; realer Empfangsadapter und Postfachadministration offen
   korrigieren oder als Nicht-Bewerbung schließen.
 - Umgesetzt: bei der bestätigten Zuordnung sichere Kontakt- und
   Eintrittsvorschläge ausschließlich in leere Vertragsfelder übernehmen.
-- Offen: Person und Bewerbung kontrolliert direkt aus dem Eingang neu anlegen,
-  weitere Vorschläge einzeln auswählbar machen, Postfachabruf und
-  Quarantäne-Retry als Hintergrundprozess sowie
+- Umgesetzt: Person und Bewerbung aus einem neuen oder unklaren Eingang nach
+  Wahl einer aktiven Stelle und Korrektur der Personendaten atomar anlegen;
+  nur einzeln bestätigte Vorschläge werden übernommen, und ein Konflikt lässt
+  weder Teilobjekte noch eine Zuordnung zurück.
+- Offen: Postfachabruf und Quarantäne-Retry als Hintergrundprozess sowie
   administrative Postfachkonfiguration.
 - Zugangsdaten und Tokens ausschließlich über geeignete Nextcloud-native
   Secret-/Konfigurationsmechanismen verwalten.

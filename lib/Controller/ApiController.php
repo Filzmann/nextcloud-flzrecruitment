@@ -193,6 +193,39 @@ final class ApiController extends Controller {
     }
 
     #[NoAdminRequired]
+    public function createApplicationFromInbox(
+        int $id,
+        int $version,
+        int $jobId,
+        string $givenName,
+        string $familyName,
+        string $email,
+        string $phone = '',
+        string $assigneeUid = '',
+        array $acceptedSuggestions = [],
+    ): JSONResponse {
+        return $this->respond(function () use (
+            $id, $version, $jobId, $givenName, $familyName, $email,
+            $phone, $assigneeUid, $acceptedSuggestions,
+        ): array {
+            $this->access->requireManageUnassignedInbox();
+            $this->access->require(RecruitmentAccessService::EDIT_APPLICATIONS);
+            return $this->inboxService->createAndAssignApplication(
+                $id,
+                $version,
+                $jobId,
+                $givenName,
+                $familyName,
+                $email,
+                $phone,
+                $assigneeUid,
+                $acceptedSuggestions,
+                $this->access->currentUid(),
+            );
+        }, Http::STATUS_CREATED);
+    }
+
+    #[NoAdminRequired]
     public function ignoreInboxMessage(int $id, int $version): JSONResponse {
         return $this->respond(function () use ($id, $version): array {
             $this->access->requireManageUnassignedInbox();

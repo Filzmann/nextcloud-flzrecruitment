@@ -207,6 +207,14 @@ namespace OCA\Recruitment\Service {
             $this->calls[] = ['assign', [$id, $applicationId, $version, $actorUid, $acceptedSuggestions]];
             return ['id' => $id, 'applicationId' => $applicationId, 'state' => 'assigned', 'version' => $version + 1];
         }
+        public function createAndAssignApplication(
+            int $id, int $version, int $jobId, string $givenName, string $familyName,
+            string $email, string $phone, string $assigneeUid, array $acceptedSuggestions, string $actorUid,
+        ): array {
+            $arguments = [$id, $version, $jobId, $givenName, $familyName, $email, $phone, $assigneeUid, $acceptedSuggestions, $actorUid];
+            $this->calls[] = ['createAndAssignApplication', $arguments];
+            return ['personId' => 8, 'applicationId' => 9, 'message' => ['id' => $id, 'state' => 'assigned']];
+        }
         public function ignore(int $id, int $version, string $actorUid): array {
             $this->calls[] = ['ignore', [$id, $version, $actorUid]];
             return ['id' => $id, 'state' => 'ignored', 'version' => $version + 1];
@@ -343,6 +351,11 @@ namespace {
     $response = $controller->inbox();
     $assert($response->getStatus() === Http::STATUS_FORBIDDEN, 'Scoped users can read the unassigned inbox.');
     $assert($inbox->calls === [], 'Denied inbox access reaches the mail service.');
+    $access->required = [];
+    $response = $controller->createApplicationFromInbox(21, 1, 4, 'Ari', 'Beispiel', 'ari@example.invalid');
+    $assert($response->getStatus() === Http::STATUS_FORBIDDEN, 'Application editors can create from the inbox without the inbox capability.');
+    $assert($inbox->calls === [], 'Creation denied by the inbox gate reaches the mail service.');
+    $assert($access->required === ['manage_unassigned_inbox'], 'Inbox creation does not check its global gate first.');
     $access->manageInbox = true;
     $access->required = [];
     $response = $controller->inbox();
@@ -351,6 +364,21 @@ namespace {
     $response = $controller->assignInboxMessage(21, 7, 1, ['email' => 'korrigiert@example.invalid']);
     $assert($response->getData()['applicationId'] === 7, 'Inbox assignment is not forwarded.');
     $assert($inbox->calls[1] === ['assign', [21, 7, 1, 'editor-user', ['email' => 'korrigiert@example.invalid']]], 'Inbox assignment uses the wrong arguments.');
+
+    $access->allowed = array_values(array_diff($access->allowed, [RecruitmentAccessService::EDIT_APPLICATIONS]));
+    $access->required = [];
+    $inboxCallCount = count($inbox->calls);
+    $response = $controller->createApplicationFromInbox(21, 1, 4, 'Ari', 'Beispiel', 'ari@example.invalid', '', '', []);
+    $assert($response->getStatus() === Http::STATUS_FORBIDDEN, 'Inbox-only access can create a person and application.');
+    $assert(count($inbox->calls) === $inboxCallCount, 'Denied inbox creation reaches the mail service.');
+    $assert($access->required === ['manage_unassigned_inbox', RecruitmentAccessService::EDIT_APPLICATIONS], 'Inbox creation does not require both server-side capabilities.');
+
+    $access->allowed[] = RecruitmentAccessService::EDIT_APPLICATIONS;
+    $access->required = [];
+    $response = $controller->createApplicationFromInbox(21, 1, 4, 'Ari', 'Beispiel', 'ari@example.invalid', '+49 30 123', '', ['email' => 'ari@example.invalid']);
+    $assert($response->getStatus() === Http::STATUS_CREATED, 'Authorized inbox creation fails.');
+    $assert($response->getData()['applicationId'] === 9, 'Created inbox application is not forwarded.');
+    $assert(end($inbox->calls) === ['createAndAssignApplication', [21, 1, 4, 'Ari', 'Beispiel', 'ari@example.invalid', '+49 30 123', '', ['email' => 'ari@example.invalid'], 'editor-user']], 'Inbox creation loses validated request arguments.');
 
     $documentReview->calls = [];
     $response = $controller->attachmentDocument(31);

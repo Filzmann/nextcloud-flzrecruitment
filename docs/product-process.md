@@ -462,7 +462,11 @@ unverändertem Mailtext, quellmarkierten Feldvorschlägen und bis zu fünf
 validierten PDF-Originalen duplikatfrei importiert. Personalreferat und global
 vertretende Bearbeitungskräfte können diese Nachrichten bestehenden
 Bewerbungen zuordnen, die Zuordnung korrigieren oder Nicht-Bewerbungen
-schließen. Jede Zustandsänderung ist versioniert und auditiert. Nach der
+schließen. Für neue oder unklare Nachrichten können sie außerdem nach Auswahl
+einer aktiven Stelle Person und Bewerbung kontrolliert neu anlegen. Erkannte
+Personendaten sind dabei korrigierbare Vorbelegungen; weitere Werte werden nur
+einzeln bestätigt übernommen. Neuanlage, Feldvorbelegung, Zuordnung und Audit
+sind atomar. Jede Zustandsänderung ist versioniert und auditiert. Nach der
 Zuordnung folgen Mailtext und Anhangsmetadaten dem serverseitigen
 Bewerbungsscope.
 Textbasierte PDFs werden innerhalb der Importgrenze lokal in Text überführt
@@ -484,8 +488,7 @@ Feldrecht erforderlich.
 Noch nicht vorhanden sind insbesondere konfigurierbare Prozessstati,
 realer Postfachabruf, Antwortzuordnung und eine vollständige
 Kommunikationschronik, die vollständige nutzerverwaltete
-Dokumentenakte, Bestätigung einzelner Extraktionsvorschläge,
-öffentliche Kurzfragebogenlinks, BQ-Verschiebungen und die optionale
+Dokumentenakte, öffentliche Kurzfragebogenlinks, BQ-Verschiebungen und die optionale
 BQ-Modulanbindung. Diese Punkte sind keine verworfenen Ideen,
 sondern Bestandteil des verbindlichen Zielbilds und werden in `ROADMAP.md`
 als getrennt abnehmbare Arbeitspakete geführt.

@@ -8,9 +8,11 @@ require dirname(__DIR__, 4) . '/lib/base.php';
 use OCA\Recruitment\Repository\RecruitmentRepository;
 use OCA\Recruitment\Controller\ApiController;
 use OCA\Recruitment\Controller\PageController;
+use OCA\Recruitment\Exception\ConflictException;
 use OCA\Recruitment\Service\ApplicationStatusService;
 use OCA\Recruitment\Service\BasisQualificationService;
 use OCA\Recruitment\Service\InterviewService;
+use OCA\Recruitment\Service\MailInboxService;
 use OCA\Recruitment\Service\RecruitmentService;
 use OCA\Recruitment\Service\TemplateService;
 use OCP\DB\QueryBuilder\IQueryBuilder;
@@ -33,6 +35,7 @@ $templates = \OCP\Server::get(TemplateService::class);
 $interviews = \OCP\Server::get(InterviewService::class);
 $statuses = \OCP\Server::get(ApplicationStatusService::class);
 $basisQualifications = \OCP\Server::get(BasisQualificationService::class);
+$inbox = \OCP\Server::get(MailInboxService::class);
 $apiController = \OCP\Server::get(ApiController::class);
 $pageController = \OCP\Server::get(PageController::class);
 $suffix = bin2hex(random_bytes(5));
@@ -48,6 +51,9 @@ $ids = [
     'basisQualificationAssignment' => null,
     'mailbox' => null,
     'message' => null,
+    'createdMessage' => null,
+    'createdPerson' => null,
+    'createdApplication' => null,
 ];
 
 $delete = static function (string $table, string $column, int $id) use ($db): void {
@@ -118,6 +124,54 @@ try {
     $prefilledHiring = $repository->hiringData($ids['application']);
     $assert($prefilledHiring['data']['city'] === 'Potsdam', 'Die Mailzuordnung überschreibt vorhandene Vertragsdaten.');
     $assert($prefilledHiring['data']['privateEmail'] === "vertrag-{$suffix}@example.invalid", 'Die Mailzuordnung befüllt ein leeres Vertragsfeld nicht.');
+    $ids['createdMessage'] = $repository->createInboxMessage([
+        'mailboxId' => $ids['mailbox'], 'externalMessageId' => "<create-{$suffix}@example.invalid>",
+        'contentHash' => hash('sha256', 'create-' . $suffix), 'state' => 'new',
+        'senderAddress' => "neu-{$suffix}@example.invalid", 'recipients' => ['bewerbung@example.invalid'],
+        'subject' => 'Synthetische Neuanlage', 'receivedAt' => new DateTimeImmutable('2026-08-16T10:00:00+02:00'),
+        'bodyText' => 'Synthetischer Inhalt zur Neuanlage',
+        'fieldSuggestions' => ['email' => ['value' => "neu-{$suffix}@example.invalid"]],
+        'actorUid' => 'admin',
+    ]);
+    $created = $inbox->createAndAssignApplication(
+        $ids['createdMessage'],
+        1,
+        $ids['job'],
+        'Robin',
+        'Muster',
+        "neu-{$suffix}@example.invalid",
+        '',
+        'admin',
+        ['email' => "neu-{$suffix}@example.invalid"],
+        'admin',
+    );
+    $ids['createdPerson'] = $created['personId'];
+    $ids['createdApplication'] = $created['applicationId'];
+    $createdDetail = $repository->applicationDetail($ids['createdApplication']);
+    $assert($created['message']['state'] === 'assigned', 'Die Eingangsnachricht wurde bei der Neuanlage nicht atomar zugeordnet.');
+    $assert($createdDetail['application']['source'] === 'email_import', 'Die aus dem Eingang erzeugte Bewerbung hat nicht die kanonische Quelle.');
+    $assert($createdDetail['application']['receivedOn'] === '2026-08-16', 'Das Empfangsdatum wurde nicht als Bewerbungsdatum übernommen.');
+    $assert(
+        $repository->hiringData($ids['createdApplication'])['data']['privateEmail'] === "neu-{$suffix}@example.invalid",
+        'Ein bestätigter Vorschlag wurde bei der atomaren Neuanlage nicht übernommen.',
+    );
+    $overviewBeforeRetry = $repository->overview();
+    $retryConflict = false;
+    try {
+        $repository->createAndAssignInboxApplication(
+            $ids['createdMessage'],
+            1,
+            'admin',
+            $adrecruitment->personData('Robin', 'Muster', "neu-{$suffix}@example.invalid", ''),
+            $adrecruitment->applicationData($ids['job'], 'email_import', '2026-08-16', 'admin'),
+        );
+    } catch (ConflictException) {
+        $retryConflict = true;
+    }
+    $overviewAfterRetry = $repository->overview();
+    $assert($retryConflict, 'Ein veralteter Neuanlageversuch wurde nicht als Konflikt abgewiesen.');
+    $assert(count($overviewAfterRetry['people']) === count($overviewBeforeRetry['people']), 'Der Konflikt hat eine zweite Person hinterlassen.');
+    $assert(count($overviewAfterRetry['applications']) === count($overviewBeforeRetry['applications']), 'Der Konflikt hat eine zweite Bewerbung hinterlassen.');
     $ids['template'] = $templates->create(
         $repository,
         'Synthetisches Interview',
@@ -217,9 +271,17 @@ try {
 
     echo "AD Recruitment DDEV vertical slice: OK\n";
 } finally {
+    if ($ids['createdMessage'] !== null) {
+        $delete('rec_message_audit', 'message_id', $ids['createdMessage']);
+        $delete('rec_messages', 'id', $ids['createdMessage']);
+    }
     if ($ids['message'] !== null) {
         $delete('rec_message_audit', 'message_id', $ids['message']);
         $delete('rec_messages', 'id', $ids['message']);
+    }
+    if ($ids['createdApplication'] !== null) {
+        $delete('rec_hiring_data', 'application_id', $ids['createdApplication']);
+        $delete('rec_applications', 'id', $ids['createdApplication']);
     }
     if ($ids['application'] !== null) {
         $delete('rec_status_log', 'application_id', $ids['application']);
@@ -236,6 +298,9 @@ try {
     }
     if ($ids['person'] !== null) {
         $delete('rec_people', 'id', $ids['person']);
+    }
+    if ($ids['createdPerson'] !== null) {
+        $delete('rec_people', 'id', $ids['createdPerson']);
     }
     if ($ids['job'] !== null) {
         $delete('rec_jobs', 'id', $ids['job']);

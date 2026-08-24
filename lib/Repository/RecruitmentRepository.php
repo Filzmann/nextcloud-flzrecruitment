@@ -19,6 +19,7 @@ use OCA\Recruitment\Contract\RecruitmentStore;
 use OCA\Recruitment\Contract\TemplateStore;
 use OCA\Recruitment\Exception\ConflictException;
 use OCA\Recruitment\Exception\NotFoundException;
+use OCA\Recruitment\Exception\ValidationException;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
 
@@ -430,6 +431,58 @@ final class RecruitmentRepository implements RecruitmentStore, ApplicationStatus
 
     public function assignInboxMessage(int $messageId, int $applicationId, int $expectedVersion, string $actorUid, array $hiringDefaults = [], array $applicationDefaults = []): array {
         return $this->transitionInboxMessage($messageId, 'assigned', $expectedVersion, $actorUid, $applicationId, ['new', 'unclear', 'assigned'], $hiringDefaults, $applicationDefaults);
+    }
+
+    public function inboxJobExists(int $jobId): bool {
+        $qb = $this->db->getQueryBuilder();
+        return $qb
+            ->select('id')
+            ->from('rec_jobs')
+            ->where($qb->expr()->eq('id', $qb->createNamedParameter($jobId, IQueryBuilder::PARAM_INT)))
+            ->andWhere($qb->expr()->eq('active', $qb->createNamedParameter(true, IQueryBuilder::PARAM_BOOL)))
+            ->setMaxResults(1)
+            ->executeQuery()
+            ->fetchOne() !== false;
+    }
+
+    public function createAndAssignInboxApplication(
+        int $messageId,
+        int $expectedVersion,
+        string $actorUid,
+        array $person,
+        array $application,
+        array $hiringDefaults = [],
+        array $applicationDefaults = [],
+    ): array {
+        $this->db->beginTransaction();
+        try {
+            if (!$this->inboxJobExists((int)$application['jobId'])) {
+                throw new ValidationException('Die ausgewählte Stelle ist nicht verfügbar.');
+            }
+            $personId = $this->createPerson($person);
+            $applicationId = $this->createApplication(['personId' => $personId] + $application);
+            $createdApplicationFields = [];
+            if (($application['desiredWeeklyHours'] ?? null) !== null) $createdApplicationFields[] = 'desiredWeeklyHours';
+            if (($application['desiredWeeklyHoursMax'] ?? null) !== null) $createdApplicationFields[] = 'desiredWeeklyHoursMax';
+            unset($applicationDefaults['desiredWeeklyHours'], $applicationDefaults['desiredWeeklyHoursMax']);
+            $message = $this->transitionInboxMessage(
+                $messageId,
+                'assigned',
+                $expectedVersion,
+                $actorUid,
+                $applicationId,
+                ['new', 'unclear'],
+                $hiringDefaults,
+                $applicationDefaults,
+                false,
+                ['personId' => $personId, 'createdApplicationFields' => $createdApplicationFields],
+            );
+            $this->db->commit();
+            return ['personId' => $personId, 'applicationId' => $applicationId, 'message' => $message];
+        } catch (\Throwable $error) {
+            $this->db->rollBack();
+            throw $error;
+        }
     }
 
     public function ignoreInboxMessage(int $messageId, int $expectedVersion, string $actorUid): array {
@@ -1450,9 +1503,11 @@ final class RecruitmentRepository implements RecruitmentStore, ApplicationStatus
         array $allowedFrom,
         array $hiringDefaults = [],
         array $applicationDefaults = [],
+        bool $manageTransaction = true,
+        array $additionalAuditDetails = [],
     ): array {
         $message = $this->inboxMessage($messageId);
-        $this->db->beginTransaction();
+        if ($manageTransaction) $this->db->beginTransaction();
         try {
             $qb = $this->db->getQueryBuilder();
             $qb->update('rec_messages')
@@ -1468,14 +1523,14 @@ final class RecruitmentRepository implements RecruitmentStore, ApplicationStatus
             }
             $prefilled = $applicationId === null ? [] : $this->prefillHiringData($applicationId, $hiringDefaults);
             $prefilledApplication = $applicationId === null ? [] : $this->prefillApplicationData($applicationId, $applicationDefaults);
-            $this->insertInboxAudit($messageId, (string)$message['state'], $toState, $actorUid, [
+            $this->insertInboxAudit($messageId, (string)$message['state'], $toState, $actorUid, [...[
                 'applicationId' => $applicationId,
                 'prefilledHiringFields' => $prefilled,
                 'prefilledApplicationFields' => $prefilledApplication,
-            ]);
-            $this->db->commit();
+            ], ...$additionalAuditDetails]);
+            if ($manageTransaction) $this->db->commit();
         } catch (\Throwable $error) {
-            $this->db->rollBack();
+            if ($manageTransaction) $this->db->rollBack();
             throw $error;
         }
         return $this->inboxMessage($messageId);

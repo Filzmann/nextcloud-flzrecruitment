@@ -206,6 +206,15 @@ ersten Mutation werden MIME-Typ, PDF-Signatur, Anzahl, Einzel- und Gesamtgröße
 validiert. Ein identischer Import wird über externe Message-ID oder
 Inhaltsfingerprint erkannt und schreibt weder Datenbank noch Datei erneut.
 
+Aus einem Eingang im Zustand `neu` oder `unklar` können berechtigte
+Bearbeitungskräfte eine Person und eine Bewerbung für eine ausgewählte,
+aktive Stelle erzeugen. Dieser Pfad verlangt serverseitig sowohl die
+globale Posteingangsberechtigung als auch `edit_applications`. Person,
+Bewerbung, einzeln bestätigte leere Zielfelder, Nachrichtenzuordnung und Audit
+werden in einer Datenbanktransaktion geschrieben. Stellen-ID, Zustand und
+optimistische Nachrichtenversion werden unmittelbar vor der Mutation erneut
+geprüft; jeder Fehler rollt sämtliche Einfügungen zurück.
+
 AppData ist hier die unveränderliche interne Eingangsquelle, nicht die
 nutzergesteuerte, teilbare Hauptakte. Der geschützte Dokumentendpunkt nimmt
 keinen Dateipfad entgegen, sondern löst eine numerische Anhangs-ID über die

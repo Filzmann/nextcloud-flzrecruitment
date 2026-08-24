@@ -9,6 +9,7 @@ return ['routes' => [
     ['name' => 'api#inboxMessage', 'url' => '/api/inbox/{id}', 'verb' => 'GET'],
     ['name' => 'api#applicationMessages', 'url' => '/api/applications/{id}/messages', 'verb' => 'GET'],
     ['name' => 'api#assignInboxMessage', 'url' => '/api/inbox/{id}/assign', 'verb' => 'POST'],
+    ['name' => 'api#createApplicationFromInbox', 'url' => '/api/inbox/{id}/application', 'verb' => 'POST'],
     ['name' => 'api#ignoreInboxMessage', 'url' => '/api/inbox/{id}/ignore', 'verb' => 'POST'],
     ['name' => 'api#attachmentDocument', 'url' => '/api/attachments/{id}/document', 'verb' => 'GET'],
     ['name' => 'api#attachmentComments', 'url' => '/api/attachments/{id}/comments', 'verb' => 'GET'],
