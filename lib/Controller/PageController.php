@@ -26,7 +26,7 @@ final class PageController extends Controller {
     #[NoCSRFRequired]
     public function index(): TemplateResponse {
         try {
-            $this->access->require(RecruitmentAccessService::VIEW);
+            $this->access->requireAnyAccess();
             return new TemplateResponse(Application::APP_ID, 'index');
         } catch (AccessDeniedException) {
             return new TemplateResponse('core', '403', [], 'guest', Http::STATUS_FORBIDDEN);

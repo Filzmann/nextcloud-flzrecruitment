@@ -2,16 +2,6 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/bootstrap.php';
-require_once dirname(__DIR__) . '/lib/Exception/ConflictException.php';
-require_once dirname(__DIR__) . '/lib/Exception/NotFoundException.php';
-require_once dirname(__DIR__) . '/lib/Exception/ValidationException.php';
-require_once dirname(__DIR__) . '/lib/Contract/TemplateStore.php';
-require_once dirname(__DIR__) . '/lib/Contract/InterviewStore.php';
-require_once dirname(__DIR__) . '/lib/Service/InterviewWorkflow.php';
-require_once dirname(__DIR__) . '/lib/Service/TemplateService.php';
-require_once dirname(__DIR__) . '/lib/Service/InterviewService.php';
-
 use OCA\Recruitment\Contract\InterviewStore;
 use OCA\Recruitment\Contract\TemplateStore;
 use OCA\Recruitment\Exception\ConflictException;

@@ -25,11 +25,35 @@ final class RecruitmentService {
         array $responsibleUsers,
         array $responsibleGroups,
         string $assignmentKey,
+        bool $basisQualificationRequired = false,
+        string $professionCategory = '',
+        string $contractTerm = '',
+        string $payGrade = '',
+        ?float $advertisedWeeklyHours = null,
+        ?float $fullTimeWeeklyHours = null,
+        ?float $vacationDays = null,
+        string $workLocation = 'Berlin',
     ): int {
         $internalTitle = trim($internalTitle);
         if ($internalTitle === '') {
             throw new ValidationException('Die interne Stellenbezeichnung ist erforderlich.');
         }
+
+        $professionCategory = trim($professionCategory);
+        if ($professionCategory === '') {
+            $professionCategory = $basisQualificationRequired ? 'assistance' : 'other';
+        }
+        if (!in_array($professionCategory, ['assistance', 'nursing', 'social_work', 'administration', 'other'], true)) {
+            throw new ValidationException('Die Berufsgruppe der Stelle ist ungültig.');
+        }
+        if ($basisQualificationRequired && $professionCategory !== 'assistance') {
+            throw new ValidationException('Eine Basisqualifikation ist nur für Assistenz-Stellen zulässig.');
+        }
+        $basisQualificationRequired = $professionCategory === 'assistance';
+        if ($contractTerm !== '' && !in_array($contractTerm, ['permanent', 'fixed_term_reason'], true)) throw new ValidationException('Die Vertragsdauer der Stelle ist ungültig.');
+        if ($payGrade !== '' && !in_array($payGrade, ['3', '5', '8', '9a', '9b', '10', '11', '12', '13'], true)) throw new ValidationException('Die Entgeltgruppe der Stelle ist ungültig.');
+        foreach ([$advertisedWeeklyHours, $fullTimeWeeklyHours] as $hours) if ($hours !== null && (!is_finite($hours) || $hours <= 0 || $hours > 80)) throw new ValidationException('Die Wochenstunden der Stelle sind ungültig.');
+        if ($vacationDays !== null && (!is_finite($vacationDays) || $vacationDays < 0 || $vacationDays > 366)) throw new ValidationException('Der Urlaubsanspruch der Stelle ist ungültig.');
 
         return $store->createJob([
             'internalTitle' => $internalTitle,
@@ -38,6 +62,12 @@ final class RecruitmentService {
             'responsibleUsers' => $this->cleanIdentifiers($responsibleUsers),
             'responsibleGroups' => $this->cleanIdentifiers($responsibleGroups),
             'assignmentKey' => trim($assignmentKey),
+            'basisQualificationRequired' => $basisQualificationRequired,
+            'professionCategory' => $professionCategory,
+            'contractTerm' => $contractTerm, 'payGrade' => $payGrade,
+            'advertisedWeeklyHours' => $advertisedWeeklyHours, 'fullTimeWeeklyHours' => $fullTimeWeeklyHours,
+            'vacationDays' => $vacationDays, 'workLocation' => trim($workLocation) ?: 'Berlin',
+            'workingTimeModel' => $professionCategory === 'assistance' ? 'kapovaz' : 'fixed',
         ]);
     }
 
@@ -73,6 +103,8 @@ final class RecruitmentService {
         string $source,
         string $receivedOn,
         string $assigneeUid,
+        ?float $desiredWeeklyHours = null,
+        ?float $desiredWeeklyHoursMax = null,
     ): int {
         if (!$store->personExists($personId)) {
             throw new NotFoundException('Die Person wurde nicht gefunden.');
@@ -82,6 +114,25 @@ final class RecruitmentService {
         }
         if (!in_array($source, ['manual', 'email_import', 'referral', 'other'], true)) {
             throw new ValidationException('Der Eingangskanal ist ungültig.');
+        }
+        if ($desiredWeeklyHours !== null
+            && (!is_finite($desiredWeeklyHours) || $desiredWeeklyHours <= 0 || $desiredWeeklyHours > 80)) {
+            throw new ValidationException('Die gewünschten Wochenstunden müssen größer als 0 und höchstens 80 sein.');
+        }
+        if ($desiredWeeklyHoursMax !== null
+            && (!is_finite($desiredWeeklyHoursMax) || $desiredWeeklyHoursMax <= 0 || $desiredWeeklyHoursMax > 80)) {
+            throw new ValidationException('Die Obergrenze der gewünschten Wochenstunden muss größer als 0 und höchstens 80 sein.');
+        }
+        if ($desiredWeeklyHours === null && $desiredWeeklyHoursMax !== null) {
+            throw new ValidationException('Für einen Wunschstundenbereich ist ein Von-Wert erforderlich.');
+        }
+        if ($desiredWeeklyHours !== null && $desiredWeeklyHoursMax !== null) {
+            if ($desiredWeeklyHoursMax < $desiredWeeklyHours) {
+                throw new ValidationException('Die Obergrenze der Wunschstunden darf nicht unter dem Von-Wert liegen.');
+            }
+            if ($desiredWeeklyHoursMax === $desiredWeeklyHours) {
+                $desiredWeeklyHoursMax = null;
+            }
         }
 
         $date = DateTimeImmutable::createFromFormat('!Y-m-d', $receivedOn);
@@ -95,6 +146,8 @@ final class RecruitmentService {
             'source' => $source,
             'receivedOn' => $receivedOn,
             'assigneeUid' => trim($assigneeUid),
+            'desiredWeeklyHours' => $desiredWeeklyHours,
+            'desiredWeeklyHoursMax' => $desiredWeeklyHoursMax,
         ]);
     }
 

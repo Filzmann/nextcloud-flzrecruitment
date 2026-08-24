@@ -2,12 +2,6 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/bootstrap.php';
-require_once dirname(__DIR__) . '/lib/Exception/ConflictException.php';
-require_once dirname(__DIR__) . '/lib/Exception/ValidationException.php';
-require_once dirname(__DIR__) . '/lib/Service/ApplicationStatusService.php';
-require_once dirname(__DIR__) . '/lib/Service/InterviewWorkflow.php';
-
 use OCA\Recruitment\Exception\ConflictException;
 use OCA\Recruitment\Exception\ValidationException;
 use OCA\Recruitment\Service\ApplicationStatusService;
@@ -23,6 +17,37 @@ TestRunner::test('controlled application status transitions accept only declared
     assertSame('screening', $workflow->targetStatus('received', 'screening'));
     assertThrows(
         static fn () => $workflow->targetStatus('received', 'hired'),
+        ValidationException::class,
+    );
+});
+
+TestRunner::test('questionnaire can be skipped normally while other shortcuts require an explicit override', static function (): void {
+    $workflow = new ApplicationStatusService();
+    assertSame('phone_planned', $workflow->targetStatus('screening', 'phone_planned'));
+    assertSame('live_planned', $workflow->targetStatus('screening', 'live_planned'));
+    assertSame('decision_pending', $workflow->targetStatus('questionnaire_pending', 'decision_pending'));
+    assertThrows(static fn () => $workflow->targetStatus('received', 'decision_pending'), ValidationException::class);
+    assertSame('decision_pending', $workflow->targetStatus('received', 'decision_pending', true));
+    assertThrows(static fn () => $workflow->targetStatus('received', 'hired', true), ValidationException::class);
+    assertThrows(static fn () => $workflow->targetStatus('received', 'invented', true), ValidationException::class);
+    assertThrows(static fn () => $workflow->targetStatus('received', 'received', true), ValidationException::class);
+});
+
+TestRunner::test('approval for hire requires a configured area and enables first-guide access atomically', static function (): void {
+    $workflow = new ApplicationStatusService();
+    assertSame('approved_for_hire', $workflow->targetStatus('decision_pending', 'approved_for_hire'));
+    assertThrows(
+        static fn () => $workflow->approvalArea('approved_for_hire', '', ['west', 'south']),
+        ValidationException::class,
+    );
+    assertThrows(
+        static fn () => $workflow->approvalArea('approved_for_hire', 'unknown', ['west', 'south']),
+        ValidationException::class,
+    );
+    assertSame('west', $workflow->approvalArea('approved_for_hire', 'west', ['west', 'south']));
+    assertSame(null, $workflow->approvalArea('screening', '', ['west', 'south']));
+    assertThrows(
+        static fn () => $workflow->targetStatus('accepted', 'hired'),
         ValidationException::class,
     );
 });

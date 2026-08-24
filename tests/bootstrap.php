@@ -2,6 +2,23 @@
 
 declare(strict_types=1);
 
+namespace {
+    $workspaceRoot = dirname(__DIR__, 2);
+    $appRoot = dirname(__DIR__);
+    spl_autoload_register(static function (string $class) use ($workspaceRoot, $appRoot): void {
+        foreach ([
+            'OCA\\Recruitment\\' => $appRoot . '/lib/',
+            'OCA\\LocalBase\\Tests\\Support\\' => $workspaceRoot . '/localbase/tests/Support/',
+            'OCA\\LocalBase\\' => $workspaceRoot . '/localbase/lib/',
+        ] as $prefix => $directory) {
+            if (!str_starts_with($class, $prefix)) continue;
+            $file = $directory . str_replace('\\', '/', substr($class, strlen($prefix))) . '.php';
+            if (is_file($file)) require_once $file;
+            return;
+        }
+    });
+}
+
 namespace OCP {
     if (!interface_exists(IUser::class)) {
         interface IUser {
@@ -25,6 +42,19 @@ namespace OCP {
         interface IGroupManager {
             public function isAdmin(string $uid): bool;
             public function get(string $gid): ?IGroup;
+        }
+    }
+
+    if (!interface_exists(IAppConfig::class)) {
+        interface IAppConfig {
+            public function getValueString(string $appId, string $key, string $default = ''): string;
+            public function setValueString(string $appId, string $key, string $value): void;
+        }
+    }
+
+    if (!interface_exists(IUserManager::class)) {
+        interface IUserManager {
+            public function userExists(string $uid): bool;
         }
     }
 }

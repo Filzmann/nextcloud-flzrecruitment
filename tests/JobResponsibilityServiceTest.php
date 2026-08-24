@@ -1,0 +1,80 @@
+<?php
+
+declare(strict_types=1);
+
+namespace OCA\LocalBase\AppInfo { final class Application { public const APP_ID = 'localbase'; } }
+
+namespace {
+    use OCA\LocalBase\Organization\AdOrganizationSettingsService;
+    use OCA\LocalBase\Organization\AdOrganizationSnapshotService;
+    use OCA\Recruitment\Exception\ValidationException;
+    use OCA\Recruitment\Service\JobResponsibilityService;
+    use OCP\IAppConfig;
+    use OCP\IGroup;
+    use OCP\IGroupManager;
+    use OCP\IUser;
+    use RecruitmentTests\TestRunner;
+
+    use function RecruitmentTests\assertSame;
+    use function RecruitmentTests\assertThrows;
+
+    final class ResponsibilityUser implements IUser {
+        public function __construct(private string $uid, private string $displayName) {}
+        public function getUID(): string { return $this->uid; }
+        public function getDisplayName(): string { return $this->displayName; }
+    }
+
+    final class ResponsibilityGroup implements IGroup {
+        /** @param list<IUser> $users */
+        public function __construct(private array $users) {}
+        public function inGroup(IUser $user): bool { return in_array($user, $this->users, true); }
+        public function getUsers(): array { return $this->users; }
+        public function searchUsers(string $search, ?int $limit = null, ?int $offset = null): array {
+            $search = strtolower($search);
+            return array_slice(array_values(array_filter($this->users, static fn(IUser $user): bool =>
+                str_contains(strtolower($user->getUID()), $search)
+                || str_contains(strtolower($user->getDisplayName()), $search)
+            )), $offset ?? 0, $limit);
+        }
+    }
+
+    final class ResponsibilityGroups implements IGroupManager {
+        /** @param array<string,IGroup> $groups */
+        public function __construct(private array $groups) {}
+        public function isAdmin(string $uid): bool { return false; }
+        public function get(string $gid): ?IGroup { return $this->groups[$gid] ?? null; }
+    }
+
+    final class ResponsibilityConfig implements IAppConfig {
+        public array $values = [];
+        public function getValueString(string $appId, string $key, string $default = ''): string { return $this->values[$appId][$key] ?? $default; }
+        public function setValueString(string $appId, string $key, string $value): void { $this->values[$appId][$key] = $value; }
+    }
+
+    TestRunner::test('job responsibility choices and user search stay inside relevant organization groups', static function (): void {
+        $config = new ResponsibilityConfig();
+        $settings = new AdOrganizationSettingsService($config);
+        $settings->save($settings->definition()->toArray());
+        $alex = new ResponsibilityUser('alex', 'Alex Beispiel');
+        $bea = new ResponsibilityUser('bea', 'Bea Muster');
+        $service = new JobResponsibilityService(
+            new AdOrganizationSnapshotService($settings),
+            new ResponsibilityGroups([
+                'ad-Stab-HR' => new ResponsibilityGroup([$alex]),
+                'ad-EB' => new ResponsibilityGroup([$bea]),
+                'ad-Lohn' => new ResponsibilityGroup([new ResponsibilityUser('lohn', 'Lohn')]),
+            ]),
+        );
+
+        $groups = $service->groups('assistance');
+        assertSame(true, in_array('ad-Stab-HR', array_column($groups, 'id'), true));
+        assertSame(true, in_array('ad-EB', array_column($groups, 'id'), true));
+        assertSame(false, in_array('ad-Lohn', array_column($groups, 'id'), true));
+        assertSame([['uid' => 'alex', 'displayName' => 'Alex Beispiel']], $service->searchUsers('assistance', ['ad-Stab-HR'], 'Ale'));
+
+        $service->validate('assistance', ['ad-Stab-HR'], ['alex']);
+        assertThrows(static fn () => $service->validate('assistance', ['ad-Stab-HR'], ['bea']), ValidationException::class);
+        assertThrows(static fn () => $service->validate('assistance', ['ad-Lohn'], []), ValidationException::class);
+        assertThrows(static fn () => $service->searchUsers('assistance', ['ad-Stab-HR'], 'a'), ValidationException::class);
+    });
+}

@@ -8,7 +8,7 @@ Thumbs.db
 *.tmp
 *.orig
 *.rej
-vendor/
+/vendor/
 node_modules/
 coverage/
 .phpunit.cache/

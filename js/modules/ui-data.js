@@ -20,6 +20,8 @@
         phone_completed: 'Telefoninterview abgeschlossen',
         live_planned: 'Liveinterview geplant',
         decision_pending: 'Entscheidung ausstehend',
+        basis_qualification: 'Basisqualifikation',
+        approved_for_hire: 'Zur Einstellung freigegeben',
         accepted: 'Zusage',
         rejected: 'Absage',
         withdrawn: 'Zurückgezogen',
@@ -29,6 +31,12 @@
         in_progress: 'In Bearbeitung',
         completed: 'Abgeschlossen',
         aborted: 'Abgebrochen',
+    }
+    const sourceLabels = {
+        email_import: 'E-Mail-Eingang',
+        manual: 'Manuelle Ausnahme',
+        referral: 'Empfehlung',
+        other: 'Sonstiger Kanal',
     }
 
     function csvList(value) {
@@ -42,5 +50,15 @@
         return labels[status] ?? status
     }
 
-    return { csvList, statusLabel }
+    function sourceLabel(source) {
+        return sourceLabels[source] ?? source
+    }
+
+    function desiredHoursLabel(minimum, maximum) {
+        if (minimum === null || minimum === undefined || minimum === '') return 'Nicht angegeben'
+        if (maximum === null || maximum === undefined || maximum === '') return `ca. ${minimum} Stunden`
+        return `ca. ${minimum}–${maximum} Stunden`
+    }
+
+    return { csvList, desiredHoursLabel, sourceLabel, statusLabel }
 }))
