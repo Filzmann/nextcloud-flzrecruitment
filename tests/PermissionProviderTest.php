@@ -12,6 +12,7 @@ namespace OCA\FilzmannPermissionMatrix\PublicApi\V1 {
         public static function group(string $groupId): self { return new self('group', $groupId); }
         public static function all(array $children): self { return new self('all', null, $children); }
         public static function nextcloudAdmin(): self { return new self('nextcloud-admin'); }
+        public static function temporaryAppAdminGrant(): self { return new self('app-admin-grant'); }
     }
     final class PermissionRule {
         public function __construct(
@@ -76,7 +77,9 @@ namespace RecruitmentTests {
     assertTrue(in_array('group:ad-HR', $conditions('recruitment.view_dossier'), true));
     assertTrue(in_array('group:ad-Payroll', $conditions('recruitment.edit_payroll_data'), true));
     assertTrue(!in_array('group:ad-HR', $conditions('recruitment.edit_payroll_data'), true));
-    assertTrue(in_array('nextcloud-admin:', $conditions('recruitment.manage_delegations'), true));
+    $adminRule = array_values(array_filter($rules('recruitment.manage_delegations'), static fn($rule): bool => $rule->scope === 'all'))[0] ?? null;
+    assertSame('all', $adminRule?->condition->operator);
+    assertSame(['nextcloud-admin', 'app-admin-grant'], array_map(static fn($condition): string => $condition->operator, $adminRule?->condition->children ?? []));
 
     $firstGuide = array_values(array_filter(
         $rules('recruitment.view_dossier'),

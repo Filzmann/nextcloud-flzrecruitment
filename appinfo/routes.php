@@ -57,4 +57,7 @@ return ['routes' => [
     ['name' => 'api#withdrawCandidatePoolConsent', 'url' => '/api/candidate-pool/{id}/withdraw', 'verb' => 'POST'],
     ['name' => 'api#saveCandidatePoolSettings', 'url' => '/api/candidate-pool/settings', 'verb' => 'PUT'],
     ['name' => 'api#saveResumeExtractionSettings', 'url' => '/api/resume-extraction/settings', 'verb' => 'PUT'],
+    ['name' => 'temporary_admin_access#status', 'url' => '/api/admin/full-access', 'verb' => 'GET'],
+    ['name' => 'temporary_admin_access#activate', 'url' => '/api/admin/full-access', 'verb' => 'POST'],
+    ['name' => 'temporary_admin_access#revoke', 'url' => '/api/admin/full-access/{targetUid}', 'verb' => 'DELETE'],
 ]];

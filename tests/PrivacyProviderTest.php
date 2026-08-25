@@ -26,11 +26,13 @@ namespace OCA\Recruitment\Repository {
             ];
         }
     }
+    class TemporaryAdminAccessRepository { public array $items=[]; public function historyForUid(string $uid,int $limit):array{return array_slice(array_values(array_filter($this->items,static fn(array $item):bool=>in_array($uid,[$item['targetUid'],$item['grantedBy'],$item['revokedBy']],true))),0,$limit);} }
 }
 namespace {
     use OCA\FilzmannDataProtection\PublicApi\V1\DataSubjectRef; use OCA\FilzmannDataProtection\PublicApi\V1\PersonalDataRequest; use OCA\FilzmannDataProtection\PublicApi\V1\RegisterPersonalDataProvidersEvent;
-    use OCA\Recruitment\Privacy\RecruitmentPersonalDataProvider; use OCA\Recruitment\Privacy\RecruitmentPrivacyProviderListener; use OCA\Recruitment\Repository\RecruitmentRepository;
-    $provider=new RecruitmentPersonalDataProvider(new RecruitmentRepository());
+    use OCA\Recruitment\Privacy\RecruitmentPersonalDataProvider; use OCA\Recruitment\Privacy\RecruitmentPrivacyProviderListener; use OCA\Recruitment\Repository\RecruitmentRepository; use OCA\Recruitment\Repository\TemporaryAdminAccessRepository;
+    $adminAccess=new TemporaryAdminAccessRepository();$adminAccess->items=[['id'=>21,'targetUid'=>'self','grantedBy'=>'other-admin','startsAt'=>new DateTimeImmutable('2026-08-12T08:00:00+00:00'),'endsAt'=>new DateTimeImmutable('2026-08-12T12:00:00+00:00'),'revokedAt'=>null,'revokedBy'=>null]];
+    $provider=new RecruitmentPersonalDataProvider(new RecruitmentRepository(),$adminAccess);
     $descriptor=$provider->descriptor();if($descriptor->appId()!=='adrecruitment'||$descriptor->contractVersion()!=='1.0'||!$descriptor->supportsSubjectType('nextcloud-user'))throw new RuntimeException('Recruitment-Provider beschreibt den Standalone-V1-Vertrag nicht korrekt.');
     $subject=new DataSubjectRef('nextcloud-user','self');
     $report=$provider->collect(new PersonalDataRequest($subject,'de','access-report',50,[]));
@@ -42,10 +44,10 @@ namespace {
         'thirdPartyContentNotice'=>$item->thirdPartyContentNotice(),'attributes'=>$item->attributes(),
     ],$report->entries());
     $types=array_column($items,'categoryLabel');
-    foreach(['Bewerbungszuständigkeit','Stellenverantwortung','Statusänderung','Interviewbearbeitung','Berechtigungsnachweis','BQ-Durchlauf','BQ-Bearbeitung','Posteingangsaktivität','Dokumentkommentar','Dokumentfeld-Verknüpfung','Mailvorlage','Mailvorlagenrevision','Mailtextblock','Statusmail-Regel','Statusmail-Entwurf'] as $type)if(!in_array($type,$types,true))throw new RuntimeException('Recruitment-Datenklasse fehlt: '.$type);
+    foreach(['Bewerbungszuständigkeit','Stellenverantwortung','Statusänderung','Interviewbearbeitung','Berechtigungsnachweis','BQ-Durchlauf','BQ-Bearbeitung','Posteingangsaktivität','Dokumentkommentar','Dokumentfeld-Verknüpfung','Mailvorlage','Mailvorlagenrevision','Mailtextblock','Statusmail-Regel','Statusmail-Entwurf','Zeitlich begrenzter Admin-Vollzugriff'] as $type)if(!in_array($type,$types,true))throw new RuntimeException('Recruitment-Datenklasse fehlt: '.$type);
     $encoded=json_encode($items,JSON_THROW_ON_ERROR|JSON_UNESCAPED_UNICODE);
     foreach(['01.08.26, 08:00 Uhr','09.08.26, 17:00 Uhr','Abgeschlossen','Bewerbungsnummer'] as $expected)if(!str_contains($encoded,$expected))throw new RuntimeException('Menschenlesbare Recruitment-Angabe fehlt: '.$expected);
-    foreach(['given_name','family_name','email','phone','answers_json','body_text','selected_text','evaluation_note','original_recipient','delivery_recipient','private@example.invalid','Andere Person'] as $forbidden)if(str_contains($encoded,$forbidden))throw new RuntimeException('Recruitment-Auskunft enthält Bewerber- oder technische Inhalte: '.$forbidden);
+    foreach(['given_name','family_name','email','phone','answers_json','body_text','selected_text','evaluation_note','original_recipient','delivery_recipient','private@example.invalid','Andere Person','other-admin'] as $forbidden)if(str_contains($encoded,$forbidden))throw new RuntimeException('Recruitment-Auskunft enthält Bewerber- oder technische Inhalte: '.$forbidden);
     if($report->status()!=='complete'||$items[0]['recipientCategories']===[])throw new RuntimeException('Recruitment-Vollständigkeit oder Verarbeitungsangaben fehlen.');
     $foreign=$provider->collect(new PersonalDataRequest(new DataSubjectRef('nextcloud-user','foreign'),'de','access-report',50,[]));if($foreign->status()!=='not_applicable'||$foreign->entries()!==[])throw new RuntimeException('Fremde interne Daten werden ausgegeben.');
     $unsupported=$provider->collect(new PersonalDataRequest(new DataSubjectRef('external-applicant','self'),'de','access-report',50,[]));if($unsupported->status()!=='not_applicable'||$unsupported->entries()!==[])throw new RuntimeException('Ein nicht unterstützter Subject-Typ erhält interne Recruitment-Daten.');

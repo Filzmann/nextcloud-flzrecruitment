@@ -5,7 +5,7 @@ namespace OCA\Recruitment\Privacy;
 
 use DateTimeImmutable; use DateTimeInterface; use InvalidArgumentException;
 use OCA\FilzmannDataProtection\PublicApi\V1\PersonalDataEntry; use OCA\FilzmannDataProtection\PublicApi\V1\PersonalDataPage; use OCA\FilzmannDataProtection\PublicApi\V1\PersonalDataProvider; use OCA\FilzmannDataProtection\PublicApi\V1\PersonalDataRequest; use OCA\FilzmannDataProtection\PublicApi\V1\ProviderDescriptor;
-use OCA\Recruitment\AppInfo\Application; use OCA\Recruitment\Repository\RecruitmentRepository;
+use OCA\Recruitment\AppInfo\Application; use OCA\Recruitment\Repository\RecruitmentRepository; use OCA\Recruitment\Repository\TemporaryAdminAccessRepository;
 
 final class RecruitmentPersonalDataProvider implements PersonalDataProvider {
     private const RETENTION='Nach dem derzeit gespeicherten Retention-Status der Bewerbung; eine ausführende Löschfrist ist noch nicht festgelegt.';
@@ -26,16 +26,18 @@ final class RecruitmentPersonalDataProvider implements PersonalDataProvider {
         'status_mail_rule'=>['Statusmail-Regel','Nachvollziehbarkeit einer von dir verwalteten Statusmail-Regel'],
         'mail_draft'=>['Statusmail-Entwurf','Nachvollziehbarkeit eines von dir erstellten oder freigegebenen Mailentwurfs'],
     ];
-    public function __construct(private RecruitmentRepository $repository){}
+    public function __construct(private RecruitmentRepository $repository,private TemporaryAdminAccessRepository $adminAccess){}
     public function descriptor():ProviderDescriptor{return new ProviderDescriptor(Application::APP_ID,'AD Recruitment','1.0',['nextcloud-user'],['personal-data'],500);}
     public function collect(PersonalDataRequest $request):PersonalDataPage{
         if($request->subject()->subjectType()!=='nextcloud-user')return new PersonalDataPage('not_applicable');
         if($request->cursor()!==null)throw new InvalidArgumentException('AD Recruitment does not support cursor paging.');
-        $limit=$request->pageLimit();$rows=$this->repository->personalDataForNextcloudUid($request->subject()->subjectId(),$limit+1);$complete=count($rows)<=$limit;$items=[];
+        $limit=$request->pageLimit();$subjectUid=$request->subject()->subjectId();$rows=$this->repository->personalDataForNextcloudUid($subjectUid,$limit+1);$adminHistory=$this->adminAccess->historyForUid($subjectUid,$limit+1);$complete=count($rows)+count($adminHistory)<=$limit;$items=[];
         foreach(array_slice($rows,0,$limit) as $row)$items[]=$this->item($row);
+        foreach($adminHistory as $grant){if(count($items)>=$limit)break;$items[]=$this->adminItem($subjectUid,$grant);}
         if($items===[])return new PersonalDataPage('not_applicable');
         return new PersonalDataPage($complete?'complete':'partial',$items,$complete?[]:['Ausgabelimit erreicht; weitere interne Recruitment-Bezüge können vorhanden sein.']);
     }
+    private function adminItem(string $uid,array $grant):PersonalDataEntry{$roles=[];if($grant['targetUid']===$uid)$roles[]='Ziel der Vollzugriffsfreigabe';if($grant['grantedBy']===$uid)$roles[]='Freigebende Administration';if($grant['revokedBy']===$uid)$roles[]='Widerrufende Administration';$actualEnd=$grant['revokedAt']??$grant['endsAt'];return new PersonalDataEntry('admin-access','Zeitlich begrenzter Admin-Vollzugriff','admin-access:'.$grant['id'],'Admin-Vollzugriff vom '.self::dateTime($grant['startsAt']),'Nachweis einer zeitlich begrenzten administrativen Recruitment-Freigabe','App-lokale Freigabe im Nextcloud-Adminbereich',['Berechtigte Nextcloud-Administrator*innen und prüfberechtigte Stellen'],self::RETENTION,'Durch AD Recruitment sind keine Drittlandübermittlungen vorgesehen.','Der Server beendet den Vollzugriff spätestens nach 24 Stunden automatisch.','Kennungen anderer beteiligter Administrator*innen werden nicht ausgegeben.',['Eigene Rolle im Vorgang'=>implode(', ',$roles),'Beginn'=>self::dateTime($grant['startsAt']),'Geplantes Ende'=>self::dateTime($grant['endsAt']),'Tatsächliches Ende'=>self::dateTime($actualEnd),'Status'=>$grant['revokedAt']===null?'planmäßig beendet oder noch aktiv':'widerrufen']);}
     private function item(array $row):PersonalDataEntry{
         [$type,$purpose]=self::TYPES[(string)$row['kind']]??['Recruitment-Aktivität','Nachvollziehbarkeit einer internen Recruitingaktivität'];
         $attributes=['Gespeichert am'=>self::dateTime($row['occurred_at']??'')];

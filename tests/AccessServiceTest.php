@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OCA\LocalBase\AppInfo { final class Application { public const APP_ID = 'localbase'; } }
 namespace OCA\Recruitment\AppInfo { final class Application { public const APP_ID = 'adrecruitment'; } }
+namespace OCA\Recruitment\Service { interface TemporaryAdminAccessChecker { public function hasActiveGrant(string $uid): bool; } }
 
 namespace {
     use OCA\LocalBase\Organization\AdOrganizationSettingsService;
@@ -11,6 +12,7 @@ namespace {
     use OCA\Recruitment\Exception\AccessDeniedException;
     use OCA\Recruitment\Service\RecruitmentAccessService;
     use OCA\Recruitment\Service\RecruitmentPermissionSettingsService;
+    use OCA\Recruitment\Service\TemporaryAdminAccessChecker;
     use OCP\IAppConfig;
     use OCP\IGroup;
     use OCP\IGroupManager;
@@ -38,7 +40,7 @@ namespace {
     }
     final class TestUsers implements IUserManager { public function userExists(string $uid): bool { return true; } }
 
-    $dependencies = static function (string $uid, array $members = [], array $admins = []): RecruitmentAccessService {
+    $dependencies = static function (string $uid, array $members = [], array $admins = [], bool $activeGrant = false): RecruitmentAccessService {
         $config = new TestConfig();
         $organizationSettings = new AdOrganizationSettingsService($config);
         $organizationSettings->save($organizationSettings->definition()->toArray());
@@ -48,6 +50,7 @@ namespace {
             $groups,
             new AdOrganizationSnapshotService($organizationSettings),
             new RecruitmentPermissionSettingsService($config, new TestUsers(), $groups),
+            new class($activeGrant) implements TemporaryAdminAccessChecker { public function __construct(private bool $active) {} public function hasActiveGrant(string $uid): bool { return $this->active; } },
         );
     };
 
@@ -56,7 +59,7 @@ namespace {
         $organizationSettings = new AdOrganizationSettingsService($config);
         $organizationSettings->save($organizationSettings->definition()->toArray());
         $groups = new TestGroups([]);
-        $anonymous = new RecruitmentAccessService(new TestSession(null), $groups, new AdOrganizationSnapshotService($organizationSettings), new RecruitmentPermissionSettingsService($config, new TestUsers(), $groups));
+        $anonymous = new RecruitmentAccessService(new TestSession(null), $groups, new AdOrganizationSnapshotService($organizationSettings), new RecruitmentPermissionSettingsService($config, new TestUsers(), $groups), new class implements TemporaryAdminAccessChecker { public function hasActiveGrant(string $uid): bool { return false; } });
         assertThrows(static fn () => $anonymous->requireAnyAccess(), AccessDeniedException::class);
 
         $finance = $dependencies('finance-user', ['ad-Finanzen' => ['finance-user']]);
@@ -76,8 +79,11 @@ namespace {
         assertSame(false, $payroll->can(RecruitmentAccessService::VIEW, $approved));
     });
 
-    TestRunner::test('Nextcloud admins retain access even with invalid organization state', static function () use ($dependencies): void {
+    TestRunner::test('Nextcloud admins require an active app-local grant', static function () use ($dependencies): void {
         $admin = $dependencies('admin-user', [], ['admin-user']);
+        assertSame(false, $admin->can(RecruitmentAccessService::MANAGE_CATALOG));
+        assertSame(false, $admin->can(RecruitmentAccessService::MANAGE_DELEGATIONS));
+        $admin = $dependencies('admin-user', [], ['admin-user'], true);
         assertTrue($admin->can(RecruitmentAccessService::MANAGE_CATALOG));
         assertTrue($admin->can(RecruitmentAccessService::MANAGE_DELEGATIONS));
         assertTrue($admin->can(RecruitmentAccessService::OVERRIDE_STATUS_TRANSITIONS));

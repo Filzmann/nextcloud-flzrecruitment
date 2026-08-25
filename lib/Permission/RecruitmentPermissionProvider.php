@@ -50,7 +50,7 @@ final class RecruitmentPermissionProvider implements PermissionProvider {
         ];
         $rules = [];
         foreach ([...$fullCapabilities, RecruitmentPermissionPolicy::EDIT_PAYROLL_DATA, 'manage_unassigned_inbox'] as $capability) {
-            $rules[] = $this->rule($capability, 'all', PermissionCondition::nextcloudAdmin(), 'Native Nextcloud-Administration');
+            $rules[] = $this->rule($capability, 'all', PermissionCondition::all([PermissionCondition::nextcloudAdmin(), PermissionCondition::temporaryAppAdminGrant()]), 'Native Nextcloud-Administration mit aktiver app-lokaler Freigabe (maximal 24 Stunden)');
         }
 
         $warnings = [];

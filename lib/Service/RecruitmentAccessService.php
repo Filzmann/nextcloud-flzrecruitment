@@ -34,6 +34,7 @@ final class RecruitmentAccessService {
         private IGroupManager $groups,
         private AdOrganizationSnapshotService $organization,
         private RecruitmentPermissionSettingsService $settings,
+        private TemporaryAdminAccessChecker $temporaryAdminAccess,
     ) {}
 
     public function currentUser(): ?IUser { return $this->session->getUser(); }
@@ -154,7 +155,7 @@ final class RecruitmentAccessService {
         foreach (array_values(array_unique($candidateGroups)) as $groupId) {
             if ($groupId !== '' && $this->groups->get($groupId)?->inGroup($user) === true) $groupIds[] = $groupId;
         }
-        return ['uid' => $user->getUID(), 'isAdmin' => $this->groups->isAdmin($user->getUID()), 'groupIds' => $groupIds];
+        return ['uid' => $user->getUID(), 'isAdmin' => $this->groups->isAdmin($user->getUID()) && $this->temporaryAdminAccess->hasActiveGrant($user->getUID()), 'groupIds' => $groupIds];
     }
 
     private function policy(): RecruitmentPermissionPolicy {

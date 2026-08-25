@@ -191,6 +191,10 @@ Ziffernfolgen und mehrdeutige Einzelwörter erzeugen keinen Namensvorschlag.
 Architekturentscheidungen und bewusst noch nicht umgesetzte Integrationen
 stehen in `docs/architecture.md`.
 
+## Zeitlich begrenzter Admin-Vollzugriff
+
+Ein Nextcloud-Administrationskonto erhält nicht automatisch Zugriff auf Bewerbungsakten. Der fachliche Vollzugriff wird im Adminbereich von AD Recruitment pro Administrationskonto für 1, 4, 8 oder höchstens 24 Stunden aktiviert und kann vorzeitig widerrufen werden. Beginn, geplantes Ende, Freigabe und Widerruf werden app-lokal protokolliert und in Datenschutz- sowie Berechtigungsprovider einbezogen. Technische Systemeinstellungen bleiben davon getrennt.
+
 ## Abnahme und Roadmap
 
 Für die fachliche, visuelle, sicherheits- und datenschutzbezogene
