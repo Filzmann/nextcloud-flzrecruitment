@@ -8,6 +8,18 @@ durchgängige Sollprozess stehen in
 setzen dieses Zielbild um; die Reihenfolge darf nach Abhängigkeiten angepasst,
 der fachliche Umfang aber nicht still entfernt werden.
 
+## Nextcloud-Kompatibilitätsgate
+
+### RECR-NC-COMPAT – OpenDesk-Boden 33 und künftige Majors nachweisen
+
+Status: `info.xml` bleibt bei 34/34; die verwendeten OCP-Schnittstellen sind
+auf NC 33.0.7 nur statisch geprüft. Vor `min-version="33"` müssen Fresh
+Install/Upgrade, DI, alle Migrationen, Rechte- und Statuspfade,
+AppData/PDF-Ablage und kontrollierter Engine-Ausfall, Import, Mail-Outbox,
+Jobs, Privacy-/PermissionProvider, Assets und sichtbare Workbench grün sein.
+Die Obergrenze wird nur aus einer lückenlosen app-lokalen
+`verify-nextcloud-future-compatibility`-Matrix erweitert.
+
 ## Bewerberpool-Paket – technisch umgesetzt, Aktivierung ausstehend
 
 - additive Tabellen für reduzierte Poolprofile, unveränderliche Einwilligungsereignisse und nachvollziehbare Stellenhinweise
@@ -17,22 +29,15 @@ der fachliche Umfang aber nicht still entfernt werden.
 - keine Interviewnotizen oder automatisierten Entscheidungen als Matching
 - offen vor produktiver Aktivierung: Textfreigabe, allgemeine Löschregel samt Löschprozess und externer Self-Service für Einwilligung/Widerruf
 
-## Zukunftsplanung – nicht freigegeben
+## Systemweit gegatete app-lokale Aufgabe
 
-### RECR-L10N – AD Recruitment vollständig lokalisieren
+### RECR-L10N – Oberfläche und Vorlagenverwaltung lokalisieren
 
-Status: später, nicht freigegeben; Pilot-App, Reihenfolge und Rohtext-Gate
-werden vor jeder Umsetzung appübergreifend separat freigegeben
-
-- Oberfläche, Interviewvorlagenverwaltung, Status-, Validierungs- und
-  Fehlermeldungen auf aktive Nextcloud-Locale und Nextcloud-l10n umstellen.
-- App-ID, technischer PHP-Namespace, Tabellenpräfix, Bewerbungsstatus,
-  Revisions- und API-Schlüssel sowie gespeicherte Freitexte unverändert
-  lassen.
-- Deutsche Ausgabe, eine weitere Locale, Fallback, Pluralformen,
-  Platzhalter, Escaping und unveränderte Interview-Snapshots testen.
-- Erst nach vollständiger Migration einen Rohtext-Check für AD Recruitment
-  verbindlich schalten.
+Aktivierung ausschließlich nach Freigabe des Root-Vorhabens `ZM-06`.
+Sichtbare Texte der Oberfläche und Interviewvorlagenverwaltung wechseln
+app-lokal auf Nextcloud-l10n. App-ID, Namespace, Tabellenpräfix,
+Bewerbungsstatus, Revisions-/API-Schlüssel und gespeicherte Freitexte bleiben
+sprachneutral; bestehende Interview-Snapshots werden nicht umgedeutet.
 
 ## Weitere geplante Arbeiten
 
@@ -286,9 +291,10 @@ Status: später, nach stabilem manuellen Mailprozess
 
 Status: erster manueller Durchstich umgesetzt; Ausbau offen
 
-Die Planung der eigenständigen BQ-Planer-App wird suiteweit außerhalb
-dieser standalone-fähigen Produktroadmap geführt. Für AD Recruitment bleiben
-die folgenden lokalen Fallback- und Integrationsaufgaben maßgeblich.
+Die Produktplanung der eigenständigen BQ-Planer-App liegt ausschließlich in
+`adbqplanung/ROADMAP.md`; der systemweite Zukunftsplan besitzt nur die
+optionale Cross-App-Vertragsgrenze. Für AD Recruitment bleiben die folgenden
+lokalen Fallback- und Consumeraufgaben maßgeblich.
 
 - Umgesetzt: die Basisqualifikation aus der Berufsgruppe ableiten: für jede
   Assistenz-Stelle verpflichtend und nicht separat schaltbar; alle anderen
