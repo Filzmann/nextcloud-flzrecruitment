@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Dokumentations- und Steuerungsstruktur vereinheitlicht; abgeschlossene
+  Umsetzungspakete aus der Roadmap entfernt.
+
 ## 0.11.0-rc.19
 
 - Person und Bewerbung direkt aus einer neuen oder unklaren Eingangsnachricht

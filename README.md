@@ -203,3 +203,13 @@ Staging-Prüfung steht ein ausfüllbares
 Interview-Echtdaten werden darin nicht dokumentiert.
 
 Geplante Erweiterungen stehen in der [Roadmap](ROADMAP.md).
+
+## Dokumentation
+
+- [Produktprozess](docs/product-process.md)
+- [Architektur](docs/architecture.md)
+- [Manuelle Abnahme](docs/manual-acceptance.md)
+- [Drittanbieterhinweise](THIRD_PARTY.md)
+- [Roadmap](ROADMAP.md)
+- [Changelog](CHANGELOG.md)
+- [Arbeitsregeln](AGENTS.md)

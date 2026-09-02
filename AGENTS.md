@@ -148,6 +148,22 @@ Bewerbermanagement orientierten Prozess innerhalb der AD-Suite ab:
 - Schnelle Tests: `php tests/run.php` und `node tests/run-js.mjs`.
 - Controller-, Dependency-Injection-, Migrations- und echte Persistenzänderungen werden zusätzlich in DDEV geprüft.
 
+## Dokumentenverantwortung
+
+- `README.md` beschreibt ausschließlich den aktuellen nutzbaren Stand,
+  Installation, Betrieb, Tests und den Dokumentationsindex.
+- `ROADMAP.md` enthält ausschließlich offene, zurückgestellte oder
+  freigabepflichtige Arbeit und Entscheidungen.
+- `CHANGELOG.md` dokumentiert erledigte Änderungen releasebezogen; erledigte
+  Checklisten verbleiben nicht in der Roadmap.
+- `docs/architecture.md` ist die ausführliche Quelle für geltende fachliche
+  und technische Architekturverträge.
+- `docs/manual-acceptance.md` enthält wiederholbare manuelle Prüfungen und
+  keine Produktplanung.
+- `AGENTS.md` enthält ausschließlich verbindliche Arbeits-, Sicherheits-,
+  Architektur- und Prüfregeln. Zusätzliche Dokumente werden in `README.md`
+  mit eindeutiger Zuständigkeit eingeordnet.
+
 ## Parent-Governance-Vertrag: 1
 
 - Die für dieses Subrepository anwendbaren Regeln des Parent-Workspaces sind
