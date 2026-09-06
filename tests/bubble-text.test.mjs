@@ -1,8 +1,7 @@
 import assert from 'node:assert/strict'
-import { createRequire } from 'node:module'
+import { loadUmdModule } from './load-umd.mjs'
 
-const require = createRequire(import.meta.url)
-const { appendBubbleText } = require('../js/modules/bubble-text.js')
+const { appendBubbleText } = loadUmdModule(new URL('../js/modules/bubble-text.js', import.meta.url))
 
 assert.equal(appendBubbleText('', 'Zeitlich flexibel.'), 'Zeitlich flexibel.')
 assert.equal(
