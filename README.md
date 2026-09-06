@@ -1,5 +1,12 @@
 # AD Recruitment
 
+## Staging-Kompatibilität
+
+- Nextcloud 33 bis 34
+- PHP 8.3 oder neuer innerhalb des von Nextcloud 33 bis 34 unterstützten Bereichs
+- Laufzeitbasis: `localbase`; `orgsuite` ist ab zwei AD-Fachprodukten optional aktiv
+- App-ID und Installationsordner: `adrecruitment`
+
 `adrecruitment` ist eine eigenständige Nextcloud-App für einen strukturierten,
 nachvollziehbaren Bewerbungsprozess. Der vorhandene vertikale Ausschnitt
 umfasst Stellen, Personen, Bewerbungen, versionierte Interviewvorlagen und

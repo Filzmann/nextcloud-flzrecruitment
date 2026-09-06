@@ -5,16 +5,6 @@ aktuelle Funktionsumfang steht in `README.md`, erledigte Änderungen in
 `CHANGELOG.md`, der Sollprozess in `docs/product-process.md` und die
 geltende Architektur in `docs/architecture.md`.
 
-## Nextcloud-Kompatibilitätsgate
-
-### RECR-NC-COMPAT – OpenDesk-Boden 33 und künftige Majors nachweisen
-
-`info.xml` bleibt bei 34/34, bis Fresh Install/Upgrade, DI, Migrationen,
-Rechte- und Statuspfade, AppData/PDF-Ablage, kontrollierter Engine-Ausfall,
-Import, Mail-Outbox, Jobs, Privacy-/PermissionProvider, Assets und sichtbare
-Workbench auf NC 33 grün sind. Die Obergrenze folgt nur aus einer lückenlosen
-app-lokalen `verify-nextcloud-future-compatibility`-Matrix.
-
 ## Freigabegates
 
 ### RECR-POOL-ACTIVATION – Bewerberpool produktiv aktivieren

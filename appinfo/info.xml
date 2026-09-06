@@ -15,16 +15,16 @@
     <repository type="git">https://github.com/Filzmann/nextcloud-recruitment</repository>
     <dependencies>
         <php min-version="8.3"/>
-        <nextcloud min-version="34" max-version="34"/>
+        <nextcloud min-version="33" max-version="34"/>
     </dependencies>
-    <commands>
-        <command>OCA\Recruitment\Command\SeedDemoCommand</command>
-        <command>OCA\Recruitment\Command\SeedInboxCommand</command>
-    </commands>
     <background-jobs>
         <job>OCA\Recruitment\BackgroundJob\DeliverStatusMailJob</job>
         <job>OCA\Recruitment\BackgroundJob\CandidatePoolMaintenanceJob</job>
     </background-jobs>
+    <commands>
+        <command>OCA\Recruitment\Command\SeedDemoCommand</command>
+        <command>OCA\Recruitment\Command\SeedInboxCommand</command>
+    </commands>
     <settings>
         <admin>OCA\Recruitment\Settings\Admin</admin>
         <admin-section>OCA\Recruitment\Settings\AdminSection</admin-section>
