@@ -12,20 +12,33 @@ final class LocalPdfTextExtractor implements PdfTextExtractor {
     private const TIMEOUT_SECONDS = 15.0;
     private ?string $engine = null;
 
-    public function __construct(private ?string $executable = null) {
+    public function __construct(
+        private ?string $executable = null,
+        private int $maxTextBytes = self::MAX_TEXT_BYTES,
+        private float $timeoutSeconds = self::TIMEOUT_SECONDS,
+    ) {
+        $this->maxTextBytes = max(1, $this->maxTextBytes);
+        $this->timeoutSeconds = max(0.001, $this->timeoutSeconds);
         if ($this->executable !== null) {
             if (is_file($this->executable) && is_executable($this->executable)) {
-                $this->engine = str_contains(basename($this->executable), 'pdftotext') ? 'pdftotext' : 'ghostscript';
-            } else {
+                $this->engine = $this->engineForExecutable($this->executable);
+            }
+            if ($this->engine === null) {
                 $this->executable = null;
             }
             return;
         }
-        foreach ([['/usr/bin/pdftotext', 'pdftotext'], ['/usr/local/bin/pdftotext', 'pdftotext'], ['/usr/bin/gs', 'ghostscript'], ['/usr/local/bin/gs', 'ghostscript']] as [$candidate, $engine]) {
-            if (is_file($candidate) && is_executable($candidate)) {
+
+        $path = getenv('PATH');
+        foreach ($path === false ? [] : explode(PATH_SEPARATOR, $path) as $directory) {
+            $directory = rtrim(trim($directory), DIRECTORY_SEPARATOR);
+            if ($directory === '') continue;
+            foreach (['pdftotext', 'gs'] as $command) {
+                $candidate = $directory . DIRECTORY_SEPARATOR . $command;
+                if (!is_file($candidate) || !is_executable($candidate)) continue;
                 $this->executable = $candidate;
-                $this->engine = $engine;
-                break;
+                $this->engine = $this->engineForExecutable($candidate);
+                break 2;
             }
         }
     }
@@ -55,7 +68,7 @@ final class LocalPdfTextExtractor implements PdfTextExtractor {
             fclose($pipes[0]);
             stream_set_blocking($pipes[1], false);
             stream_set_blocking($pipes[2], false);
-            $deadline = microtime(true) + self::TIMEOUT_SECONDS;
+            $deadline = microtime(true) + $this->timeoutSeconds;
             do {
                 stream_get_contents($pipes[1]);
                 stream_get_contents($pipes[2]);
@@ -75,12 +88,20 @@ final class LocalPdfTextExtractor implements PdfTextExtractor {
             $exitCode = $status['exitcode'];
             proc_close($process);
             if ($exitCode !== 0 || !is_file($outputPath)) return '';
-            $text = file_get_contents($outputPath, false, null, 0, self::MAX_TEXT_BYTES + 1);
-            if ($text === false || strlen($text) > self::MAX_TEXT_BYTES) return '';
+            $text = file_get_contents($outputPath, false, null, 0, $this->maxTextBytes + 1);
+            if ($text === false || strlen($text) > $this->maxTextBytes) return '';
             return trim(str_replace("\0", '', str_replace(["\r\n", "\r"], "\n", $text)));
         } finally {
             if (is_file($inputPath)) unlink($inputPath);
             if (is_file($outputPath)) unlink($outputPath);
         }
+    }
+
+    private function engineForExecutable(string $executable): ?string {
+        return match (strtolower(basename($executable))) {
+            'pdftotext' => 'pdftotext',
+            'gs', 'ghostscript' => 'ghostscript',
+            default => null,
+        };
     }
 }

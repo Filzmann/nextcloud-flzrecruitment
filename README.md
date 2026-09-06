@@ -181,6 +181,13 @@ wird als noch nicht angebundene, deaktivierte Auswahl gezeigt. Es findet keine
 Übertragung an KI-Dienste statt. Bei der bestätigten Zuordnung werden
 Anrede, Titel, private E-Mail, Telefon, Eintrittsdatum und Ort ausschließlich
 in bislang leere Vertragsfelder übernommen; bestehende Werte bleiben erhalten.
+
+Poppler beziehungsweise Ghostscript sind optionale Betriebspakete und werden
+weder von der App noch vom Produktinstaller installiert. Die App erkennt
+`pdftotext` bevorzugt und `gs` ersatzweise ausschließlich über den `PATH` des
+PHP-Laufzeitkontexts. Ohne dort ausführbares Werkzeug zeigt die Administration
+„Nicht verfügbar“; Mail und Original-PDF werden weiterhin importiert, nur
+PDF-basierte Feldvorschläge entfallen.
 Der Vertragsbereich zeigt diese Daten zunächst kompakt und wechselt erst nach
 einem Klick in den Bearbeitungsmodus.
 Sichtbare E-Mail-Adressen öffnen über `mailto:` in einem neuen Browser-Tab das

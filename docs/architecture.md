@@ -342,6 +342,17 @@ technische Kategorie, keine Stelle und keine Berechtigung. PDF-Anhänge und die
 Originalnachricht werden nicht vom Feldextraktor, sondern von der
 übergeordneten, validierenden Inbox-Grenze verarbeitet. Die admin-geschützte
 AppConfig-Auswahl kennt aktuell ausschließlich die regelbasierte Verarbeitung.
+
+Die Engine ist eine optionale Deployment-Fähigkeit und keine implizite
+Funktionszusage. Der PHP-Prozess ermittelt `pdftotext` beziehungsweise `gs`
+aus seinem tatsächlichen `PATH`; feste Host- oder Containerpfade sind nicht
+Teil des Vertrags. App und Produktinstaller verändern keine Systempakete.
+Nicht ausführbare oder unbekannte Programme, deaktiviertes `proc_open`, ein
+Enginefehler, Timeout oder eine Ausgabe oberhalb des Limits liefern
+kontrolliert keinen Text. Temporäre Ein- und Ausgaben werden auf jedem Pfad
+entfernt. Runtime-Erkennung und Adminanzeige bleiben die kanonische Aussage
+über die konkrete Installation.
+
 Ein lokales Server-Modell ist als nicht aktivierbare Zukunftsoption sichtbar;
 seine spätere Aktivierung setzt einen installierten, ausschließlich lokalen
 Provider sowie eigene Datenschutz-, Qualitäts-, Ressourcen- und

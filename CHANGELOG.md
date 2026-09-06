@@ -4,6 +4,10 @@
 
 - Nextcloud 33.0.7 bis 34.0.2 durch Fresh Install und Upgrade 33→34 mit
   App-Suiten, DI-/Registrierungs-, API-, Rechte-, HTTPS-, Asset- und UI-Smokes unterstützt.
+- Optionale Poppler-/Ghostscript-Textextraktion von festen Hostpfaden gelöst
+  und an die tatsächliche `PATH`-Fähigkeit des PHP-Prozesses gebunden.
+- Erfolgs-, Ausfall-, Timeout-, Größenlimit- und Temp-Datei-Grenzen sowie den
+  unveränderten Mail-/Originalimport ohne PDF-Engine reproduzierbar geprüft.
 - Dokumentations- und Steuerungsstruktur vereinheitlicht; abgeschlossene
   Umsetzungspakete aus der Roadmap entfernt.
 

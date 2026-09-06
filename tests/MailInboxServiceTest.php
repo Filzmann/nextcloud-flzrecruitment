@@ -8,6 +8,7 @@ use OCA\Recruitment\Contract\PdfTextExtractor;
 use OCA\Recruitment\Exception\ConflictException;
 use OCA\Recruitment\Exception\ValidationException;
 use OCA\Recruitment\Service\ApplicationMailFieldExtractor;
+use OCA\Recruitment\Service\LocalPdfTextExtractor;
 use OCA\Recruitment\Service\MailInboxService;
 use RecruitmentTests\TestRunner;
 
@@ -187,6 +188,24 @@ TestRunner::test('mail inbox extracts attached PDF text before scanning standard
     assertSame(["%PDF-1.4\nsynthetisch"], $pdfText->contents);
     assertSame(['value' => 'Berlin', 'source' => 'resume_text_keyword'], $message['fieldSuggestions']['location']);
     assertSame(['value' => 'C1', 'source' => 'resume_text_keyword'], $message['fieldSuggestions']['germanLanguageLevel']);
+});
+
+TestRunner::test('mail inbox remains functional when local PDF extraction is unavailable', static function (): void {
+    $store = new MemoryMailInboxStore();
+    $files = new MemoryMailAttachmentStorage();
+    $service = new MailInboxService(
+        new ApplicationMailFieldExtractor(),
+        $store,
+        $files,
+        new LocalPdfTextExtractor('/definitely/not/installed/pdftotext'),
+    );
+
+    $result = $service->import(syntheticMail(), 'importer');
+
+    assertSame(true, $result['imported']);
+    assertSame(1, count($result['message']['attachments']));
+    assertSame("%PDF-1.4\nsynthetisch", reset($files->files));
+    assertSame(false, isset($result['message']['fieldSuggestions']['location']), 'Ohne Engine dürfen keine PDF-basierten Vorschläge erfunden werden.');
 });
 
 TestRunner::test('mail inbox rejects non-PDF and oversized attachments before persistence', static function (): void {
