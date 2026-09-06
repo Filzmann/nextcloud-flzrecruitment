@@ -36,6 +36,16 @@ gespeicherte Freitexte bleiben sprachneutral.
 - Optimistische Sperren, Konfliktanzeige und vollständige
   Statusprotokollierung erhalten.
 
+### RECR-APPLICANT-RATING – Bewertung und Geschlechtskennzeichnung
+
+- Eine zentrale, intuitive Fünf-Sterne-Bewertung für Bewerber*innen ergänzen
+  und in allen Ansichten derselben Person verfügbar machen.
+- Die Kennzeichnung unmittelbar an das kanonische Stammdatum `Geschlecht`
+  binden: Anzeigen oder Ändern von `m/w/d` liest beziehungsweise aktualisiert
+  immer denselben Wert. In allen Bewerber*innenansichten erscheint er mit
+  eindeutigem Icon sowie barrierefreiem Textlabel; ohne Angabe bleibt der Wert
+  unbekannt.
+
 ## Dokumente und Eingang
 
 ### RECR-DOCUMENTS – vollständige Bewerbungsakte
