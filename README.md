@@ -209,6 +209,18 @@ stehen in `docs/architecture.md`.
 
 Ein Nextcloud-Administrationskonto erhält nicht automatisch Zugriff auf Bewerbungsakten. Der fachliche Vollzugriff wird im Adminbereich von AD Recruitment pro Administrationskonto für 1, 4, 8 oder höchstens 24 Stunden aktiviert und kann vorzeitig widerrufen werden. Beginn, geplantes Ende, Freigabe und Widerruf werden app-lokal protokolliert und in Datenschutz- sowie Berechtigungsprovider einbezogen. Technische Systemeinstellungen bleiben davon getrennt.
 
+## Datenschutz
+
+Der app-eigene Processing-Katalog beschreibt Bewerbungsakten, Interviews und
+BQ, Posteingang und Dokumente, Einstellungsfreigaben, Statusmails, den
+Bewerberpool sowie temporäre Adminfreigaben über den öffentlichen V1-Vertrag
+des Datenschutz-Centers. Er enthält ausschließlich Policy-Metadaten und keine
+personenbezogenen Laufzeitdatensätze. Offene Rechtsgrundlagen, Retention-,
+Backup-, Restore-, Mailanbieter- und Betroffenenrechtsentscheidungen bleiben
+als `PRIVACY-DECISION-REQUIRED` sichtbar. Der bestehende PersonalDataProvider
+liefert nur interne Nextcloud-UID-Bezüge; eine Bewerber-Selbstauskunft bleibt
+bis zu einem sicheren authentifizierten Subject-Vertrag ausdrücklich offen.
+
 ## Abnahme und Roadmap
 
 Für die fachliche, visuelle, sicherheits- und datenschutzbezogene

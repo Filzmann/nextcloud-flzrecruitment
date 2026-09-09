@@ -21,7 +21,9 @@ use OCA\Recruitment\Service\TemporaryAdminAccessChecker;
 use OCA\Recruitment\Service\TemporaryAdminAccessService;
 use OCA\Recruitment\Permission\RecruitmentPermissionSourceInterface;
 use OCA\Recruitment\Privacy\RecruitmentPrivacyProviderListener;
+use OCA\Recruitment\Privacy\RecruitmentProcessingMetadataProviderListener;
 use OCA\FilzmannDataProtection\PublicApi\V1\RegisterPersonalDataProvidersEvent;
+use OCA\FilzmannDataProtection\PublicApi\V1\RegisterProcessingMetadataProvidersEvent;
 use OCA\FilzmannPermissionMatrix\PublicApi\V1\RegisterPermissionProvidersEvent;
 use OCA\Recruitment\Repository\RecruitmentRepository;
 use OCA\Recruitment\Service\AppDataMailAttachmentStorage;
@@ -43,6 +45,7 @@ final class Application extends App implements IBootstrap {
     public function register(IRegistrationContext $context): void {
         $context->registerEventListener(LoadAdditionalEntriesEvent::class, StandaloneNavigationListener::class);
         $context->registerEventListener(RegisterPersonalDataProvidersEvent::class, RecruitmentPrivacyProviderListener::class);
+        $context->registerEventListener(RegisterProcessingMetadataProvidersEvent::class, RecruitmentProcessingMetadataProviderListener::class);
         $context->registerEventListener(RegisterPermissionProvidersEvent::class, RecruitmentPermissionProviderListener::class);
         $context->registerServiceAlias(TemporaryAdminAccessChecker::class, TemporaryAdminAccessService::class);
         $context->registerServiceAlias(TemporaryAdminAccessRepositoryInterface::class, TemporaryAdminAccessRepository::class);

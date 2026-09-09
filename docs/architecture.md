@@ -313,6 +313,23 @@ Auch aufgelöste Werte aus Personen- und Stellendaten werden kontextgerecht als
 Text escaped, damit sie keine erlaubten HTML-Elemente oder Linkziele
 einschleusen können.
 
+## Processing-Metadaten
+
+Der zusätzliche `ProcessingMetadataProvider` veröffentlicht den app-eigenen
+Katalog `resources/privacy-processing.json` lazy über den öffentlichen
+Standalone-V1-Vertrag des Datenschutz-Centers. Er trennt Bewerbungsakte,
+Interviews und BQ, Posteingang und Dokumente, Einstellungsfreigabe,
+Statusmail-Kommunikation, Bewerberpool und temporäre Adminfreigaben. Der
+Katalog enthält keine personenbezogenen Laufzeitdaten und ersetzt fehlende
+fachliche Entscheidungen nicht durch technische Defaults.
+
+Die subjectgebundene Projektion interner Nextcloud-UID-Bezüge bleibt vom
+externen Bewerber-Subject getrennt. Solange kein sicher authentifizierter
+Applicant-Vertrag besteht, wird keine Bewerberakte aufgrund einer bloßen
+E-Mail-Übereinstimmung ausgegeben. `retention_state` begründet keine
+ausführende Retention-Policy; Mailanbieter-, Drittland-, Backup-, Restore- und
+differenzierte Löschentscheidungen bleiben sichtbar offen.
+
 ## Spätere Integrationen
 
 Ein IMAP-Adapter darf nur öffentliche Protokollschnittstellen verwenden und

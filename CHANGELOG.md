@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Einen app-eigenen Processing-Metadata-Katalog für Bewerbungsakte,
+  Interviews/BQ, Posteingang/Dokumente, Einstellungsfreigabe, Statusmail,
+  Bewerberpool und temporäre Adminfreigaben über den V1-Vertrag des
+  Datenschutz-Centers veröffentlicht.
 - Nextcloud 33.0.7 bis 34.0.2 durch Fresh Install und Upgrade 33→34 mit
   App-Suiten, DI-/Registrierungs-, API-, Rechte-, HTTPS-, Asset- und UI-Smokes unterstützt.
 - Optionale Poppler-/Ghostscript-Textextraktion von festen Hostpfaden gelöst

@@ -135,6 +135,12 @@ Bewerbermanagement orientierten Prozess innerhalb der AD-Suite ab:
   Berechtigungs-, Dokument- und Statusmail-Bearbeitungsnachweisen. Bewerberakten werden
   diesem Subject-Typ nicht über eine bloße E-Mail-Übereinstimmung zugeordnet;
   sie benötigen einen eigenen authentifizierten Subject-Vertrag.
+- AD Recruitment registriert zusätzlich einen `ProcessingMetadataProvider`
+  lazy über den öffentlichen V1-Vertrag des Datenschutz-Centers. Seine
+  einzige fachliche Policyquelle ist `resources/privacy-processing.json`; sie
+  enthält keine personenbezogenen Laufzeitdaten und markiert ungeklärte
+  Entscheidungen sowie die fehlende Bewerber-Selbstauskunft als
+  `PRIVACY-DECISION-REQUIRED`.
 
 ## Git, DDEV und Tests
 
