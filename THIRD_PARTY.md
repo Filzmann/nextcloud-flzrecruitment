@@ -2,14 +2,12 @@
 
 ## PDF.js
 
-- Komponente: Mozilla PDF.js / `pdfjs-dist`
-- Version: 6.2.108
-- Quelle: <https://github.com/mozilla/pdf.js/tree/v6.2.108>
-- Lizenz: Apache License 2.0
-- Lokale Lizenzkopie: `js/vendor/pdfjs/LICENSE`
-- npm-Integrität:
-  `sha512-YxFb+SQcodN2rnX9Tn3dHYlqfb7NjlzzfONPpJd+AKoKtUjEdevTfbC07d5TcczzOK6261auRkP/M8OBHs9vFQ==`
+Das kanonische maschinenlesbare Inventar liegt als
+[CycloneDX 1.6](resources/third-party-components.cdx.json) vor. Es bindet die
+Version, Paketquelle und -integrität, Lizenz, den App-Scope sowie den
+vollständigen ausgelieferten Dateibaum von PDF.js kryptografisch. Die lokale
+Lizenzkopie liegt unter `js/vendor/pdfjs/LICENSE`.
 
-Die ausgelieferten minimierten Browser-, Worker-, CMap-, Standardfont- und
-WASM-Artefakte stammen unverändert aus `pdfjs-dist@6.2.108`. AD Recruitment
-lädt sie ausschließlich app-lokal; es gibt keine CDN- oder Laufzeitabhängigkeit.
+AD Recruitment lädt die inventarisierten Browser-, Worker-, CMap-,
+Standardfont- und WASM-Artefakte ausschließlich app-lokal; es gibt keine CDN-
+oder Laufzeitabhängigkeit.

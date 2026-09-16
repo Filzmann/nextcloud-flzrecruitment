@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Das app-lokal gebündelte PDF.js als kanonische CycloneDX-Komponente mit
+  Paketquelle, Integrität, Runtime-Scope und vollständigem Bundle-Hash für
+  SBOM- und Security-Scanner-Nachweise erfasst.
 - Einen app-eigenen Processing-Metadata-Katalog für Bewerbungsakte,
   Interviews/BQ, Posteingang/Dokumente, Einstellungsfreigabe, Statusmail,
   Bewerberpool und temporäre Adminfreigaben über den V1-Vertrag des
