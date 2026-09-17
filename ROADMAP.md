@@ -13,12 +13,6 @@ geltende Architektur in `docs/architecture.md`.
 - Allgemeine Löschregel und Löschprozess festlegen.
 - Externen Self-Service für Einwilligung und Widerruf bereitstellen.
 
-### RECR-L10N – Oberfläche und Vorlagen lokalisieren
-
-Aktivierung ausschließlich nach Freigabe von Root-Vorhaben `ZM-06`.
-App-ID, Namespace, Tabellenpräfix, Status-, Revisions- und API-Schlüssel sowie
-gespeicherte Freitexte bleiben sprachneutral.
-
 ## Prozess und Arbeitsoberfläche
 
 ### RECR-PROCESS-CONFIG – konfigurierbare Prozessstati
@@ -126,3 +120,16 @@ gespeicherte Freitexte bleiben sprachneutral.
 - Den vollständigen Ablauf vom Eingang bis Abschluss beziehungsweise
   Einstellungsübergabe auf Staging fachlich, sicherheitlich, barrierebezogen
   und datenschutzbezogen prüfen.
+
+## Bewusst zurückgestellt – niedrigste Priorität
+
+### RECR-L10N – Oberfläche und Vorlagen lokalisieren
+
+Status seit 17. September 2026: Die Umsetzung beginnt erst nach allen höher
+priorisierten Roadmap-Aufgaben und einer erneuten ausdrücklichen Freigabe des
+Root-Vorhabens `ZM-06`. Neue Funktionen und Codeänderungen berücksichtigen
+die spätere Lokalisierbarkeit an den jeweils berührten Stellen, lösen aber
+keine flächige Umstellung oder Übersetzungsimplementierung aus.
+
+App-ID, Namespace, Tabellenpräfix, Status-, Revisions- und API-Schlüssel sowie
+gespeicherte Freitexte bleiben bei der späteren Umsetzung sprachneutral.
