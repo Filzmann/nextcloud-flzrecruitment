@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Die reguläre Bewerbungsakten-Aufbewahrung auf höchstens sechs Monate nach
+  Verfahrensabschluss festgelegt und den freiwilligen Bewerberpool als
+  getrennte, zwölfmonatige, versioniert einwilligungsgebundene Verarbeitung
+  mit relevanten Unterlagen, unmittelbarem Widerruf und ausschließlich
+  manuell ausgelöstem Stellenhinweis präzisiert; BQ-Daten bleiben davon
+  vollständig getrennt.
 - Das app-lokal gebündelte PDF.js als kanonische CycloneDX-Komponente mit
   Paketquelle, Integrität, Runtime-Scope und vollständigem Bundle-Hash für
   SBOM- und Security-Scanner-Nachweise erfasst.

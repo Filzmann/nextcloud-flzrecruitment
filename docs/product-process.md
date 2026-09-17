@@ -376,29 +376,45 @@ Anmerkungen.
 
 Abgelehnte, zurückgezogene und eingestellte Bewerbungen werden nicht durch
 eine bloße Statusänderung gelöscht. Statusabschluss, operative
-Archivierung, gesetzliche Aufbewahrung und endgültige Löschung sind getrennte
-Vorgänge. Die Teilnahme an einer Basisqualifikation ist keine Einwilligung in
-eine verlängerte Aufbewahrung. Fristen, Rechtsgrundlagen, Ausnahmen, Sperren
-und Nachweise müssen vor der automatischen Löschung verbindlich festgelegt
-werden.
+Archivierung und endgültige Löschung sind getrennte Vorgänge. Reguläre
+Bewerbungsakten einschließlich ihrer Unterlagen dürfen nach dem fachlichen
+Abschluss des Bewerbungsverfahrens höchstens sechs Monate aufbewahrt werden.
+Eine gesonderte Pool-Einwilligung verlängert diese Frist nicht, sondern
+begründet die nachfolgend getrennt beschriebene Poolverarbeitung. Technische
+Löschreihenfolge, Sperrgründe, Nachweise sowie Backup- und Restore-Behandlung
+müssen vor der automatischen Ausführung verbindlich festgelegt werden.
 
 ### Datenschutzgerechte Rückstellung im Bewerberpool
 
-Eine Rückstellung ist ausschließlich nach Absage, Rückzug oder Archivierung
-möglich. Sie ist von der ursprünglichen Bewerbung und von einer BQ-Teilnahme
-getrennt, freiwillig, versioniert nachweisbar und jederzeit widerrufbar. Der
-Pool hält nur Personbezug, Ausgangsbewerbung, Berufsgruppe, gewünschten
-Stundenkorridor und gewählte Bereiche vor; Interviewantworten,
-Freitextnotizen und Dokumente sind keine Matchingmerkmale.
+Eine Rückstellung ist für aktuell nicht angenommene Bewerber*innen sowie für
+Initiativbewerber*innen ohne aktuell passende Ausschreibung vorgesehen. Sie
+betrifft in erster Linie andere Berufsgruppen als Assistenz. Die Teilnahme,
+Zuordnung oder Bewertung in einer Basisqualifikation ist weder Voraussetzung
+noch Auswahlmerkmal und verlängert keine Poolfrist. Die Rückstellung ist von
+der ursprünglichen Bewerbung und von jeder BQ-Verarbeitung getrennt,
+freiwillig, versioniert nachweisbar und jederzeit widerrufbar.
 
-Die Standarddauer einer Einwilligung beträgt zwölf Monate, die interne
-Wiedervorlage erfolgt 30 Tage vor Ablauf. Widerruf und Ablauf stoppen Matching
-unmittelbar. Das tägliche Matching erzeugt nur transparente Vorschläge für
-die Personalreferenz; Kontaktaufnahme, neue Bewerbung, Zu- oder Absage
-erfolgen niemals automatisch. Die Funktion ist initial deaktiviert und setzt
-zur Aktivierung einen freigegebenen, versionierten Datenschutzhinweis voraus.
-Eine automatische Löschung folgt erst nach separater Freigabe der allgemeinen
-Löschregel und ihres Fehler- und Roll-forward-Verhaltens.
+Der Pool hält Personbezug, Ausgangsbewerbung, Berufsgruppe, gewünschten
+Stundenkorridor, gewählte Bereiche und die für eine spätere Bewerbung
+relevanten Bewerbungsunterlagen vor. Unterlagen bleiben Teil der Poolakte,
+werden aber nicht automatisch als Matchingmerkmale ausgewertet.
+Interviewantworten, Freitextnotizen und BQ-Daten werden nicht in die
+Poolverarbeitung übernommen.
+
+Die Einwilligung gilt zwölf Monate ab Erteilung oder ausdrücklicher
+Erneuerung. Widerruf und Ablauf stoppen Matching und aktive Poolnutzung
+unmittelbar; Profil und Bewerbungsunterlagen werden dann aus dem aktiven Pool
+entfernt. Die Behandlung eines minimal erforderlichen Einwilligungs- und
+Bearbeitungsnachweises nach der Entfernung bleibt gesondert zu entscheiden.
+
+Für neu veröffentlichte, passende Ausschreibungen darf eine Nachricht nur
+auf ausdrückliche Nachfrage beim Veröffentlichen oder durch einen manuellen
+Auslöser einer berechtigten Person vorbereitet und versandt werden. Weder
+Poolaufnahme noch Kontakt, neue Bewerbung, Zu- oder Absage erfolgen
+automatisch. Die Funktion ist initial deaktiviert und setzt zur Aktivierung
+einen freigegebenen, versionierten Datenschutzhinweis voraus. Die technische
+Löschung folgt erst nach Freigabe ihres nebenläufigkeitssicheren Fehler-,
+Nachweis- und Roll-forward-Verhaltens.
 
 ## Administration
 

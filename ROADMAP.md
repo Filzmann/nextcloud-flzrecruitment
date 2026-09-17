@@ -10,8 +10,14 @@ geltende Architektur in `docs/architecture.md`.
 ### RECR-POOL-ACTIVATION – Bewerberpool produktiv aktivieren
 
 - Versionierten Datenschutzhinweis freigeben.
-- Allgemeine Löschregel und Löschprozess festlegen.
-- Externen Self-Service für Einwilligung und Widerruf bereitstellen.
+- Zwölfmonatsfrist, unmittelbare Entfernung bei Widerruf oder Ablauf und den
+  sicheren Löschprozess technisch umsetzen; Umfang und Frist des danach
+  minimal erforderlichen Einwilligungsnachweises noch entscheiden.
+- Externen Self-Service für Erteilung, Erneuerung und Widerruf der
+  versionierten Einwilligung bereitstellen.
+- Versandhinweise auf passende neue Ausschreibungen ausschließlich nach
+  ausdrücklicher Nachfrage beim Veröffentlichen oder manuellem Auslöser
+  umsetzen und abnehmen.
 
 ## Prozess und Arbeitsoberfläche
 
@@ -47,8 +53,10 @@ geltende Architektur in `docs/architecture.md`.
 - Besitzmodell, Nextcloud-Dateispeicher, Ordnergrenzen, besonders geschützte
   Dokumente, Shares, Virenprüfung, Export, Backup und Wiederherstellung
   festlegen.
-- Aufbewahrung, Archivierung und Löschung einschließlich Rechtsgrundlage,
-  Sperren und Nachweisen entscheiden.
+- Die beschlossene Höchstfrist von sechs Monaten nach Verfahrensabschluss
+  für reguläre Bewerbungsakten und Unterlagen koordiniert in Datenbank und
+  AppData umsetzen; Sperren, Löschreihenfolge, Nachweis sowie Backup- und
+  Restore-Behandlung noch entscheiden und abnehmen.
 
 ### RECR-MAIL-INBOX – reale Postfächer anbinden
 

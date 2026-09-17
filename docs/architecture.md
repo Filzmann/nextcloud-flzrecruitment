@@ -326,9 +326,23 @@ fachliche Entscheidungen nicht durch technische Defaults.
 Die subjectgebundene Projektion interner Nextcloud-UID-Bezüge bleibt vom
 externen Bewerber-Subject getrennt. Solange kein sicher authentifizierter
 Applicant-Vertrag besteht, wird keine Bewerberakte aufgrund einer bloßen
-E-Mail-Übereinstimmung ausgegeben. `retention_state` begründet keine
-ausführende Retention-Policy; Mailanbieter-, Drittland-, Backup-, Restore- und
-differenzierte Löschentscheidungen bleiben sichtbar offen.
+E-Mail-Übereinstimmung ausgegeben.
+
+Für reguläre Bewerbungsakten und zugehörige Unterlagen gilt ab fachlichem
+Verfahrensabschluss eine Höchstfrist von sechs Monaten. Die freiwillige,
+versioniert nachweisbare Pool-Einwilligung bildet eine getrennte Verarbeitung
+für aktuell nicht angenommene oder initiativ Bewerbende und gilt zwölf Monate
+ab Erteilung oder Erneuerung. Sie bewahrt relevante Bewerbungsunterlagen,
+nicht aber Interviewantworten, Freitextnotizen oder BQ-Daten. BQ-Teilnahme,
+-Zuordnung und -Ergebnis beeinflussen weder Poolaufnahme noch Poolfrist.
+Widerruf und Ablauf beenden die aktive Poolnutzung unmittelbar.
+
+Poolkontakte zu neu passenden Ausschreibungen benötigen eine ausdrückliche
+Nachfrage beim Veröffentlichen oder einen manuellen Auslöser; Poolaufnahme,
+Kontakt und Bewerbungsentscheidung werden nicht automatisch ausgelöst.
+`retention_state` begründet weiterhin keine ausführende Retention-Policy.
+Technische Löschreihenfolge, Nachweisumfang, Sperren sowie Mailanbieter-,
+Drittland-, Backup- und Restore-Entscheidungen bleiben sichtbar offen.
 
 ## Spätere Integrationen
 

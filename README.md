@@ -215,9 +215,11 @@ Der app-eigene Processing-Katalog beschreibt Bewerbungsakten, Interviews und
 BQ, Posteingang und Dokumente, Einstellungsfreigaben, Statusmails, den
 Bewerberpool sowie temporäre Adminfreigaben über den öffentlichen V1-Vertrag
 des Datenschutz-Centers. Er enthält ausschließlich Policy-Metadaten und keine
-personenbezogenen Laufzeitdatensätze. Offene Rechtsgrundlagen, Retention-,
-Backup-, Restore-, Mailanbieter- und Betroffenenrechtsentscheidungen bleiben
-als `PRIVACY-DECISION-REQUIRED` sichtbar. Der bestehende PersonalDataProvider
+personenbezogenen Laufzeitdatensätze. Noch offene Rechtsgrundlagen sowie
+Retention-, Backup-, Restore-, Mailanbieter- und
+Betroffenenrechtsentscheidungen bleiben als `PRIVACY-DECISION-REQUIRED`
+sichtbar; beschlossene Teilregeln ersetzen keine noch fehlende technische
+Lösch- oder Restore-Ausführung. Der bestehende PersonalDataProvider
 liefert nur interne Nextcloud-UID-Bezüge; eine Bewerber-Selbstauskunft bleibt
 bis zu einem sicheren authentifizierten Subject-Vertrag ausdrücklich offen.
 
