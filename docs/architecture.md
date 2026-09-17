@@ -77,7 +77,10 @@ weder Snapshot noch Antworten bestehender Interviews.
 
 ## Berechtigungen
 
-Nextcloud-Admins und die LocalBase-Rolle `staff_hr` besitzen alle App-Rechte.
+Die LocalBase-Rolle `staff_hr` besitzt die fachlichen App-Rechte.
+Nextcloud-Admins erhalten fachlichen Vollzugriff nur mit einer aktiven,
+app-lokalen, höchstens 24 Stunden gültigen Freigabe; nativer Adminstatus allein
+genügt nicht.
 `finance` erhält keine Recruitment-Rechte. `payroll` darf für
 `approved_for_hire` und `hired` sowie während einer laufenden BQ mit
 ausstehendem oder geeignetem Ergebnis ausschließlich die Vertragsstammdaten
@@ -93,10 +96,41 @@ Personalreferat und Nextcloud-Admins verfügbar. Sie schützt Durchlauf-,
 Zuordnungs- und Bewertungsendpunkte vor jedem Objektzugriff.
 
 Personalreferent*innen konfigurieren Vertretungskräfte nach einzelnen
-Fähigkeiten. Jeder Eintrag gilt entweder global, für ausgewählte LocalBase-
-Bürobereiche oder für einzelne Bewerbungs-IDs. Die Verwaltung weiterer
-Vertretungen ist selbst nicht delegierbar. Nur Nextcloud-Admins ändern die
-strukturelle Erstbegleitungsgruppe.
+Fähigkeiten und festen LocalBase-Bürobereichen. Die Verwaltung weiterer
+Vertretungen ist selbst nicht delegierbar. Die bestehende technische
+Möglichkeit globaler oder einzelbewerbungsbezogener Grants muss vor der
+fachlichen Freigabe auf diesen Zielvertrag migriert und mit Allow-, Deny- und
+Fremdobjekttests abgesichert werden. Nur Nextcloud-Admins mit aktiver
+app-lokaler Freigabe ändern die strukturelle Erstbegleitungsgruppe.
+
+Die fachliche Verantwortung für Bewerbungsakten, Pool und Auswahl liegt bei
+Personalreferent*innen und den von ihnen ausdrücklich benannten Vertretungen
+innerhalb fester Bereiche. Eine manuelle Fünf-Sterne-Bewertung ist nur in
+diesem Scope sichtbar und änderbar. Sie ist keine Berechnungsgrundlage:
+automatisches Scoring, Ranking, Profiling, Sortieren, Filtern, Empfehlen oder
+Entscheiden sowie automatische Folgen und externe Offenlegung sind
+ausgeschlossen. Gleiches gilt für das getrennte, ausschließlich manuell
+gepflegte Stammdatum `m/w/d` für Assistenz-Bewerber*innen. Es bleibt intern,
+wird Assistenznehmer*innen nicht offengelegt und verbleibt bis zu einer
+später gesondert modellierten Übergabe kanonisch in AD Recruitment.
+
+Die optionale Selbstauskunft `schwerbehindert oder gleichgestellt` erhält eine
+eigene Schutzgrenze. GdB-Zahl und medizinische Details sind keine
+strukturierten Felder und werden weder extrahiert noch bewertet. Die positive
+Angabe verlangt die app-spezifische native Nextcloud-Gruppe
+`schwerbehindertenvertretung`, eine fallbezogene Minimalbenachrichtigung und
+einen eng begrenzten, serverseitig geprüften Zugriff auf
+entscheidungsrelevante Inhalte. Die Einstellungsentscheidung bleibt bis zur
+dokumentierten Beteiligung oder einer nachweisbaren, bis dahin widerrufbaren
+Ablehnung der Bewerberperson gesperrt. Fehlender oder ungeklärter
+Organisationsstatus wirkt deny by default. Die Laufzeitimplementierung,
+Gruppenbereitstellung und Allow-/Deny-/Manipulationstests stehen aus.
+
+Die Betriebsratsbeteiligung bleibt vollständig außerhalb dieser App. Eine
+optionale Wunschanrede wird getrennt von `m/w/d`, ohne Ableitung oder
+Auswahlwirkung und erst nach einer gegebenenfalls erforderlichen externen
+BR-Freigabe aktiviert. In den Pool darf sie nur aufgrund der ausdrücklichen
+Pool-Einwilligung gelangen.
 
 Diese strukturelle Gruppe sowie Mail-Testmodus und
 Lebenslaufextraktion werden über einen app-eigenen `ISettings`-Abschnitt im
@@ -108,8 +142,10 @@ keine administrativen Systemrechte.
 
 Die operativen Bewerberpool-Grundwerte bleiben dagegen Teil des
 Recruitment-Moduls. `manage_candidate_pool` schützt Anzeige und Änderung
-serverseitig und bleibt Personalreferat und Nextcloud-Admins vorbehalten sowie
-nicht delegierbar. Aufbewahrungsfristen und andere fachliche
+serverseitig und bleibt Personalreferat sowie ausdrücklich berechtigten
+Vertretungen in ihren festen Bereichen vorbehalten. Ein nativer Nextcloud-
+Admin benötigt auch hierfür eine aktive app-lokale Freigabe.
+Aufbewahrungsfristen und andere fachliche
 Datenschutzkonfiguration gehören nicht zu dieser Fähigkeit; sie sind
 ausschließlich serverseitig für Mitglieder der Nextcloud-Gruppe
 `Datenschutzbeauftragte` freizugeben. BQ-Durchläufe und -Bewertungen sind ebenfalls app-lokal,
@@ -322,18 +358,26 @@ Der zusätzliche `ProcessingMetadataProvider` veröffentlicht den app-eigenen
 Katalog `resources/privacy-processing.json` lazy über den öffentlichen
 Standalone-V1-Vertrag des Datenschutz-Centers. Er trennt Bewerbungsakte,
 Interviews und BQ, Posteingang und Dokumente, Einstellungsfreigabe,
-Statusmail-Kommunikation, Bewerberpool und temporäre Adminfreigaben. Der
+Statusmail-Kommunikation, Bewerberpool, SBV-Beteiligung, manuelle
+Betroffenenrechte und temporäre Adminfreigaben. Der
 Katalog enthält keine personenbezogenen Laufzeitdaten und ersetzt fehlende
 fachliche Entscheidungen nicht durch technische Defaults.
 
 Die subjectgebundene Projektion interner Nextcloud-UID-Bezüge bleibt vom
-externen Bewerber-Subject getrennt. Solange kein sicher authentifizierter
-Applicant-Vertrag besteht, wird keine Bewerberakte aufgrund einer bloßen
-E-Mail-Übereinstimmung ausgegeben.
+externen Bewerber-Subject getrennt. Der beschlossene manuelle Prozess beginnt
+mit einer Identitätsprüfung außerhalb der App. Personalreferat übergibt danach
+nur eine stabile Bewerber-ID an das Datenschutz-Center; eine Suche oder
+Zuordnung anhand von Name oder E-Mail-Adresse bleibt verboten.
+Datenschutzbeauftragte prüfen die app-eigene Vorschau und versenden sie erst
+manuell über einen verifizierten externen Kanal. Der Provider-, Vorschau- und
+Rechtevorgangsvertrag ist noch nicht implementiert.
 
 Für reguläre Bewerbungsakten und zugehörige Unterlagen gilt ab fachlichem
-Verfahrensabschluss ein administrativ konfigurierbarer Standardwert von sechs
-Monaten. Die freiwillige, versioniert nachweisbare Pool-Einwilligung bildet
+Verfahrensabschluss einschließlich der Kommunikation ein administrativ
+konfigurierbarer Standardwert von sechs Monaten. Zur Einstellung freigegebene
+Akten dürfen ab Freigabe höchstens sechs Monate für selektiven manuellen
+Export oder erforderliche Weiterbearbeitung vorgehalten und früher manuell
+gelöscht werden. Die freiwillige, versioniert nachweisbare Pool-Einwilligung bildet
 eine getrennte Verarbeitung für aktuell nicht angenommene oder initiativ
 Bewerbende und verwendet zwölf Monate ab Erteilung oder Erneuerung als
 administrativ konfigurierbaren Standardwert. Beide Werte dürfen durch
@@ -344,16 +388,42 @@ ersetzt keine passende Einwilligung und hebt einen Widerruf nicht auf. Die
 Poolverarbeitung bewahrt relevante Bewerbungsunterlagen, nicht aber
 Interviewantworten, Freitextnotizen oder BQ-Daten. BQ-Teilnahme,
 -Zuordnung und -Ergebnis beeinflussen weder Poolaufnahme noch Poolfrist.
-Widerruf und Ablauf beenden die aktive Poolnutzung unmittelbar.
+Widerruf beendet die aktive Poolnutzung und löscht Profil, Unterlagen und
+personenbezogenen Einwilligungsnachweis unmittelbar. Nach Ablauf gilt eine
+zehntägige, ausschließlich der Erneuerung dienende Sperrphase ohne Matching,
+Kontakt oder Hinweise; danach wird ohne Erneuerung vollständig gelöscht.
+Vierzehn Tage vor Ablauf ist genau eine inhaltsarme Erinnerung zulässig.
 
-Poolkontakte zu neu passenden Ausschreibungen benötigen eine ausdrückliche
-Nachfrage beim Veröffentlichen oder einen manuellen Auslöser; Poolaufnahme,
-Kontakt und Bewerbungsentscheidung werden nicht automatisch ausgelöst.
+Poolkontakte zu neu passenden Ausschreibungen beruhen höchstens auf
+transparenten Regelvorschlägen zu Berufsgruppe, Stundenkorridor und Region.
+Sie benötigen in jedem Fall Prüfung, Bestätigung und manuellen Versand durch
+Personalreferat oder fest bereichsgebundene Vertretungen. Poolaufnahme,
+Kontakt und Bewerbungsentscheidung werden nicht automatisch ausgelöst. Eine
+neue Bewerbung ist ein eigenständiger Datensatz; Poolfelder und Unterlagen
+dürfen nur nach ausdrücklicher Bestätigung als bearbeitbare Vorlage übernommen
+werden. Der minimale Kontaktlog wird mit der Poolakte gelöscht.
 `retention_state` begründet weiterhin keine ausführende Retention-Policy.
 Technische Löschreihenfolge, Policyversion und Wirksamkeitszeitpunkt,
-rückwirkende Neuberechnung, Nachweisumfang, Sperren, Nebenläufigkeit,
-Fehlerdiagnostik und Roll-forward sowie Mailanbieter-, Drittland-, Backup- und
-Restore-Entscheidungen bleiben sichtbar offen.
+rückwirkende Neuberechnung, rechtliche und datenschutzrechtliche Sperren,
+Nebenläufigkeit, Wiederholungsverhalten, datensparsame Fehlernachweise,
+Roll-forward und Restore-Neuplanung aus dem ursprünglichen Trigger sowie
+Mailanbieter-, Drittland- und Backup-Entscheidungen bleiben sichtbar offen.
+Nach automatischen Wiederholungsversuchen erhält `Datenschutzbeauftragte` nur
+App, Datenklasse, Zeitpunkt und technische Referenz. Der technische
+Fehlernachweis enthält keine Bewerbungsinhalte und wird nach dreißig Tagen
+gelöscht.
+Automatische Löschung wird erst nach Umsetzung und Abnahme dieses Vertrags
+behauptet.
+
+Rechtevorgänge speichern ausschließlich stabile Bewerber-ID, Zeitpunkte und
+Ergebnis und werden sechs Monate nach Abschluss gelöscht. Korrekturen führt
+das zuständige Personalreferat beziehungsweise seine fest bereichsgebundene
+Vertretung aus; Datenschutzbeauftragte bestätigen sie im Vorgang. Bei
+Löschwünschen schützen aktive rechtliche oder datenschutzrechtliche Sperren
+den konkret benannten Rechtszweck, sperren aber Auswahl, Pool, Kommunikation
+und Export. Nur `Datenschutzbeauftragte` dürfen eine Sperre begründet und
+auditiert aufheben. Manuelle Exporte protokollieren Empfänger, Umfang und
+Zeitpunkt für sechs Monate, jedoch keine Kopie der Daten.
 
 ## Spätere Integrationen
 

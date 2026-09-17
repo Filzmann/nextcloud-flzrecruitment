@@ -109,6 +109,35 @@ Die Detailansicht umfasst mindestens:
 - bei BQ-Zuordnung beziehungsweise Einstellungsfreigabe die getrennten
   Vertragsstammdaten.
 
+Fachlich verantwortlich sind Personalreferent*innen. Von ihnen ausdrücklich
+benannte Vertretungen bearbeiten ausschließlich ihre fest zugewiesenen
+Bereiche und Fähigkeiten. Für jede Ansicht und Aktion gilt durchgehend das
+Least-to-know-Prinzip; eine allgemeine Sichtbarkeit der Recruiting-App oder
+eine technische Administrationsrolle erteilt keinen fachlichen Zugriff.
+
+Eine Fünf-Sterne-Bewertung bleibt eine ausschließlich manuell eingetragene
+Auswahlhilfe für berechtigte Personalreferent*innen und ihre fest
+bereichsgebundenen Vertretungen. Sie wird weder berechnet noch für
+automatische Sortierung, Filterung, Ranking, Profiling, Empfehlung oder
+Entscheidung verwendet, löst keine automatische Folge aus und wird nicht
+extern offengelegt. Die abschließende Auswahl trifft immer ein Mensch.
+
+Das getrennte Stammdatum `m/w/d` bleibt für Assistenz-Bewerber*innen erhalten,
+weil es später die selbstbestimmte Personalauswahl unterstützen kann. Es wird
+ausschließlich manuell durch Personalreferat oder fest bereichsgebundene
+Vertretungen gepflegt, niemals abgeleitet, bewertet oder für automatische
+Entscheidungen genutzt und nur intern nach Least-to-know angezeigt.
+Assistenznehmer*innen erhalten in diesem Recruitingprozess keine Information
+daraus. Eine spätere Übergabe an einen noch zu modellierenden Folgeprozess
+wird hier nur als Systemgrenze benannt; AD Recruitment bleibt bis dahin die
+kanonische Quelle.
+
+Eine optionale respektvolle Wunschanrede ist fachlich und technisch von
+`m/w/d` getrennt. Sie wird weder abgeleitet noch bewertet. Das Feld wird erst
+aktiviert, nachdem eine gegebenenfalls erforderliche Beteiligung des
+Betriebsrats außerhalb des Systems abgeschlossen ist; in den Bewerberpool
+wird es nur mit ausdrücklicher Pool-Einwilligung übernommen.
+
 Erkennbare Stammdaten aus Nachrichtentexten und Anhängen werden als
 Feldvorschläge dargestellt. Jeder Vorschlag zeigt seine Quelle und wird vor
 der Übernahme durch eine berechtigte Person bestätigt oder korrigiert. Die
@@ -323,6 +352,10 @@ manuelle BQ-Prozess vollständig nutzbar.
 - Eine Entscheidung führt über einen zulässigen Statusübergang. Absage,
   Rückzug, BQ-Zuordnung, BQ-Ergebnis und Einstellungsfreigabe bleiben mit
   Zeitpunkt und ausführender Person nachvollziehbar.
+- Scoring, algorithmisches Ranking, Profiling und automatische
+  Bewerbungsentscheidungen sind ausgeschlossen. Manuelle Bewertungen und
+  Validierungen unterstützen berechtigte Personen, ersetzen ihre Entscheidung
+  aber nicht.
 
 ### 9. Kommunikation
 
@@ -377,16 +410,29 @@ Anmerkungen.
 Abgelehnte, zurückgezogene und eingestellte Bewerbungen werden nicht durch
 eine bloße Statusänderung gelöscht. Statusabschluss, operative
 Archivierung und endgültige Löschung sind getrennte Vorgänge. Reguläre
-Bewerbungsakten einschließlich ihrer Unterlagen verwenden ab dem fachlichen
-Abschluss des Bewerbungsverfahrens sechs Monate als administrativ
-konfigurierbaren Standardwert. Mitglieder der Nextcloud-Gruppe
+Bewerbungsakten einschließlich ihrer Unterlagen und ein- sowie ausgehenden
+Kommunikation werden spätestens sechs Monate nach dem fachlichen Abschluss
+des Bewerbungsverfahrens gelöscht, sofern keine gesonderte Einwilligung oder
+aktive rechtliche beziehungsweise datenschutzrechtliche Sperre entgegensteht.
+Sechs Monate sind zugleich der administrativ konfigurierbare Standardwert.
+Mitglieder der Nextcloud-Gruppe
 `Datenschutzbeauftragte` dürfen die Frist verkürzen oder verlängern; eine
 Änderung gilt anhand des ursprünglichen Abschlusszeitpunkts auch für bereits
 vorhandene Akten.
+Zur Einstellung freigegebene Akten dürfen ab der Freigabe höchstens sechs
+Monate für einen selektiven manuellen Export oder die erforderliche
+Weiterbearbeitung vorgehalten und schon vorher manuell gelöscht werden. Ohne
+aktive Sperre erfolgt danach die automatische Löschung. Der spätere
+Vertragsvorbereitungs- und Stammdatenprozess ist eine eigene, noch zu
+modellierende Verarbeitung und wird nicht durch eine pauschale Übernahme der
+Bewerbungsakte vorweggenommen.
 Eine gesonderte Pool-Einwilligung verlängert diese Frist nicht, sondern
 begründet die nachfolgend getrennt beschriebene Poolverarbeitung. Technische
-Löschreihenfolge, Sperrgründe, Nachweise sowie Backup- und Restore-Behandlung
-müssen vor der automatischen Ausführung verbindlich festgelegt werden.
+Policyversion und Wirksamkeitszeitpunkt, Löschreihenfolge, Sperren,
+Nebenläufigkeit, Wiederholungsverhalten, Fehlernachweise und
+Backup-/Restore-Neuplanung aus dem ursprünglichen Trigger müssen vor der
+automatischen Ausführung verbindlich umgesetzt und abgenommen werden. Bis
+dahin behauptet AD Recruitment keine ausführende Retention-Funktion.
 
 ### Datenschutzgerechte Rückstellung im Bewerberpool
 
@@ -411,20 +457,88 @@ Mitglieder der Gruppe `Datenschutzbeauftragte` dürfen diese Frist verkürzen
 oder verlängern; Änderungen werden auch für vorhandene Poolakten aus ihrem
 ursprünglichen Einwilligungs- oder Erneuerungszeitpunkt neu berechnet. Eine
 rückwirkende Verlängerung ersetzt keine erforderliche passende Einwilligung
-und hebt einen Widerruf nicht auf. Widerruf und Ablauf stoppen Matching und
-aktive Poolnutzung unmittelbar;
-Profil und Bewerbungsunterlagen werden dann aus dem aktiven Pool entfernt. Die
-Behandlung eines minimal erforderlichen Einwilligungs- und
-Bearbeitungsnachweises nach der Entfernung bleibt gesondert zu entscheiden.
+und hebt einen Widerruf nicht auf. Ein Widerruf beendet Matching, Kontakt und
+aktive Poolnutzung sofort und löscht das gesamte Poolprofil, die
+Poolunterlagen und jeden personenbezogenen Einwilligungsnachweis. Mit
+Fristablauf beginnt eine zehn Tage lange Übergangsfrist, in der das Profil
+vollständig inaktiv ist und ausschließlich eine Erneuerung der Einwilligung
+zulässig bleibt. Ohne Erneuerung werden nach zehn Tagen ebenfalls Profil,
+Unterlagen und personenbezogener Einwilligungsnachweis vollständig gelöscht.
+Genau eine datensparsame Erinnerung darf vierzehn Tage vor Ablauf versandt
+werden; sie enthält keine Stellen-, Bewerbungs- oder sonstigen Akteninhalte.
 
 Für neu veröffentlichte, passende Ausschreibungen darf eine Nachricht nur
 auf ausdrückliche Nachfrage beim Veröffentlichen oder durch einen manuellen
-Auslöser einer berechtigten Person vorbereitet und versandt werden. Weder
+Auslöser einer berechtigten Person vorbereitet werden. Regelvorschläge dürfen
+nur transparente Merkmale wie Berufsgruppe, Stundenkorridor und Region
+verwenden. Personalreferent*innen oder ihre fest bereichsgebundenen
+Vertretungen prüfen und bestätigen jede Kontaktaufnahme und lösen den Versand
+manuell aus. Der minimale Kontaktverlauf enthält nur Stellenreferenz,
+Zeitpunkt und manuellen Auslöser und wird mit der Poolakte gelöscht. Weder
 Poolaufnahme noch Kontakt, neue Bewerbung, Zu- oder Absage erfolgen
-automatisch. Die Funktion ist initial deaktiviert und setzt zur Aktivierung
-einen freigegebenen, versionierten Datenschutzhinweis voraus. Die technische
-Löschung folgt erst nach Freigabe ihres nebenläufigkeitssicheren Fehler-,
-Nachweis- und Roll-forward-Verhaltens.
+automatisch; BQ-Daten sind hierfür irrelevant. Die Funktion ist initial
+deaktiviert und setzt zur Aktivierung einen freigegebenen, versionierten
+Datenschutzhinweis voraus.
+
+Eine spätere Bewerbung ist stets eine neue, eigenständige Bewerbung mit
+eigenem Fristbeginn. Alte Poolfelder und -unterlagen dürfen erst nach
+ausdrücklicher Bestätigung der Bewerberperson als bearbeitbare Vorlage
+übernommen werden. Die Übernahme reaktiviert weder die frühere Bewerbung noch
+die Pool-Einwilligung.
+
+### Beteiligung der Schwerbehindertenvertretung
+
+Die freiwillige Selbstauskunft beschränkt sich auf die Angabe
+`schwerbehindert oder gleichgestellt`. GdB-Zahl, Diagnosen und medizinische
+Details werden nicht als strukturierte Bewerbungsdaten erhoben; aus
+Unterlagen werden solche Angaben weder per OCR noch durch andere Extraktion
+übernommen, bewertet oder für Scoring verwendet.
+
+Eine positive Angabe löst die Beteiligung der Schwerbehindertenvertretung
+aus. Die Einstellungsentscheidung bleibt bis zur dokumentierten Beteiligung
+gesperrt. Lehnt die Bewerberperson die Beteiligung ausdrücklich ab, wird dies
+nachweisbar festgehalten; die Ablehnung kann bis zur Einstellungsentscheidung
+widerrufen werden und die Beteiligung beginnt dann unverzüglich.
+
+Die app-spezifische native Nextcloud-Gruppe
+`schwerbehindertenvertretung` erhält zunächst nur eine datensparsame
+Benachrichtigung mit Fallreferenz. Nach Anmeldung sieht sie ausschließlich die
+entscheidungsrelevanten Teile der konkreten Bewerbung und kann ihre
+Beteiligung dokumentieren; allgemeine Personalreferatsnotizen, Pooldaten,
+Stammdatenbearbeitung und andere Bewerbungen bleiben ausgeschlossen. Existenz
+oder begründetes Nichtbestehen einer SBV werden durch Personalreferent*innen
+mit festem Scope gepflegt, auditiert, jährlich und bei Organisationsänderung
+überprüft. Ein fehlender oder ungeklärter Status sperrt die Entscheidung.
+
+Für den Betriebsrat werden vorerst weder Gruppe, Dokumente, Fristen noch ein
+Workflow in AD Recruitment angelegt. Die Beteiligung erfolgt vollständig
+außerhalb des Systems.
+
+### Manuelle Betroffenenrechte
+
+Auskunft, Berichtigung, Löschung und Einschränkung beginnen mit einer
+Identitätsprüfung außerhalb der App. Nach erfolgreicher Prüfung übermittelt
+Personalreferat dem Datenschutz-Center ausschließlich eine stabile
+Bewerber-ID; Name oder E-Mail-Adresse dienen dort nicht als Suchschlüssel.
+Die Datenschutzbeauftragten lassen die app-eigene Subject-Projektion als
+Vorschau zusammenstellen, prüfen sie manuell und übermitteln das Ergebnis über
+einen verifizierten externen Kanal. Ein automatischer Versand findet nicht
+statt.
+
+Berichtigungen werden durch zuständige Personalreferent*innen oder ihre fest
+bereichsgebundenen Vertretungen ausgeführt und von den
+Datenschutzbeauftragten im Vorgang bestätigt. Löschwünsche werden umgesetzt,
+soweit keine vorrangige rechtliche Aufbewahrung oder aktive Sperre besteht.
+Solange eine Sperre gilt, wird die Akte technisch auf den konkret benannten
+Rechtszweck beschränkt; Auswahl, Poolnutzung, Kommunikation und Export bleiben
+gesperrt. Nur Mitglieder von `Datenschutzbeauftragte` dürfen eine solche
+Sperre begründet und auditiert aufheben.
+
+Der Rechtevorgang mit stabiler Bewerber-ID, Zeitpunkten und Ergebnis wird
+sechs Monate nach Abschluss gelöscht. Ein manueller Export protokolliert für
+sechs Monate nur Empfänger, Umfang und Zeitpunkt, nicht den exportierten
+Inhalt. Diese Protokolle ermöglichen erforderliche Folgeinformationen bei
+späterer Berichtigung oder Löschung.
 
 ## Administration
 
@@ -451,9 +565,9 @@ Hintergrundjobmechanismen verwendet.
 
 ## Berechtigungs- und Nachvollziehbarkeitsgrundsatz
 
-Personalreferent*innen besitzen Vollzugriff. Vertretungen erhalten
-konfigurierbare Fähigkeiten mit globalem, bereichsbezogenem oder
-bewerbungsbezogenem Scope. Erstbegleitungen und Lohn besitzen die in
+Personalreferent*innen besitzen Vollzugriff. Vertretungen erhalten nur die
+ausdrücklich freigegebenen Fähigkeiten in ihren fest zugewiesenen Bereichen.
+Erstbegleitungen und Lohn besitzen die in
 `AGENTS.md` eng begrenzten Leserechte. Jede Listen-, Detail-, Such-, Export-,
 Mail-, Dokument- und Statusoperation prüft diese Rechte serverseitig.
 

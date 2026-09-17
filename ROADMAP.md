@@ -16,16 +16,33 @@ geltende Architektur in `docs/architecture.md`.
 - Versionierten Datenschutzhinweis freigeben.
 - Den konfigurierbaren Zwölfmonats-Standardwert, seine ausschließlich der
   Nextcloud-Gruppe `Datenschutzbeauftragte` erlaubte Pflege, die rückwirkende
-  Neuberechnung vorhandener Poolakten sowie die unmittelbare Entfernung bei
-  Widerruf oder Ablauf technisch umsetzen. Umfang und Frist des danach minimal
-  erforderlichen Einwilligungsnachweises noch entscheiden.
+  Neuberechnung vorhandener Poolakten sowie die vollständige Löschung von
+  Poolprofil, Unterlagen und personenbezogenem Einwilligungsnachweis bei
+  Widerruf technisch umsetzen. Nach Ablauf gilt eine zehn Tage lange, rein der
+  Erneuerung dienende Sperrphase ohne Matching, Kontakt oder Hinweise; ohne
+  Erneuerung wird danach vollständig gelöscht. Vierzehn Tage vor Ablauf darf
+  genau eine inhaltsarme Erinnerung versandt werden.
 - Externen Self-Service für Erteilung, Erneuerung und Widerruf der
   versionierten Einwilligung bereitstellen.
-- Versandhinweise auf passende neue Ausschreibungen ausschließlich nach
-  ausdrücklicher Nachfrage beim Veröffentlichen oder manuellem Auslöser
-  umsetzen und abnehmen.
+- Transparente, nicht wertende Regelvorschläge auf Berufsgruppe,
+  Stundenkorridor und Region begrenzen. Jeder Hinweis auf eine passende neue
+  Ausschreibung benötigt eine ausdrückliche manuelle Bestätigung und
+  Versandauslösung durch Personalreferat oder bereichsgebundene Vertretung.
+- Neue Bewerbungen als eigenständige Akten anlegen. Poolfelder und Unterlagen
+  dürfen erst nach ausdrücklicher Bestätigung der Bewerberperson als
+  bearbeitbare Vorlage übernommen werden; eine automatische Reaktivierung ist
+  ausgeschlossen.
 
 ## Prozess und Arbeitsoberfläche
+
+### RECR-DELEGATE-SCOPES – Vertretungen auf feste Bereiche begrenzen
+
+- Bestehende globale oder nur bewerbungsbezogene Vertretungsfreigaben auf den
+  verbindlichen Zielvertrag aus ausdrücklich zugewiesenen festen Bereichen
+  überführen. Personalreferent*innen bleiben fachlich verantwortlich.
+- Für jede Liste, Suche, Detailansicht, Bewertung, Poolaktion, Kommunikation,
+  Dokument- und Exportoperation Allow-, Deny-, Fremdobjekt- und
+  Nebenwirkungsfreiheit serverseitig nachweisen.
 
 ### RECR-PROCESS-CONFIG – konfigurierbare Prozessstati
 
@@ -42,15 +59,41 @@ geltende Architektur in `docs/architecture.md`.
 - Optimistische Sperren, Konfliktanzeige und vollständige
   Statusprotokollierung erhalten.
 
-### RECR-APPLICANT-RATING – Bewertung und Geschlechtskennzeichnung
+### RECR-APPLICANT-RATING – manuelle Bewertung und Geschlechtskennzeichnung
 
 - Eine zentrale, intuitive Fünf-Sterne-Bewertung für Bewerber*innen ergänzen
-  und in allen Ansichten derselben Person verfügbar machen.
+  und in allen Ansichten derselben Person verfügbar machen. Sie wird
+  ausschließlich manuell durch Personalreferent*innen oder fest
+  bereichsgebundene Vertretungen gesetzt und berücksichtigt. Sie löst weder
+  algorithmisches Scoring, Ranking, Profiling, Empfehlungen, Filter noch eine
+  automatische Entscheidung oder sonstige Folge aus und wird nicht extern
+  offengelegt. Die endgültige Auswahl bleibt immer eine menschliche
+  Entscheidung.
 - Die Kennzeichnung unmittelbar an das kanonische Stammdatum `Geschlecht`
   binden: Anzeigen oder Ändern von `m/w/d` liest beziehungsweise aktualisiert
-  immer denselben Wert. In allen Bewerber*innenansichten erscheint er mit
-  eindeutigem Icon sowie barrierefreiem Textlabel; ohne Angabe bleibt der Wert
-  unbekannt.
+  immer denselben Wert. Das Feld wird nur für Assistenz-Bewerber*innen manuell
+  durch Personalreferat oder fest bereichsgebundene Vertretungen gepflegt,
+  nicht abgeleitet oder bewertet und ausschließlich intern nach
+  Least-to-know verwendet. Assistenznehmer*innen erhalten daraus keine
+  Information. Die spätere Übergabe ist nur als Systemgrenze festzuhalten und
+  wird in diesem Paket nicht modelliert.
+
+### RECR-SBV-PARTICIPATION – optionale Angabe und SBV-Beteiligung
+
+- Ausschließlich die freiwillige Angabe `schwerbehindert oder gleichgestellt`
+  vorsehen; GdB-Zahl, Diagnose, medizinische Details sowie automatische OCR,
+  Extraktion oder Bewertung sind ausgeschlossen.
+- Die app-spezifische native Nextcloud-Gruppe
+  `schwerbehindertenvertretung` und ihren eng begrenzten Zugriff umsetzen.
+  Fehlender oder ungeklärter Organisationsstatus wirkt sperrend.
+- Bei Angabe die SBV mit einer inhaltsarmen Fallreferenz benachrichtigen und
+  die Einstellungsentscheidung bis zur dokumentierten Beteiligung sperren.
+  Eine ausdrückliche Ablehnung der Beteiligung durch die Bewerberperson ist
+  bis zur Einstellungsentscheidung widerrufbar.
+- Die Betriebsratsbeteiligung bleibt vorerst vollständig außerhalb der App.
+  Eine optionale respektvolle Wunschanrede getrennt von `m/w/d` erst nach
+  gegebenenfalls erforderlicher externer BR-Freigabe aktivieren; keine
+  Ableitung, Bewertung oder Auswahlwirkung.
 
 ## Dokumente und Eingang
 
@@ -60,14 +103,39 @@ geltende Architektur in `docs/architecture.md`.
   Dokumente, Shares, Virenprüfung, Export, Backup und Wiederherstellung
   festlegen.
 - Den konfigurierbaren Sechsmonats-Standardwert nach Verfahrensabschluss für
-  reguläre Bewerbungsakten und Unterlagen koordiniert in Datenbank und AppData
-  umsetzen. Friständerungen dürfen nur Mitglieder der Nextcloud-Gruppe
+  reguläre Bewerbungsakten, Unterlagen und Kommunikation koordiniert in
+  Datenbank und AppData umsetzen. Für zur Einstellung freigegebene Akten gilt
+  derselbe Höchstzeitraum ab Freigabe zur manuellen Weiterverarbeitung und zum
+  selektiven Export; eine frühere manuelle Löschung bleibt möglich.
+  Friständerungen dürfen nur Mitglieder der Nextcloud-Gruppe
   `Datenschutzbeauftragte` vornehmen und gelten anhand des ursprünglichen
   Abschlusszeitpunkts auch für vorhandene Daten.
 - Vor jeder Retention-Ausführung Policyversion und Wirksamkeitszeitpunkt,
-  sichere rückwirkende Neuberechnung, Sperren, Löschreihenfolge,
-  Nebenläufigkeit, Nachweis, Backup/Restore, Fehlerdiagnostik und Roll-forward
-  entscheiden, implementieren und abnehmen.
+  sichere rückwirkende Neuberechnung, rechtliche beziehungsweise
+  datenschutzrechtliche Sperren, Löschreihenfolge, Nebenläufigkeit,
+  Wiederanlauf, Restore-Neuplanung aus dem ursprünglichen Trigger,
+  Fehlernachweis und Roll-forward entscheiden, implementieren und abnehmen.
+  Technische Löschfehlernachweise enthalten keine Bewerbungsinhalte und werden
+  nach dreißig Tagen gelöscht; nach automatischen Retries erhält
+  `Datenschutzbeauftragte` nur App, Datenklasse, Zeitpunkt und technische
+  Referenz.
+  Bis dahin findet keine automatische Retention-Ausführung statt.
+
+### RECR-DATA-SUBJECT-RIGHTS – manueller Betroffenenrechteprozess
+
+- Identität außerhalb der App prüfen; Personalreferat übergibt dem
+  Datenschutz-Center ausschließlich eine stabile Bewerber-ID. Eine Suche nach
+  Name oder E-Mail-Adresse ist ausgeschlossen.
+- Daten nutzerbezogen als prüfbare Vorschau zusammenstellen; Versand erfolgt
+  erst nach manueller Datenschutzprüfung über einen verifizierten externen
+  Kanal.
+- Berichtigungen durch Personalreferat oder fest bereichsgebundene
+  Vertretungen ausführen und im Datenschutzvorgang bestätigen. Lösch- und
+  Einschränkungswünsche unter Wahrung rechtlicher Sperren technisch
+  durchsetzen.
+- Rechtevorgang und Ergebnis sechs Monate nach Abschluss löschen. Manuelle
+  Exporte protokollieren nur Empfänger, Umfang und Zeitpunkt, keine Datenkopie,
+  und werden ebenfalls sechs Monate aufbewahrt.
 
 ### RECR-MAIL-INBOX – reale Postfächer anbinden
 

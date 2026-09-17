@@ -138,9 +138,11 @@ Bewerbermanagement orientierten Prozess innerhalb der AD-Suite ab:
 - AD Recruitment registriert zusätzlich einen `ProcessingMetadataProvider`
   lazy über den öffentlichen V1-Vertrag des Datenschutz-Centers. Seine
   einzige fachliche Policyquelle ist `resources/privacy-processing.json`; sie
-  enthält keine personenbezogenen Laufzeitdaten und markiert ungeklärte
-  Entscheidungen sowie die fehlende Bewerber-Selbstauskunft als
-  `PRIVACY-DECISION-REQUIRED`.
+  enthält keine personenbezogenen Laufzeitdaten. Der beschlossene manuelle
+  Bewerberrechteprozess verwendet nach externer Identitätsprüfung nur eine
+  stabile Bewerber-ID und eine durch Datenschutzbeauftragte geprüfte
+  app-eigene Vorschau; seine Provider- und Laufzeitumsetzung bleibt offen und
+  darf nicht durch eine Suche nach Name oder E-Mail-Adresse ersetzt werden.
 
 ## Git, DDEV und Tests
 
