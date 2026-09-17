@@ -106,10 +106,13 @@ prüfenden API-Endpunkte. Der operative Recruitment-Einstellungsbereich bleibt
 die capability-gebundene Oberfläche für PersRef-Katalogpflege und erteilt
 keine administrativen Systemrechte.
 
-Die fachlichen Bewerberpool-Grundwerte bleiben dagegen Teil des
+Die operativen Bewerberpool-Grundwerte bleiben dagegen Teil des
 Recruitment-Moduls. `manage_candidate_pool` schützt Anzeige und Änderung
 serverseitig und bleibt Personalreferat und Nextcloud-Admins vorbehalten sowie
-nicht delegierbar. BQ-Durchläufe und -Bewertungen sind ebenfalls app-lokal,
+nicht delegierbar. Aufbewahrungsfristen und andere fachliche
+Datenschutzkonfiguration gehören nicht zu dieser Fähigkeit; sie sind
+ausschließlich serverseitig für Mitglieder der Nextcloud-Gruppe
+`Datenschutzbeauftragte` freizugeben. BQ-Durchläufe und -Bewertungen sind ebenfalls app-lokal,
 aber ausdrücklich nur als Übergangsimplementierung bis zum versionierten
 Capability-/Event-Vertrag einer eigenständigen BQ-Planer-App.
 
@@ -329,11 +332,17 @@ Applicant-Vertrag besteht, wird keine Bewerberakte aufgrund einer bloßen
 E-Mail-Übereinstimmung ausgegeben.
 
 Für reguläre Bewerbungsakten und zugehörige Unterlagen gilt ab fachlichem
-Verfahrensabschluss eine Höchstfrist von sechs Monaten. Die freiwillige,
-versioniert nachweisbare Pool-Einwilligung bildet eine getrennte Verarbeitung
-für aktuell nicht angenommene oder initiativ Bewerbende und gilt zwölf Monate
-ab Erteilung oder Erneuerung. Sie bewahrt relevante Bewerbungsunterlagen,
-nicht aber Interviewantworten, Freitextnotizen oder BQ-Daten. BQ-Teilnahme,
+Verfahrensabschluss ein administrativ konfigurierbarer Standardwert von sechs
+Monaten. Die freiwillige, versioniert nachweisbare Pool-Einwilligung bildet
+eine getrennte Verarbeitung für aktuell nicht angenommene oder initiativ
+Bewerbende und verwendet zwölf Monate ab Erteilung oder Erneuerung als
+administrativ konfigurierbaren Standardwert. Beide Werte dürfen durch
+Mitglieder der Gruppe `Datenschutzbeauftragte` verkürzt oder verlängert werden;
+der jeweils aktuelle Wert wird anhand des ursprünglichen Triggers auch auf
+bereits vorhandene Daten angewendet. Eine rückwirkende Verlängerung des Pools
+ersetzt keine passende Einwilligung und hebt einen Widerruf nicht auf. Die
+Poolverarbeitung bewahrt relevante Bewerbungsunterlagen, nicht aber
+Interviewantworten, Freitextnotizen oder BQ-Daten. BQ-Teilnahme,
 -Zuordnung und -Ergebnis beeinflussen weder Poolaufnahme noch Poolfrist.
 Widerruf und Ablauf beenden die aktive Poolnutzung unmittelbar.
 
@@ -341,8 +350,10 @@ Poolkontakte zu neu passenden Ausschreibungen benötigen eine ausdrückliche
 Nachfrage beim Veröffentlichen oder einen manuellen Auslöser; Poolaufnahme,
 Kontakt und Bewerbungsentscheidung werden nicht automatisch ausgelöst.
 `retention_state` begründet weiterhin keine ausführende Retention-Policy.
-Technische Löschreihenfolge, Nachweisumfang, Sperren sowie Mailanbieter-,
-Drittland-, Backup- und Restore-Entscheidungen bleiben sichtbar offen.
+Technische Löschreihenfolge, Policyversion und Wirksamkeitszeitpunkt,
+rückwirkende Neuberechnung, Nachweisumfang, Sperren, Nebenläufigkeit,
+Fehlerdiagnostik und Roll-forward sowie Mailanbieter-, Drittland-, Backup- und
+Restore-Entscheidungen bleiben sichtbar offen.
 
 ## Spätere Integrationen
 

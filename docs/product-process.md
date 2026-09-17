@@ -377,8 +377,12 @@ Anmerkungen.
 Abgelehnte, zurückgezogene und eingestellte Bewerbungen werden nicht durch
 eine bloße Statusänderung gelöscht. Statusabschluss, operative
 Archivierung und endgültige Löschung sind getrennte Vorgänge. Reguläre
-Bewerbungsakten einschließlich ihrer Unterlagen dürfen nach dem fachlichen
-Abschluss des Bewerbungsverfahrens höchstens sechs Monate aufbewahrt werden.
+Bewerbungsakten einschließlich ihrer Unterlagen verwenden ab dem fachlichen
+Abschluss des Bewerbungsverfahrens sechs Monate als administrativ
+konfigurierbaren Standardwert. Mitglieder der Nextcloud-Gruppe
+`Datenschutzbeauftragte` dürfen die Frist verkürzen oder verlängern; eine
+Änderung gilt anhand des ursprünglichen Abschlusszeitpunkts auch für bereits
+vorhandene Akten.
 Eine gesonderte Pool-Einwilligung verlängert diese Frist nicht, sondern
 begründet die nachfolgend getrennt beschriebene Poolverarbeitung. Technische
 Löschreihenfolge, Sperrgründe, Nachweise sowie Backup- und Restore-Behandlung
@@ -401,10 +405,16 @@ werden aber nicht automatisch als Matchingmerkmale ausgewertet.
 Interviewantworten, Freitextnotizen und BQ-Daten werden nicht in die
 Poolverarbeitung übernommen.
 
-Die Einwilligung gilt zwölf Monate ab Erteilung oder ausdrücklicher
-Erneuerung. Widerruf und Ablauf stoppen Matching und aktive Poolnutzung
-unmittelbar; Profil und Bewerbungsunterlagen werden dann aus dem aktiven Pool
-entfernt. Die Behandlung eines minimal erforderlichen Einwilligungs- und
+Die Einwilligungs- und Aufbewahrungsdauer verwendet zwölf Monate ab Erteilung
+oder ausdrücklicher Erneuerung als administrativ konfigurierbaren Standardwert.
+Mitglieder der Gruppe `Datenschutzbeauftragte` dürfen diese Frist verkürzen
+oder verlängern; Änderungen werden auch für vorhandene Poolakten aus ihrem
+ursprünglichen Einwilligungs- oder Erneuerungszeitpunkt neu berechnet. Eine
+rückwirkende Verlängerung ersetzt keine erforderliche passende Einwilligung
+und hebt einen Widerruf nicht auf. Widerruf und Ablauf stoppen Matching und
+aktive Poolnutzung unmittelbar;
+Profil und Bewerbungsunterlagen werden dann aus dem aktiven Pool entfernt. Die
+Behandlung eines minimal erforderlichen Einwilligungs- und
 Bearbeitungsnachweises nach der Entfernung bleibt gesondert zu entscheiden.
 
 Für neu veröffentlichte, passende Ausschreibungen darf eine Nachricht nur
@@ -429,7 +439,9 @@ Der Adminbereich bündelt mindestens:
 - Felder und Extraktionszuordnungen für Stammdaten,
 - granulare Fähigkeiten und Vertretungsscope,
 - Erstbegleitungsgruppe und später deren automatische Endregeln,
-- Aufbewahrungs-, Archivierungs- und Löschregeln sowie
+- Aufbewahrungs-, Archivierungs- und Löschregeln; fachliche
+  Datenschutzkonfiguration ist dabei ausschließlich der Nextcloud-Gruppe
+  `Datenschutzbeauftragte` vorbehalten,
 - Fehler-/Quarantäneübersicht der Hintergrundverarbeitung.
 
 Geheimnisse von Postfächern oder Providern werden niemals in der

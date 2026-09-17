@@ -10,9 +10,11 @@ geltende Architektur in `docs/architecture.md`.
 ### RECR-POOL-ACTIVATION – Bewerberpool produktiv aktivieren
 
 - Versionierten Datenschutzhinweis freigeben.
-- Zwölfmonatsfrist, unmittelbare Entfernung bei Widerruf oder Ablauf und den
-  sicheren Löschprozess technisch umsetzen; Umfang und Frist des danach
-  minimal erforderlichen Einwilligungsnachweises noch entscheiden.
+- Den konfigurierbaren Zwölfmonats-Standardwert, seine ausschließlich der
+  Nextcloud-Gruppe `Datenschutzbeauftragte` erlaubte Pflege, die rückwirkende
+  Neuberechnung vorhandener Poolakten sowie die unmittelbare Entfernung bei
+  Widerruf oder Ablauf technisch umsetzen. Umfang und Frist des danach minimal
+  erforderlichen Einwilligungsnachweises noch entscheiden.
 - Externen Self-Service für Erteilung, Erneuerung und Widerruf der
   versionierten Einwilligung bereitstellen.
 - Versandhinweise auf passende neue Ausschreibungen ausschließlich nach
@@ -53,10 +55,15 @@ geltende Architektur in `docs/architecture.md`.
 - Besitzmodell, Nextcloud-Dateispeicher, Ordnergrenzen, besonders geschützte
   Dokumente, Shares, Virenprüfung, Export, Backup und Wiederherstellung
   festlegen.
-- Die beschlossene Höchstfrist von sechs Monaten nach Verfahrensabschluss
-  für reguläre Bewerbungsakten und Unterlagen koordiniert in Datenbank und
-  AppData umsetzen; Sperren, Löschreihenfolge, Nachweis sowie Backup- und
-  Restore-Behandlung noch entscheiden und abnehmen.
+- Den konfigurierbaren Sechsmonats-Standardwert nach Verfahrensabschluss für
+  reguläre Bewerbungsakten und Unterlagen koordiniert in Datenbank und AppData
+  umsetzen. Friständerungen dürfen nur Mitglieder der Nextcloud-Gruppe
+  `Datenschutzbeauftragte` vornehmen und gelten anhand des ursprünglichen
+  Abschlusszeitpunkts auch für vorhandene Daten.
+- Vor jeder Retention-Ausführung Policyversion und Wirksamkeitszeitpunkt,
+  sichere rückwirkende Neuberechnung, Sperren, Löschreihenfolge,
+  Nebenläufigkeit, Nachweis, Backup/Restore, Fehlerdiagnostik und Roll-forward
+  entscheiden, implementieren und abnehmen.
 
 ### RECR-MAIL-INBOX – reale Postfächer anbinden
 
