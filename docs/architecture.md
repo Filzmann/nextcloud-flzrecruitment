@@ -405,9 +405,16 @@ werden. Der minimale Kontaktlog wird mit der Poolakte gelöscht.
 `retention_state` begründet weiterhin keine ausführende Retention-Policy.
 Technische Löschreihenfolge, Policyversion und Wirksamkeitszeitpunkt,
 rückwirkende Neuberechnung, rechtliche und datenschutzrechtliche Sperren,
-Nebenläufigkeit, Wiederholungsverhalten, datensparsame Fehlernachweise,
-Roll-forward und Restore-Neuplanung aus dem ursprünglichen Trigger sowie
+Atomarität, Nebenläufigkeit, Idempotenz, Wiederholungsverhalten,
+datensparsame Fehlernachweise, Fehlerrückbau, Provider-/Consumer-Verhalten
+und Restore-Neuplanung aus dem ursprünglichen Trigger sowie
 Mailanbieter-, Drittland- und Backup-Entscheidungen bleiben sichtbar offen.
+Policyänderungen dürfen nur `Datenschutzbeauftragte` vornehmen; ihre Version
+und ihr Wirksamkeitszeitpunkt werden 24 Monate auditierbar gehalten und
+mindestens jährlich durch diese Gruppe überprüft. Nach einem Restore werden
+abgelaufene ungesperrte Daten aus dem ursprünglichen Trigger erneut zur
+Löschung eingeplant. Eine spätere Ausführung läuft automatisch ohne manuelle
+Einzelfreigabe.
 Nach automatischen Wiederholungsversuchen erhält `Datenschutzbeauftragte` nur
 App, Datenklasse, Zeitpunkt und technische Referenz. Der technische
 Fehlernachweis enthält keine Bewerbungsinhalte und wird nach dreißig Tagen

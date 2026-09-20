@@ -433,6 +433,12 @@ Nebenläufigkeit, Wiederholungsverhalten, Fehlernachweise und
 Backup-/Restore-Neuplanung aus dem ursprünglichen Trigger müssen vor der
 automatischen Ausführung verbindlich umgesetzt und abgenommen werden. Bis
 dahin behauptet AD Recruitment keine ausführende Retention-Funktion.
+Retentionwerte dürfen ausschließlich `Datenschutzbeauftragte` konfigurieren;
+Policyversionen und Wirksamkeitszeitpunkte werden 24 Monate auditierbar
+gehalten und mindestens jährlich durch diese Gruppe überprüft. Nach einem
+Restore werden alle Fristen aus dem jeweiligen ursprünglichen Trigger neu
+bewertet und abgelaufene ungesperrte Daten erneut zur Löschung eingeplant.
+Die spätere Ausführung erfolgt automatisch ohne manuelle Einzelfreigabe.
 
 ### Datenschutzgerechte Rückstellung im Bewerberpool
 

@@ -111,10 +111,15 @@ geltende Architektur in `docs/architecture.md`.
   `Datenschutzbeauftragte` vornehmen und gelten anhand des ursprünglichen
   Abschlusszeitpunkts auch für vorhandene Daten.
 - Vor jeder Retention-Ausführung Policyversion und Wirksamkeitszeitpunkt,
-  sichere rückwirkende Neuberechnung, rechtliche beziehungsweise
-  datenschutzrechtliche Sperren, Löschreihenfolge, Nebenläufigkeit,
-  Wiederanlauf, Restore-Neuplanung aus dem ursprünglichen Trigger,
-  Fehlernachweis und Roll-forward entscheiden, implementieren und abnehmen.
+  deren 24-monatigen Audit mit mindestens jährlicher Prüfung durch
+  `Datenschutzbeauftragte`, sichere rückwirkende Neuberechnung, rechtliche
+  beziehungsweise datenschutzrechtliche Sperren, Löschreihenfolge,
+  Atomarität, Nebenläufigkeit, Idempotenz, Wiederanlauf, betriebliche
+  Backupgrenze, Restore-Neuplanung aus dem ursprünglichen Trigger,
+  Auditvollständigkeit, Fehlernachweis, Fehlerrückbau sowie
+  Provider-/Consumer-Verhalten implementieren und abnehmen. Nach Restore
+  werden abgelaufene ungesperrte Daten erneut zur Löschung eingeplant; die
+  spätere Ausführung läuft automatisch ohne manuelle Einzelfreigabe.
   Technische Löschfehlernachweise enthalten keine Bewerbungsinhalte und werden
   nach dreißig Tagen gelöscht; nach automatischen Retries erhält
   `Datenschutzbeauftragte` nur App, Datenklasse, Zeitpunkt und technische
