@@ -94,8 +94,8 @@ Bewerbermanagement orientierten Prozess innerhalb der AD-Suite ab:
   OrgSuite-Menüposition aus dem versionierten LocalBase-Produktkatalog. Der
   wirkungslose OrgSuite-Host lädt keine fremden Assets direkt; sichtbare
   Navigation erteilt keine Fachberechtigung.
-- Native Nextcloud-Administration erteilt keinen fachlichen Recruitment-Vollzugriff. Er setzt pro Administrationskonto eine aktive, app-lokale Freigabe von höchstens 24 Stunden voraus; Beginn, geplantes Ende und Widerruf bleiben historisch protokolliert.
-- Technische Systemeinstellungen bleiben native Administration. Änderungen an Freigabehistorie oder Recruitment-Rechten werden gleichzeitig im PersonalDataProvider und PermissionProvider nachgeführt.
+- Native Nextcloud-Administration erteilt keinen fachlichen Recruitment-Vollzugriff. Er setzt pro Administrationskonto eine aktive, app-lokale Freigabe von höchstens 24 Stunden voraus; Beginn, geplantes Ende und Widerruf bleiben historisch protokolliert. Ausschließlich Mitglieder der nativen Gruppe `Datenschutzbeauftragte` lesen die Historie und erteilen oder widerrufen Freigaben in der Recruitment-Fachoberfläche.
+- Technische Systemeinstellungen bleiben native Administration. Ein fehlender Vollzugriff wird nur dem betroffenen Administrationskonto angezeigt; ein direkter Link zur Freigabesteuerung erscheint ausschließlich, wenn dasselbe Konto zugleich Mitglied von `Datenschutzbeauftragte` ist. Änderungen an Freigabehistorie oder Recruitment-Rechten werden gleichzeitig im PersonalDataProvider und PermissionProvider nachgeführt.
 - Controller bleiben dünn. Fachregeln liegen in Services, Datenzugriff im `RecruitmentRepository`, Berechtigungen im `RecruitmentAccessService` und Browserlogik in getrennten JavaScript-Modulen.
 - Rechte werden serverseitig und deny by default über eine gegebenenfalls
   aktive app-lokale Adminfreigabe, den unveränderlichen LocalBase-

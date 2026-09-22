@@ -207,7 +207,7 @@ stehen in `docs/architecture.md`.
 
 ## Zeitlich begrenzter Admin-Vollzugriff
 
-Ein Nextcloud-Administrationskonto erhält nicht automatisch Zugriff auf Bewerbungsakten. Der fachliche Vollzugriff wird im Adminbereich von AD Recruitment pro Administrationskonto für 1, 4, 8 oder höchstens 24 Stunden aktiviert und kann vorzeitig widerrufen werden. Beginn, geplantes Ende, Freigabe und Widerruf werden app-lokal protokolliert und in Datenschutz- sowie Berechtigungsprovider einbezogen. Technische Systemeinstellungen bleiben davon getrennt.
+Ein Nextcloud-Administrationskonto erhält nicht automatisch Zugriff auf Bewerbungsakten. Ausschließlich Mitglieder der nativen Nextcloud-Gruppe `Datenschutzbeauftragte` können in der Recruitment-Fachoberfläche die Freigabehistorie lesen und aktuellen Administrationskonten für 1, 4, 8 oder höchstens 24 Stunden fachlichen Vollzugriff erteilen oder ihn vorzeitig widerrufen. Native Administration allein genügt nicht. Beginn, geplantes Ende, Freigabe und Widerruf werden app-lokal protokolliert und in Datenschutz- sowie Berechtigungsprovider einbezogen. Ein fehlender Vollzugriff wird dem betroffenen Administrationskonto sicher angezeigt; der Direktlink zur Steuerung erscheint nur, wenn dasselbe Konto zugleich Datenschutzbeauftragte*r ist. Technische Systemeinstellungen bleiben davon getrennt im Nextcloud-Adminbereich.
 
 ## Datenschutz
 

@@ -800,6 +800,26 @@
     min-height: 1.5em;
 }
 
+.adrecruitment-access-notice,
+.adrecruitment-access-card {
+    margin-block: 1rem;
+}
+
+.adrecruitment-access-notice {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .75rem;
+    align-items: baseline;
+    padding: 1rem;
+    border: 2px solid var(--color-warning, #f0b400);
+    border-radius: var(--border-radius-large);
+}
+
+.adrecruitment-table-scroll {
+    max-width: 100%;
+    overflow-x: auto;
+}
+
 @media (max-width: 640px) {
     .adrecruitment-app {
         padding: 16px;

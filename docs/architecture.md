@@ -81,6 +81,16 @@ Die LocalBase-Rolle `staff_hr` besitzt die fachlichen App-Rechte.
 Nextcloud-Admins erhalten fachlichen Vollzugriff nur mit einer aktiven,
 app-lokalen, höchstens 24 Stunden gültigen Freigabe; nativer Adminstatus allein
 genügt nicht.
+Ausschließlich Mitglieder der nativen Gruppe `Datenschutzbeauftragte` dürfen
+die Freigabehistorie lesen und Freigaben für aktuelle native
+Administrationskonten in der Recruitment-Fachoberfläche erteilen oder
+widerrufen. Die authentifizierten Endpunkte sind deshalb nicht an die native
+Adminroute gebunden; Schreibrequests bleiben CSRF-geschützt und prüfen Rolle,
+Zielkonto und Dauer serverseitig. Rollenverlust, ungültige Ziele,
+Persistenzfehler, Ablauf und Verlust des nativen Adminstatus verweigern ohne
+zusätzliche Fachrechte. Ein fehlender Vollzugriff wird ausschließlich dem
+betroffenen Administrationskonto angezeigt; der direkte Sprung zur Steuerung
+erscheint nur beim selben Konto mit zusätzlicher Datenschutzrolle.
 `finance` erhält keine Recruitment-Rechte. `payroll` darf für
 `approved_for_hire` und `hired` sowie während einer laufenden BQ mit
 ausstehendem oder geeignetem Ergebnis ausschließlich die Vertragsstammdaten

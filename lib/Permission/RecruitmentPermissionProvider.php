@@ -12,6 +12,8 @@ use OCA\FilzmannPermissionMatrix\PublicApi\V1\PermissionRule;
 use OCA\Recruitment\Service\RecruitmentPermissionPolicy;
 
 final class RecruitmentPermissionProvider implements PermissionProvider {
+    private const MANAGE_TEMPORARY_ADMIN_ACCESS = 'manage_temporary_admin_access';
+
     private const LABELS = [
         RecruitmentPermissionPolicy::VIEW_DOSSIER => 'Bewerbungsakte lesen',
         RecruitmentPermissionPolicy::MANAGE_CATALOG => 'Kataloge verwalten',
@@ -29,6 +31,7 @@ final class RecruitmentPermissionProvider implements PermissionProvider {
         RecruitmentPermissionPolicy::MANAGE_DELEGATIONS => 'Vertretungsfreigaben verwalten',
         RecruitmentPermissionPolicy::OVERRIDE_STATUS_TRANSITIONS => 'Statusübergänge übersteuern',
         'manage_unassigned_inbox' => 'Unzugeordneten Posteingang bearbeiten',
+        self::MANAGE_TEMPORARY_ADMIN_ACCESS => 'Zeitlich begrenzten Admin-Vollzugriff verwalten',
     ];
 
     public function __construct(private RecruitmentPermissionSourceInterface $source) {}
@@ -49,6 +52,12 @@ final class RecruitmentPermissionProvider implements PermissionProvider {
             RecruitmentPermissionPolicy::OVERRIDE_STATUS_TRANSITIONS,
         ];
         $rules = [];
+        $rules[] = $this->rule(
+            self::MANAGE_TEMPORARY_ADMIN_ACCESS,
+            'all',
+            PermissionCondition::group('Datenschutzbeauftragte'),
+            'Historie lesen sowie Freigaben ausschließlich für aktuelle native Administrationskonten erteilen oder widerrufen',
+        );
         foreach ([...$fullCapabilities, RecruitmentPermissionPolicy::EDIT_PAYROLL_DATA, 'manage_unassigned_inbox'] as $capability) {
             $rules[] = $this->rule($capability, 'all', PermissionCondition::all([PermissionCondition::nextcloudAdmin(), PermissionCondition::temporaryAppAdminGrant()]), 'Native Nextcloud-Administration mit aktiver app-lokaler Freigabe (maximal 24 Stunden)');
         }

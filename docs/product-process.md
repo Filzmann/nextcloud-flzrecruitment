@@ -577,6 +577,13 @@ Erstbegleitungen und Lohn besitzen die in
 `AGENTS.md` eng begrenzten Leserechte. Jede Listen-, Detail-, Such-, Export-,
 Mail-, Dokument- und Statusoperation prüft diese Rechte serverseitig.
 
+Native Nextcloud-Administration erteilt keinen fachlichen Vollzugriff. Nur
+Mitglieder der nativen Gruppe `Datenschutzbeauftragte` lesen in der
+Recruitment-Fachoberfläche die app-lokale Freigabehistorie und erteilen oder
+widerrufen höchstens 24 Stunden gültige Freigaben für aktuelle native
+Administrationskonten. Technische Systemeinstellungen bleiben davon getrennt
+im Nextcloud-Adminbereich.
+
 Statuswechsel, Zuordnungen, Stammdatenübernahmen, Fragebogenfreigaben,
 Versand, Berechtigungsänderungen und Einstellungsfreigaben werden mit Akteur,
 Zeitpunkt und fachlichem Ergebnis protokolliert. Auditdaten enthalten nur die

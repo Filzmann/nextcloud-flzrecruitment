@@ -80,6 +80,10 @@ namespace RecruitmentTests {
     $adminRule = array_values(array_filter($rules('recruitment.manage_delegations'), static fn($rule): bool => $rule->scope === 'all'))[0] ?? null;
     assertSame('all', $adminRule?->condition->operator);
     assertSame(['nextcloud-admin', 'app-admin-grant'], array_map(static fn($condition): string => $condition->operator, $adminRule?->condition->children ?? []));
+    $grantManagementRule = $rules('recruitment.manage_temporary_admin_access')[0] ?? null;
+    assertSame('group', $grantManagementRule?->condition->operator);
+    assertSame('Datenschutzbeauftragte', $grantManagementRule?->condition->groupId);
+    assertSame('all', $grantManagementRule?->scope);
 
     $firstGuide = array_values(array_filter(
         $rules('recruitment.view_dossier'),

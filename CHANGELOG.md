@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Die app-lokale Admin-Vollzugriffssteuerung aus dem technischen Adminbereich
+  in die rollenabhängige Recruitment-Fachoberfläche verschoben. Nur
+  `Datenschutzbeauftragte` können Historie lesen sowie Freigaben für aktuelle
+  native Administrationskonten erteilen oder widerrufen; native Administration
+  allein, gewöhnliche Konten und manipulierte Ziele bleiben mutationsfrei
+  abgewiesen. Sichere Hinweis- und Direktlinkregeln sowie Datenschutz- und
+  Berechtigungsprojektionen wurden daran angeglichen.
 - Die reguläre Bewerbungsakten-Aufbewahrung auf höchstens sechs Monate nach
   Verfahrensabschluss festgelegt und den freiwilligen Bewerberpool als
   getrennte, zwölfmonatige, versioniert einwilligungsgebundene Verarbeitung
