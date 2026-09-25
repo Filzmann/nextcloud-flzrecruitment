@@ -24,13 +24,13 @@ if ($_['hasRecruitmentAccess'] ?? false) {
     <header class="adrecruitment-header">
         <div>
             <p class="adrecruitment-eyebrow">Bewerbungsmanagement</p>
-            <h1 id="adrecruitment-title">AD Recruitment</h1>
+            <div class="recr-title-row"><h1 id="adrecruitment-title">AD Recruitment</h1><?php if ($_['showMissingAdminGrant'] ?? false): ?><details class="recr-admin-grant-warning"><summary aria-label="Informationen zum fehlenden fachlichen Admin-Vollzugriff"><span aria-hidden="true">⚠</span></summary><div class="recr-admin-grant-warning__details"><p><strong>Kein fachlicher Admin-Vollzugriff.</strong></p><p>Native Nextcloud-Administration erteilt keinen fachlichen Vollzugriff. Es fehlt eine aktive app-lokale Freigabe.</p><p>Freigaben können ausschließlich Mitglieder von Datenschutzbeauftragte erteilen oder widerrufen, höchstens für 24 Stunden.</p><?php if ($_['showAdminAccessLink'] ?? false): ?><p><a href="#recr-full-access" target="_blank" rel="noopener">Freigabesteuerung in neuem Tab öffnen</a></p><?php endif; ?></div></details><?php endif; ?></div>
         </div>
         <p id="adrecruitment-status" class="adrecruitment-status" role="status"><?php p(($_['hasRecruitmentAccess'] ?? false) ? 'Daten werden geladen …' : 'Freigabesteuerung'); ?></p>
     </header>
 
     <?php if ($_['showMissingAdminGrant'] ?? false): ?>
-        <aside class="adrecruitment-access-notice" role="status">
+        <aside hidden class="adrecruitment-access-notice" role="status">
             <strong>Für dieses Administrationskonto ist kein zeitlich begrenzter fachlicher Vollzugriff aktiv.</strong>
             <?php if ($_['showAdminAccessLink'] ?? false): ?>
                 <a href="#recr-full-access-heading">Freigabesteuerung öffnen</a>

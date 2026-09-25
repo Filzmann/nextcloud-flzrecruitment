@@ -2,6 +2,8 @@ import { readFileSync } from 'node:fs'
 import { runInNewContext } from 'node:vm'
 
 const source = readFileSync(new URL('../js/admin-access.js', import.meta.url), 'utf8')
+const template = readFileSync(new URL('../templates/index.php', import.meta.url), 'utf8')
+const style = readFileSync(new URL('../css/style.css', import.meta.url), 'utf8')
 const element = () => ({ children: [], dataset: {}, disabled: false, textContent: '', listeners: {}, append(child) { this.children.push(child) }, addEventListener(type, callback) { this.listeners[type] = callback }, replaceChildren() { this.children = [] } })
 const form = element()
 form.elements = { enabled: { checked: true } }
@@ -26,5 +28,7 @@ const revokeButton = { dataset: { revokeUid: 'admin-target' }, disabled: false }
 await history.listeners.click({ target: { closest: () => revokeButton } })
 if (JSON.stringify(calls) !== JSON.stringify([['status'], ['activate', 'admin-target', 60], ['status'], ['revoke', 'admin-target'], ['status']])) throw new Error(`Freigabesteuerung ruft falsche API-Pfade auf: ${JSON.stringify(calls)}`)
 if (!status.textContent.includes('widerrufen')) throw new Error('Widerruf bestätigt seinen Status nicht.')
+for (const contract of ['recr-admin-grant-warning', '<details', 'Datenschutzbeauftragte', 'target="_blank"']) if (!template.includes(contract)) throw new Error(`Titelwarnung für fehlenden Admin-Vollzugriff fehlt: ${contract}`)
+if (!style.includes('.recr-admin-grant-warning')) throw new Error('Titelwarnung für fehlenden Admin-Vollzugriff ist nicht als kleines Floating-Icon gestaltet.')
 
 console.log('AD Recruitment admin access UI tests passed')
