@@ -196,21 +196,6 @@ Begründung verpflichtend.
 | M4 | Manipulation | Als gewöhnliches Konto sowie mit leerem, fremdem oder nichtadministrativem Ziel und mit mehr als 24 Stunden direkte Requests senden. | Zugriff beziehungsweise Eingabe wird verweigert; es entsteht keine Freigabe und keine Auditmutation. | [ ] erfolgreich [ ] nicht erfolgreich [ ] nicht geprüft | |
 | M5 | CSRF und Wirksamkeitsende | Schreibrequests ohne gültigen Requesttoken senden, danach eine Freigabe widerrufen, ablaufen lassen sowie dem Ziel den nativen Adminstatus entziehen. | Requests ohne Token mutieren nichts; Widerruf, Ablauf und Adminverlust beenden den fachlichen Zugriff sofort. | [ ] erfolgreich [ ] nicht erfolgreich [ ] nicht geprüft | |
 
-## Automatisierter lokaler Nachweis vom 11.09.2026
-
-Im Rahmen der risikoarmen Luna-Prüfung wurden ausschließlich lokale, nicht
-mutierende Prüfungen ausgeführt:
-
-| Prüfung | Ergebnis | Aussagegrenze |
-|---|---|---|
-| `php tests/run.php` | erfolgreich | PHP-Syntax sowie Bewerbungsworkflow-, Mail-, Dokument-, BQ-, Interview-, Rechte-, Privacy-, Processing-Metadata-, Migrations- und Adminverträge sind grün; auch negative und mutierte Eingabefälle bleiben abgedeckt. |
-| `node tests/run-js.mjs` | erfolgreich | JavaScript-Syntax sowie Admin-, Kontaktverknüpfungs- und Frontend-Smokes sind grün. |
-| `git diff --check` | erfolgreich | Keine Whitespace-Fehler im Arbeitsstand. |
-
-DDEV, `occ`, Installation, App-Aktivierung, Postfachanbindung, Bewerbungs-,
-Dokumenten- oder Maildaten wurden nicht verändert. Dieser Nachweis ersetzt
-weder die offene manuelle/stagingbezogene Abnahme noch Entscheidungen zu
-produktiver Mail-, Datenschutz- und Aufbewahrungsintegration.
 
 ## Abschlussentscheidung
 
