@@ -124,6 +124,10 @@ gepflegte Stammdatum `m/w/d` für Assistenz-Bewerber*innen. Es bleibt intern,
 wird Assistenznehmer*innen nicht offengelegt und verbleibt bis zu einer
 später gesondert modellierten Übergabe kanonisch in AD Recruitment.
 
+Die Datenschutzbeauftragten verantworten davon getrennt die Retention-Policy,
+begründete Holds und die Historie temporärer Adminfreigaben. IKT verantwortet
+nur den technischen Betrieb und erhält daraus keinen fachlichen Zugriff.
+
 Die optionale Selbstauskunft `schwerbehindert oder gleichgestellt` erhält eine
 eigene Schutzgrenze. GdB-Zahl und medizinische Details sind keine
 strukturierten Felder und werden weder extrahiert noch bewertet. Die positive
@@ -403,6 +407,10 @@ personenbezogenen Einwilligungsnachweis unmittelbar. Nach Ablauf gilt eine
 zehntägige, ausschließlich der Erneuerung dienende Sperrphase ohne Matching,
 Kontakt oder Hinweise; danach wird ohne Erneuerung vollständig gelöscht.
 Vierzehn Tage vor Ablauf ist genau eine inhaltsarme Erinnerung zulässig.
+Als vorläufige Arbeitsgrundlage ist für das reguläre Bewerbungsverfahren
+§ 26 Abs. 1 BDSG und für den getrennten Pool Art. 6 Abs. 1 lit. a DSGVO
+dokumentiert. Das ersetzt weder die abschließende rechtliche Prüfung je
+Datenklasse noch eine rechtliche Zertifizierung.
 
 Poolkontakte zu neu passenden Ausschreibungen beruhen höchstens auf
 transparenten Regelvorschlägen zu Berufsgruppe, Stundenkorridor und Region.
