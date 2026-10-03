@@ -21,6 +21,7 @@
     const tabs = document.getElementById('adrecruitment-tabs')
     const status = document.getElementById('adrecruitment-status')
     const errorBox = document.getElementById('adrecruitment-error')
+    let horizontalScrollCleanup = () => {}
     const state = {
         data: null,
         capabilities: {},
@@ -148,6 +149,45 @@
             if (child !== null && child !== undefined) node.append(child)
         }
         return node
+    }
+
+    function bindPersistentHorizontalScroll(target) {
+        horizontalScrollCleanup()
+        if (!target) return
+        const root = document.getElementById('adrecruitment-app')
+        if (!root) return
+        const proxy = element('div', {
+            className: 'app-horizontal-scroll-proxy',
+            tabIndex: 0,
+            role: 'region',
+            'aria-label': 'Horizontal durch die Bewerbungsansicht scrollen',
+        })
+        const track = element('div', { className: 'app-horizontal-scroll-proxy__track', 'aria-hidden': 'true' })
+        proxy.append(track)
+        root.append(proxy)
+        const update = () => {
+            const visible = target.scrollWidth > target.clientWidth
+            proxy.hidden = !visible
+            track.style.width = `${target.scrollWidth}px`
+            if (visible) proxy.scrollLeft = target.scrollLeft
+        }
+        const fromProxy = () => { target.scrollLeft = proxy.scrollLeft }
+        const fromTarget = () => { proxy.scrollLeft = target.scrollLeft }
+        proxy.addEventListener('scroll', fromProxy)
+        target.addEventListener('scroll', fromTarget)
+        const observer = typeof ResizeObserver === 'function' ? new ResizeObserver(update) : null
+        observer?.observe(root)
+        observer?.observe(target)
+        window.addEventListener('resize', update)
+        update()
+        horizontalScrollCleanup = () => {
+            observer?.disconnect()
+            window.removeEventListener('resize', update)
+            proxy.removeEventListener('scroll', fromProxy)
+            target.removeEventListener('scroll', fromTarget)
+            proxy.remove()
+            horizontalScrollCleanup = () => {}
+        }
     }
 
     function field(labelText, control, hint = '') {
@@ -327,6 +367,7 @@
     }
 
     function showTab(id) {
+        horizontalScrollCleanup()
         state.activeTab = id
         renderTabs()
         if (id === 'inbox') renderInbox()
@@ -1233,6 +1274,7 @@
                 : state.applicationView === 'board'
                     ? renderApplicationBoard(applications)
                     : renderApplicationTable(applications))
+            bindPersistentHorizontalScroll(result.querySelector('.adrecruitment-board, .adrecruitment-table-wrap'))
         }
         query.addEventListener('input', () => {
             state.applicationFilters.query = query.value

@@ -219,6 +219,21 @@
     margin-block: 16px;
 }
 
+.app-horizontal-scroll-proxy {
+    position: sticky;
+    z-index: 5;
+    bottom: 0;
+    box-sizing: border-box;
+    width: 100%;
+    overflow-x: auto;
+    background: var(--color-main-background);
+}
+
+.app-horizontal-scroll-proxy[hidden] {
+    display: none;
+}
+
+
 .adrecruitment-table-wrap table {
     width: 100%;
     border-collapse: collapse;
