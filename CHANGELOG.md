@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Den internen LocalBase-Organisationsservice durch einen app-lokalen, lazy
+  aufgelösten Consumer des öffentlichen Organization-V1-Vertrags ersetzt.
+  Fehlende, deaktivierte, alte, inkompatible, ungültige und fehlerhafte
+  Provider liefern keine Organisationsrechte; unabhängige aktive
+  Adminfreigaben sowie globale und einzelaktenbezogene Vertretungen bleiben
+  erhalten, während Bereichsrechte fail-closed bleiben.
 - Die app-lokale Admin-Vollzugriffssteuerung aus dem technischen Adminbereich
   in die rollenabhängige Recruitment-Fachoberfläche verschoben. Nur
   `Datenschutzbeauftragte` können Historie lesen sowie Freigaben für aktuelle

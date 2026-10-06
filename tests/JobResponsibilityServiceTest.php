@@ -5,11 +5,10 @@ declare(strict_types=1);
 namespace OCA\LocalBase\AppInfo { final class Application { public const APP_ID = 'localbase'; } }
 
 namespace {
-    use OCA\LocalBase\Organization\AdOrganizationSettingsService;
-    use OCA\LocalBase\Organization\AdOrganizationSnapshotService;
     use OCA\Recruitment\Exception\ValidationException;
+    use OCA\Recruitment\Organization\OrganizationSnapshot;
+    use OCA\Recruitment\Organization\OrganizationSnapshotService;
     use OCA\Recruitment\Service\JobResponsibilityService;
-    use OCP\IAppConfig;
     use OCP\IGroup;
     use OCP\IGroupManager;
     use OCP\IUser;
@@ -45,20 +44,20 @@ namespace {
         public function get(string $gid): ?IGroup { return $this->groups[$gid] ?? null; }
     }
 
-    final class ResponsibilityConfig implements IAppConfig {
-        public array $values = [];
-        public function getValueString(string $appId, string $key, string $default = ''): string { return $this->values[$appId][$key] ?? $default; }
-        public function setValueString(string $appId, string $key, string $value): void { $this->values[$appId][$key] = $value; }
+    final class ResponsibilityOrganizationService extends OrganizationSnapshotService {
+        public function __construct(private OrganizationSnapshot $fixedSnapshot) {}
+        public function snapshot(): OrganizationSnapshot { return $this->fixedSnapshot; }
     }
 
     TestRunner::test('job responsibility choices and user search stay inside relevant organization groups', static function (): void {
-        $config = new ResponsibilityConfig();
-        $settings = new AdOrganizationSettingsService($config);
-        $settings->save($settings->definition()->toArray());
         $alex = new ResponsibilityUser('alex', 'Alex Beispiel');
         $bea = new ResponsibilityUser('bea', 'Bea Muster');
         $service = new JobResponsibilityService(
-            new AdOrganizationSnapshotService($settings),
+            new ResponsibilityOrganizationService(OrganizationSnapshot::valid('1.0', 4, 'test-checksum', [
+                'staff_hr' => ['groupId' => 'ad-Stab-HR', 'label' => 'Personalreferat'],
+                'eb' => ['groupId' => 'ad-EB', 'label' => 'Einsatzbegleitung'],
+                'payroll' => ['groupId' => 'ad-Lohn', 'label' => 'Lohn'],
+            ], [])),
             new ResponsibilityGroups([
                 'ad-Stab-HR' => new ResponsibilityGroup([$alex]),
                 'ad-EB' => new ResponsibilityGroup([$bea]),

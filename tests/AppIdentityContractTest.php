@@ -14,6 +14,7 @@ TestRunner::test('technical app identity is consistently adrecruitment', static 
     $template = file_get_contents($root . '/templates/index.php');
     $api = file_get_contents($root . '/js/modules/api.js');
     $access = file_get_contents($root . '/lib/Service/RecruitmentAccessService.php');
+    $organizationAdapter = file_get_contents($root . '/lib/Organization/OrganizationSnapshotService.php');
 
     foreach ([
         'appinfo/info.xml' => $info,
@@ -22,6 +23,7 @@ TestRunner::test('technical app identity is consistently adrecruitment', static 
         'templates/index.php' => $template,
         'js/modules/api.js' => $api,
         'lib/Service/RecruitmentAccessService.php' => $access,
+        'lib/Organization/OrganizationSnapshotService.php' => $organizationAdapter,
     ] as $path => $source) {
         assertTrue($source !== false, "Identity contract source is missing: {$path}");
     }
@@ -34,6 +36,8 @@ TestRunner::test('technical app identity is consistently adrecruitment', static 
     assertTrue(str_contains($listener, "addCatalogProductWhenStandalone('adrecruitment'"), 'Standalone navigation does not consume the product catalog');
     assertTrue(str_contains($template, "Util::addStyle('adrecruitment', 'style');"), 'Template assets use the old app ID');
     assertTrue(str_contains($api, "generateUrl('/apps/adrecruitment' + path)"), 'API client uses the old app route');
-    assertTrue(str_contains($access, 'AdOrganizationSnapshotService'), 'Access does not consume the shared LocalBase organization contract');
+    assertTrue(str_contains($access, 'OrganizationSnapshotService'), 'Access does not consume the app-local Organization V1 adapter');
+    assertTrue(str_contains($organizationAdapter, 'OCA\\LocalBase\\PublicApi\\V1'), 'Organization adapter bypasses the public LocalBase V1 boundary');
+    assertTrue(!str_contains($access, 'OCA\\LocalBase\\Organization'), 'Access still consumes internal LocalBase organization classes');
     assertTrue(!str_contains($access, "'adrecruitment-admin'"), 'Access still maintains a parallel app-specific role hierarchy');
 });

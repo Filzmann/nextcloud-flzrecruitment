@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace OCA\Recruitment\Service;
 
-use OCA\LocalBase\Organization\AdOrganizationSnapshot;
+use OCA\Recruitment\Organization\OrganizationSnapshot;
 
 /** Bewertet fachliche Fähigkeiten und Objektscopes ohne UI- oder Controllerannahmen. */
 final class RecruitmentPermissionPolicy {
@@ -48,7 +48,7 @@ final class RecruitmentPermissionPolicy {
 
     /** @param array{firstGuideGroupId?: string, representatives?: list<array<string, mixed>>} $settings */
     public function __construct(
-        private AdOrganizationSnapshot $organization,
+        private OrganizationSnapshot $organization,
         private array $settings,
     ) {}
 
@@ -58,6 +58,9 @@ final class RecruitmentPermissionPolicy {
     public function can(array $actor, string $capability, ?array $application = null): bool {
         if ($actor['isAdmin']) {
             return $capability === self::EDIT_PAYROLL_DATA || in_array($capability, self::FULL_CAPABILITIES, true);
+        }
+        if ($this->representativeCan($actor, $capability, $application)) {
+            return true;
         }
         if (!$this->organization->isValid()) {
             return false;
@@ -75,29 +78,13 @@ final class RecruitmentPermissionPolicy {
             return true;
         }
 
-        foreach ($this->settings['representatives'] ?? [] as $representative) {
-            if (($representative['uid'] ?? null) !== $actor['uid']
-                || !in_array($capability, $representative['capabilities'] ?? [], true)
-                || $capability === self::MANAGE_DELEGATIONS) {
-                continue;
-            }
-            if (($representative['all'] ?? false) === true) {
-                return true;
-            }
-            if ($application === null) {
-                continue;
-            }
-            if (in_array((int)($application['id'] ?? 0), $representative['applicationIds'] ?? [], true)
-                || in_array((string)($application['areaKey'] ?? ''), $representative['areaKeys'] ?? [], true)) {
-                return true;
-            }
-        }
         return false;
     }
 
     /** @param array{uid: string, isAdmin: bool, groupIds: list<string>} $actor */
     public function hasAnyAccess(array $actor): bool {
         if ($actor['isAdmin']) return true;
+        if ($this->representativeHasAnyAccess($actor)) return true;
         if (!$this->organization->isValid()) return false;
         if ($this->hasRole($actor, 'staff_hr') || $this->hasRole($actor, 'payroll')) {
             return true;
@@ -106,8 +93,50 @@ final class RecruitmentPermissionPolicy {
         if ($firstGuideGroup !== '' && in_array($firstGuideGroup, $actor['groupIds'], true) && $this->hasRole($actor, 'eb')) {
             return true;
         }
+        return false;
+    }
+
+    /** @param array{uid: string, isAdmin: bool, groupIds: list<string>} $actor */
+    public function canSomewhere(array $actor, string $capability): bool {
+        if ($actor['isAdmin']) return $capability === self::EDIT_PAYROLL_DATA || in_array($capability, self::FULL_CAPABILITIES, true);
+        if ($this->representativeCanSomewhere($actor, $capability)) return true;
+        if (!$this->organization->isValid()) return false;
+        if ($this->hasRole($actor, 'staff_hr')) return in_array($capability, self::FULL_CAPABILITIES, true);
+        if (in_array($capability, [self::VIEW_HIRING_DATA, self::EDIT_PAYROLL_DATA], true) && $this->hasRole($actor, 'payroll')) return true;
+        $firstGuideGroup = trim((string)($this->settings['firstGuideGroupId'] ?? ''));
+        if ($capability === self::VIEW_DOSSIER && $firstGuideGroup !== ''
+            && in_array($firstGuideGroup, $actor['groupIds'], true) && $this->hasRole($actor, 'eb')) return true;
+        return false;
+    }
+
+    /** Unzugeordnete Mails besitzen noch keinen Objekt-Scope und benötigen deshalb einen globalen Bearbeitungsscope. */
+    public function canManageUnassignedInbox(array $actor): bool {
+        if ($actor['isAdmin']) return true;
         foreach ($this->settings['representatives'] ?? [] as $representative) {
-            if (($representative['uid'] ?? null) === $actor['uid'] && ($representative['capabilities'] ?? []) !== []) {
+            if (($representative['uid'] ?? null) === $actor['uid']
+                && ($representative['all'] ?? false) === true
+                && in_array(self::EDIT_APPLICATIONS, $representative['capabilities'] ?? [], true)) {
+                return true;
+            }
+        }
+        return $this->organization->isValid() && $this->hasRole($actor, 'staff_hr');
+    }
+
+    /** @param array{uid: string, isAdmin: bool, groupIds: list<string>} $actor
+     *  @param array<string, mixed>|null $application
+     */
+    private function representativeCan(array $actor, string $capability, ?array $application): bool {
+        if ($capability === self::MANAGE_DELEGATIONS) return false;
+        foreach ($this->settings['representatives'] ?? [] as $representative) {
+            if (($representative['uid'] ?? null) !== $actor['uid']
+                || !in_array($capability, $representative['capabilities'] ?? [], true)) {
+                continue;
+            }
+            if (($representative['all'] ?? false) === true) return true;
+            if ($application === null) continue;
+            if (in_array((int)($application['id'] ?? 0), $representative['applicationIds'] ?? [], true)) return true;
+            if ($this->organization->isValid()
+                && in_array((string)($application['areaKey'] ?? ''), $representative['areaKeys'] ?? [], true)) {
                 return true;
             }
         }
@@ -115,32 +144,25 @@ final class RecruitmentPermissionPolicy {
     }
 
     /** @param array{uid: string, isAdmin: bool, groupIds: list<string>} $actor */
-    public function canSomewhere(array $actor, string $capability): bool {
-        if ($actor['isAdmin']) return $capability === self::EDIT_PAYROLL_DATA || in_array($capability, self::FULL_CAPABILITIES, true);
-        if (!$this->organization->isValid()) return false;
-        if ($this->hasRole($actor, 'staff_hr')) return in_array($capability, self::FULL_CAPABILITIES, true);
-        if (in_array($capability, [self::VIEW_HIRING_DATA, self::EDIT_PAYROLL_DATA], true) && $this->hasRole($actor, 'payroll')) return true;
-        $firstGuideGroup = trim((string)($this->settings['firstGuideGroupId'] ?? ''));
-        if ($capability === self::VIEW_DOSSIER && $firstGuideGroup !== ''
-            && in_array($firstGuideGroup, $actor['groupIds'], true) && $this->hasRole($actor, 'eb')) return true;
+    private function representativeHasAnyAccess(array $actor): bool {
         foreach ($this->settings['representatives'] ?? [] as $representative) {
-            if (($representative['uid'] ?? null) === $actor['uid']
-                && in_array($capability, $representative['capabilities'] ?? [], true)) return true;
+            if (($representative['uid'] ?? null) !== $actor['uid'] || ($representative['capabilities'] ?? []) === []) continue;
+            if (($representative['all'] ?? false) === true || ($representative['applicationIds'] ?? []) !== []) return true;
+            if ($this->organization->isValid() && ($representative['areaKeys'] ?? []) !== []) return true;
         }
         return false;
     }
 
-    /** Unzugeordnete Mails besitzen noch keinen Objekt-Scope und benötigen deshalb einen globalen Bearbeitungsscope. */
-    public function canManageUnassignedInbox(array $actor): bool {
-        if ($actor['isAdmin']) return true;
-        if (!$this->organization->isValid()) return false;
-        if ($this->hasRole($actor, 'staff_hr')) return true;
+    /** @param array{uid: string, isAdmin: bool, groupIds: list<string>} $actor */
+    private function representativeCanSomewhere(array $actor, string $capability): bool {
+        if ($capability === self::MANAGE_DELEGATIONS) return false;
         foreach ($this->settings['representatives'] ?? [] as $representative) {
-            if (($representative['uid'] ?? null) === $actor['uid']
-                && ($representative['all'] ?? false) === true
-                && in_array(self::EDIT_APPLICATIONS, $representative['capabilities'] ?? [], true)) {
-                return true;
+            if (($representative['uid'] ?? null) !== $actor['uid']
+                || !in_array($capability, $representative['capabilities'] ?? [], true)) {
+                continue;
             }
+            if (($representative['all'] ?? false) === true || ($representative['applicationIds'] ?? []) !== []) return true;
+            if ($this->organization->isValid() && ($representative['areaKeys'] ?? []) !== []) return true;
         }
         return false;
     }

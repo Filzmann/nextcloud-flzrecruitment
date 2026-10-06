@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-use OCA\LocalBase\Organization\AdOrganizationSnapshot;
+use OCA\Recruitment\Organization\OrganizationSnapshot;
 use OCA\Recruitment\Service\RecruitmentPermissionPolicy;
 use RecruitmentTests\TestRunner;
 
 use function RecruitmentTests\assertSame;
 use function RecruitmentTests\assertTrue;
 
-$snapshot = new AdOrganizationSnapshot(true, 3, [
+$snapshot = OrganizationSnapshot::valid('1.0', 3, 'test-checksum', [
     'staff_hr' => ['groupId' => 'group-hr', 'label' => 'Personalreferent*innen'],
     'finance' => ['groupId' => 'group-finance', 'label' => 'Finanzen'],
     'payroll' => ['groupId' => 'group-payroll', 'label' => 'Lohn'],
@@ -142,8 +142,8 @@ TestRunner::test('representatives are bounded by capability and global, area or 
     assertSame(false, $policy->can($caseRepresentative, RecruitmentPermissionPolicy::MANAGE_DELEGATIONS, $approvedWest));
 });
 
-TestRunner::test('invalid organization snapshots deny every non-admin path', static function () use ($settings, $approvedWest): void {
-    $invalid = new AdOrganizationSnapshot(false, 3, [], []);
+TestRunner::test('invalid organization snapshots deny organization-derived non-admin paths', static function () use ($settings, $approvedWest): void {
+    $invalid = OrganizationSnapshot::unavailable(OrganizationSnapshot::INVALID, '1.0', 3, 'invalid-checksum');
     $policy = new RecruitmentPermissionPolicy($invalid, $settings);
     assertSame(false, $policy->can(['uid' => 'hr', 'isAdmin' => false, 'groupIds' => ['group-hr']], RecruitmentPermissionPolicy::VIEW_DOSSIER, $approvedWest));
 });

@@ -100,9 +100,15 @@ Bewerbermanagement orientierten Prozess innerhalb der AD-Suite ab:
 - Rechte werden serverseitig und deny by default über eine gegebenenfalls
   aktive app-lokale Adminfreigabe, den unveränderlichen LocalBase-
   Organisationssnapshot und app-eigene granulare Vertretungsfreigaben
-  geprüft. Der native Adminstatus allein genügt nicht. Eine ungültige oder
-  nur aus Defaults rekonstruierte Organisation erteilt Nicht-Admins keine
-  Rechte; UI-Sichtbarkeit erteilt keine Rechte.
+  geprüft. Der Organisationssnapshot wird ausschließlich lazy über den
+  öffentlichen LocalBase-Vertrag `OCA\\LocalBase\\PublicApi\\V1` konsumiert;
+  Recruitment greift weder auf interne LocalBase-Services noch auf deren
+  AppConfig zu. Der native Adminstatus allein genügt nicht. Ein fehlender,
+  deaktivierter, inkompatibler, ungültiger oder nicht verfügbarer Provider
+  erteilt keine organisationsabgeleiteten Rechte. Davon unabhängige aktive
+  app-lokale Adminfreigaben sowie globale oder einzelaktenbezogene
+  Vertretungsfreigaben bleiben wirksam; bereichsgebundene Freigaben benötigen
+  einen gültigen Organisationssnapshot. UI-Sichtbarkeit erteilt keine Rechte.
 - Personenbezogene Inhalte, Interviewantworten, Dokumentnamen und E-Mail-Inhalte werden nicht in technische Logs geschrieben.
 - Der erste Posteingangs-Durchstich speichert normalisierte Original-Mailtexte
   in der App-Datenbank und ausschließlich validierte PDF-Anhänge unter

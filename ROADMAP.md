@@ -7,6 +7,16 @@ geltende Architektur in `docs/architecture.md`.
 
 ## Freigabegates
 
+### RECR-ORGANIZATION-V1-LIFECYCLE – öffentlichen Organisationsconsumer auf realer Runtime abnehmen
+
+- Den app-lokalen lazy V1-Adapter mit installierter, deaktivierter, fehlender,
+  inkompatibler und wieder aktivierter LocalBase-App auf der unterstützten
+  Nextcloud-Runtime prüfen.
+- Installation, Update, Deaktivierung, Entfernung, Neuinstallation und
+  Rückbau nachweisen; organisationsabgeleitete Rechte müssen in jedem
+  ungeklärten Zustand gesperrt bleiben, unabhängige app-lokale Rechte
+  unverändert funktionieren.
+
 ### RECR-POOL-ACTIVATION – Bewerberpool produktiv aktivieren
 
 - Versionierten Datenschutzhinweis freigeben.

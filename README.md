@@ -88,14 +88,19 @@ geeignet“, „abgebrochen“ und „nicht teilgenommen“.
 Diese lokale BQ-Verwaltung ist eine Übergangslösung, bis die eigenständige
 BQ-Planer-App über einen kleinen versionierten Vertrag angebunden ist.
 
-Die Berechtigungen stammen aus dem gemeinsamen LocalBase-Organisationsvertrag:
-Personalreferent*innen besitzen operativen Vollzugriff, sehen und bearbeiten
-vor der Einstellungsfreigabe aber keine LoBu-only Abrechnungsdaten. LoBu sieht
-ab der Einstellungsfreigabe ausschließlich die für die Vertragserstellung
-bestimmten Stammdaten. Vertretungen werden nach Fähigkeit sowie globalem,
-Bereichs- oder Einzelbewerbungsscope konfiguriert. Erstbegleitungen benötigen
-EB-Rolle, Erstbegleitungsgruppe und denselben Bürobereich wie die freigegebene
-Bewerbung.
+Die Berechtigungen stammen aus dem öffentlichen LocalBase-
+Organisationsvertrag V1, den Recruitment erst nach Installations-,
+Aktivierungs- und Versionsprüfung lazy auflöst. Personalreferent*innen besitzen
+operativen Vollzugriff, sehen und bearbeiten vor der Einstellungsfreigabe aber
+keine LoBu-only Abrechnungsdaten. LoBu sieht ab der Einstellungsfreigabe
+ausschließlich die für die Vertragserstellung bestimmten Stammdaten.
+Vertretungen werden nach Fähigkeit sowie globalem, Bereichs- oder
+Einzelbewerbungsscope konfiguriert. Erstbegleitungen benötigen EB-Rolle,
+Erstbegleitungsgruppe und denselben Bürobereich wie die freigegebene Bewerbung.
+Fehlende, deaktivierte, inkompatible, ungültige oder nicht verfügbare
+Organisationsprovider erteilen keine dieser organisationsabgeleiteten Rechte;
+unabhängige globale und einzelaktenbezogene Recruitment-Freigaben bleiben
+davon unberührt.
 
 Beim Upgrade wird die bisherige kombinierte Bestandsgruppe sicher der Rolle
 Finanzen zugeordnet. Lohn-Mitarbeitende müssen durch die Administration

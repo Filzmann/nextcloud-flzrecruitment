@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace OCA\Recruitment\Service;
 
-use OCA\LocalBase\Organization\AdOrganizationSnapshot;
-use OCA\LocalBase\Organization\AdOrganizationSnapshotService;
 use OCA\Recruitment\Exception\AccessDeniedException;
+use OCA\Recruitment\Organization\OrganizationSnapshot;
+use OCA\Recruitment\Organization\OrganizationSnapshotService;
 use OCP\IGroupManager;
 use OCP\IUser;
 use OCP\IUserSession;
@@ -32,7 +32,7 @@ final class RecruitmentAccessService {
     public function __construct(
         private IUserSession $session,
         private IGroupManager $groups,
-        private AdOrganizationSnapshotService $organization,
+        private OrganizationSnapshotService $organization,
         private RecruitmentPermissionSettingsService $settings,
         private TemporaryAdminAccessChecker $temporaryAdminAccess,
     ) {}
@@ -132,7 +132,7 @@ final class RecruitmentAccessService {
         ])));
     }
 
-    public function organization(): AdOrganizationSnapshot { return $this->organization->snapshot(); }
+    public function organization(): OrganizationSnapshot { return $this->organization->snapshot(); }
     /** @return array<string, mixed> */
     public function permissionSettings(): array { return $this->settings->settings(); }
 

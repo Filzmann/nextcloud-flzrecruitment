@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace OCA\Recruitment\Service;
 
-use OCA\LocalBase\Organization\AdOrganizationSnapshotService;
 use OCA\Recruitment\Exception\ValidationException;
+use OCA\Recruitment\Organization\OrganizationSnapshotService;
 use OCP\IGroupManager;
 use OCP\IUser;
 
@@ -21,7 +21,7 @@ final class JobResponsibilityService {
     ];
 
     public function __construct(
-        private AdOrganizationSnapshotService $organization,
+        private OrganizationSnapshotService $organization,
         private IGroupManager $groups,
     ) {}
 
@@ -31,7 +31,7 @@ final class JobResponsibilityService {
         if ($roleKeys === null) throw new ValidationException('Die Berufsgruppe der Stelle ist ungültig.');
 
         $snapshot = $this->organization->snapshot();
-        $roles = $snapshot->toArray()['roles'];
+        $roles = $snapshot->roles();
         $result = [];
         foreach ($roleKeys as $roleKey) {
             $role = $roles[$roleKey] ?? null;

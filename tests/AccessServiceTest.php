@@ -7,9 +7,9 @@ namespace OCA\Recruitment\AppInfo { final class Application { public const APP_I
 namespace OCA\Recruitment\Service { interface TemporaryAdminAccessChecker { public function hasActiveGrant(string $uid): bool; } }
 
 namespace {
-    use OCA\LocalBase\Organization\AdOrganizationSettingsService;
-    use OCA\LocalBase\Organization\AdOrganizationSnapshotService;
     use OCA\Recruitment\Exception\AccessDeniedException;
+    use OCA\Recruitment\Organization\OrganizationSnapshot;
+    use OCA\Recruitment\Organization\OrganizationSnapshotService;
     use OCA\Recruitment\Service\RecruitmentAccessService;
     use OCA\Recruitment\Service\RecruitmentPermissionSettingsService;
     use OCA\Recruitment\Service\TemporaryAdminAccessChecker;
@@ -40,26 +40,36 @@ namespace {
     }
     final class TestUsers implements IUserManager { public function userExists(string $uid): bool { return true; } }
 
-    $dependencies = static function (string $uid, array $members = [], array $admins = [], bool $activeGrant = false): RecruitmentAccessService {
+    final class FixedOrganizationSnapshotService extends OrganizationSnapshotService {
+        public function __construct(private OrganizationSnapshot $fixedSnapshot) {}
+        public function snapshot(): OrganizationSnapshot { return $this->fixedSnapshot; }
+    }
+
+    $organization = static fn(): OrganizationSnapshot => OrganizationSnapshot::valid('1.0', 4, 'test-checksum', [
+        'staff_hr' => ['groupId' => 'ad-Stab-HR', 'label' => 'Personalreferat'],
+        'finance' => ['groupId' => 'ad-Finanzen', 'label' => 'Finanzen'],
+        'payroll' => ['groupId' => 'ad-Lohn', 'label' => 'Lohn'],
+        'eb' => ['groupId' => 'ad-EB', 'label' => 'Einsatzbegleitung'],
+    ], [
+        'west' => ['groupId' => 'ad-Bereich-West', 'label' => 'West'],
+    ]);
+
+    $dependencies = static function (string $uid, array $members = [], array $admins = [], bool $activeGrant = false) use ($organization): RecruitmentAccessService {
         $config = new TestConfig();
-        $organizationSettings = new AdOrganizationSettingsService($config);
-        $organizationSettings->save($organizationSettings->definition()->toArray());
         $groups = new TestGroups($members, $admins);
         return new RecruitmentAccessService(
             new TestSession(new TestUser($uid)),
             $groups,
-            new AdOrganizationSnapshotService($organizationSettings),
+            new FixedOrganizationSnapshotService($organization()),
             new RecruitmentPermissionSettingsService($config, new TestUsers(), $groups),
             new class($activeGrant) implements TemporaryAdminAccessChecker { public function __construct(private bool $active) {} public function hasActiveGrant(string $uid): bool { return $this->active; } },
         );
     };
 
-    TestRunner::test('anonymous and finance users are denied server-side', static function () use ($dependencies): void {
+    TestRunner::test('anonymous and finance users are denied server-side', static function () use ($dependencies, $organization): void {
         $config = new TestConfig();
-        $organizationSettings = new AdOrganizationSettingsService($config);
-        $organizationSettings->save($organizationSettings->definition()->toArray());
         $groups = new TestGroups([]);
-        $anonymous = new RecruitmentAccessService(new TestSession(null), $groups, new AdOrganizationSnapshotService($organizationSettings), new RecruitmentPermissionSettingsService($config, new TestUsers(), $groups), new class implements TemporaryAdminAccessChecker { public function hasActiveGrant(string $uid): bool { return false; } });
+        $anonymous = new RecruitmentAccessService(new TestSession(null), $groups, new FixedOrganizationSnapshotService($organization()), new RecruitmentPermissionSettingsService($config, new TestUsers(), $groups), new class implements TemporaryAdminAccessChecker { public function hasActiveGrant(string $uid): bool { return false; } });
         assertThrows(static fn () => $anonymous->requireAnyAccess(), AccessDeniedException::class);
 
         $finance = $dependencies('finance-user', ['ad-Finanzen' => ['finance-user']]);

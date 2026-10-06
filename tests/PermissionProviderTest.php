@@ -39,12 +39,12 @@ namespace OCA\FilzmannPermissionMatrix\PublicApi\V1 {
 
 namespace RecruitmentTests {
     use OCA\FilzmannPermissionMatrix\PublicApi\V1\RegisterPermissionProvidersEvent;
-    use OCA\LocalBase\Organization\AdOrganizationSnapshot;
+    use OCA\Recruitment\Organization\OrganizationSnapshot;
     use OCA\Recruitment\Permission\RecruitmentPermissionProvider;
     use OCA\Recruitment\Permission\RecruitmentPermissionProviderListener;
     use OCA\Recruitment\Permission\RecruitmentPermissionSourceInterface;
 
-    $snapshot = new AdOrganizationSnapshot(true, 4, [
+    $snapshot = OrganizationSnapshot::valid('1.0', 4, 'test-checksum', [
         'staff_hr' => ['groupId' => 'ad-HR', 'label' => 'HR'],
         'payroll' => ['groupId' => 'ad-Payroll', 'label' => 'Lohn'],
         'eb' => ['groupId' => 'ad-EB', 'label' => 'Einsatzbegleitung'],
@@ -53,8 +53,8 @@ namespace RecruitmentTests {
     ]);
 
     $source = new class($snapshot) implements RecruitmentPermissionSourceInterface {
-        public function __construct(private AdOrganizationSnapshot $snapshot) {}
-        public function organization(): AdOrganizationSnapshot { return $this->snapshot; }
+        public function __construct(private OrganizationSnapshot $snapshot) {}
+        public function organization(): OrganizationSnapshot { return $this->snapshot; }
         public function permissionSettings(): array {
             return ['firstGuideGroupId' => 'ad-first-guides', 'representatives' => []];
         }
@@ -100,8 +100,8 @@ namespace RecruitmentTests {
     assertTrue(str_contains($documentRules[0]->detail ?? '', 'Dateiinhalte werden nicht untersucht'));
 
     $partialSource = new class($snapshot) implements RecruitmentPermissionSourceInterface {
-        public function __construct(private AdOrganizationSnapshot $snapshot) {}
-        public function organization(): AdOrganizationSnapshot { return $this->snapshot; }
+        public function __construct(private OrganizationSnapshot $snapshot) {}
+        public function organization(): OrganizationSnapshot { return $this->snapshot; }
         public function permissionSettings(): array {
             return [
                 'firstGuideGroupId' => 'ad-first-guides',

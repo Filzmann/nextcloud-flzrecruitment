@@ -36,8 +36,10 @@ Er ist idempotent, importiert keine fremden Daten und überschreibt keine
 bereits bearbeiteten Demo-Zustände.
 
 Die Stellenmaske bezieht ihre auswählbaren Beteiligungsgruppen aus den
-LocalBase-Rollen des kanonischen AD-Organisationsmodells und begrenzt sie
-app-lokal je Berufsgruppe. Die Personensuche verwendet ausschließlich die
+Rollen des öffentlichen LocalBase-Organisationsvertrags V1 und begrenzt sie
+app-lokal je Berufsgruppe. Ein app-lokaler Adapter löst den Provider erst nach
+Installations-, Aktivierungs-, Klassen- und Versionsprüfung über den
+Nextcloud-Container auf. Die Personensuche verwendet ausschließlich die
 native Nextcloud-Gruppensuche innerhalb der ausgewählten Gruppen. Der Server
 prüft sowohl die Gruppenauswahl als auch jede übermittelte Mitgliedschaft
 erneut; Browseroptionen erteilen keine Berechtigung.
@@ -76,6 +78,14 @@ Vorlagenrevision. Spätere Änderungen an Vorlage, Fragen oder Bubbles ändern
 weder Snapshot noch Antworten bestehender Interviews.
 
 ## Berechtigungen
+
+Recruitment konsumiert `OCA\\LocalBase\\PublicApi\\V1` ausschließlich über
+seinen app-lokalen `OrganizationSnapshotService`. Nur Vertragsversion `1.0`
+mit gültigem Snapshot liefert Rollen und Bereiche. Fehlende, deaktivierte,
+alte, inkompatible, ungültige oder vorübergehend nicht verfügbare Provider
+werden unterscheidbar, aber jeweils mit leeren Organisationsabbildungen
+projiziert. Es gibt keinen direkten Zugriff auf interne LocalBase-Klassen,
+AppConfig oder Persistenz.
 
 Die LocalBase-Rolle `staff_hr` besitzt die fachlichen App-Rechte.
 Nextcloud-Admins erhalten fachlichen Vollzugriff nur mit einer aktiven,
@@ -169,9 +179,13 @@ Capability-/Event-Vertrag einer eigenständigen BQ-Planer-App.
 Erstbegleitungen benötigen zugleich die LocalBase-Rolle `eb`, Mitgliedschaft
 in der konfigurierten Erstbegleitungsgruppe und Mitgliedschaft im Bereich der
 Bewerbung. Sie lesen ausschließlich freigegebene Akten ihres Bereichs. Ein
-ungültiger oder nicht persistierter LocalBase-Snapshot führt für alle
-Nicht-Admins zu deny by default. Jeder API-Pfad prüft Fähigkeit, Akteur und
-konkreten Bewerbungsscope serverseitig.
+fehlender oder nicht gültiger LocalBase-V1-Snapshot sperrt sämtliche daraus
+abgeleiteten HR-, Lohn-, Erstbegleitungs- und Bereichsrechte. Davon
+unabhängige aktive app-lokale Adminfreigaben sowie globale oder
+einzelaktenbezogene Vertretungsfreigaben bleiben erhalten;
+bereichsgebundene Vertretungen bleiben ohne gültige Bereichsabbildung
+gesperrt. Jeder API-Pfad prüft Fähigkeit, Akteur und konkreten
+Bewerbungsscope serverseitig.
 
 ## Vertragsstammdaten
 

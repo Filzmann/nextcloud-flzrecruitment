@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace OCA\Recruitment\Permission;
 
-use OCA\LocalBase\Organization\AdOrganizationSnapshot;
+use OCA\Recruitment\Organization\OrganizationSnapshot;
 
 interface RecruitmentPermissionSourceInterface {
-    public function organization(): AdOrganizationSnapshot;
+    public function organization(): OrganizationSnapshot;
     public function permissionSettings(): array;
 }
