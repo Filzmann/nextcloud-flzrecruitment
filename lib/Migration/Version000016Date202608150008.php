@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Recruitment\Migration;
+namespace OCA\FlzRecruitment\Migration;
 
 use Closure;
 use DateTimeImmutable;
@@ -36,7 +36,7 @@ final class Version000016Date202608150008 extends SimpleMigrationStep {
                 }
                 $now = new DateTimeImmutable('now', new DateTimeZone('UTC'));
                 $insert = $this->db->getQueryBuilder();
-                $insert->insert('rec_status_mail_rules')
+                $insert->insert('flz_recruitment_status_mail_rules')
                     ->setValue('from_status', $insert->createNamedParameter($fromStatus, IQueryBuilder::PARAM_STR))
                     ->setValue('to_status', $insert->createNamedParameter($toStatus, IQueryBuilder::PARAM_STR))
                     ->setValue('template_id', $insert->createNamedParameter($templateId, IQueryBuilder::PARAM_INT))
@@ -57,7 +57,7 @@ final class Version000016Date202608150008 extends SimpleMigrationStep {
 
     private function ruleExists(string $fromStatus, string $toStatus): bool {
         $query = $this->db->getQueryBuilder();
-        return $query->select('id')->from('rec_status_mail_rules')
+        return $query->select('id')->from('flz_recruitment_status_mail_rules')
             ->where($query->expr()->eq('from_status', $query->createNamedParameter($fromStatus, IQueryBuilder::PARAM_STR)))
             ->andWhere($query->expr()->eq('to_status', $query->createNamedParameter($toStatus, IQueryBuilder::PARAM_STR)))
             ->setMaxResults(1)->executeQuery()->fetchOne() !== false;
@@ -65,7 +65,7 @@ final class Version000016Date202608150008 extends SimpleMigrationStep {
 
     private function templateIdForTarget(string $toStatus): ?int {
         $query = $this->db->getQueryBuilder();
-        $templateId = $query->select('template_id')->from('rec_status_mail_rules')
+        $templateId = $query->select('template_id')->from('flz_recruitment_status_mail_rules')
             ->where($query->expr()->eq('to_status', $query->createNamedParameter($toStatus, IQueryBuilder::PARAM_STR)))
             ->orderBy('id', 'ASC')->setMaxResults(1)->executeQuery()->fetchOne();
         return $templateId === false ? null : (int)$templateId;

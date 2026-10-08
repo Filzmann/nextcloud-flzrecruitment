@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace OCA\Recruitment\Service;
+namespace OCA\FlzRecruitment\Service;
 
 use DateTimeImmutable;
-use OCA\Recruitment\Contract\BasisQualificationStore;
-use OCA\Recruitment\Exception\ValidationException;
+use OCA\FlzRecruitment\Contract\BasisQualificationStore;
+use OCA\FlzRecruitment\Exception\ValidationException;
 
 /** Fachlogik für lokale BQ-Durchläufe, Zuordnungen und einfache Ergebnisse. */
 final class BasisQualificationService {

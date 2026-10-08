@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-use OCA\Recruitment\Exception\ConflictException;
-use OCA\Recruitment\Exception\ValidationException;
-use OCA\Recruitment\Service\ApplicationStatusService;
-use OCA\Recruitment\Service\InterviewWorkflow;
+use OCA\FlzRecruitment\Exception\ConflictException;
+use OCA\FlzRecruitment\Exception\ValidationException;
+use OCA\FlzRecruitment\Service\ApplicationStatusService;
+use OCA\FlzRecruitment\Service\InterviewWorkflow;
 use RecruitmentTests\TestRunner;
 
 use function RecruitmentTests\assertSame;

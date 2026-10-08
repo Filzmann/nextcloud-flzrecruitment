@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace OCA\Recruitment\BackgroundJob;
+namespace OCA\FlzRecruitment\BackgroundJob;
 
-use OCA\Recruitment\Service\StatusMailDeliveryService;
+use OCA\FlzRecruitment\Service\StatusMailDeliveryService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\BackgroundJob\TimedJob;
 

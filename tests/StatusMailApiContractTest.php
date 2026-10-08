@@ -23,5 +23,5 @@ TestRunner::test('status mail HTTP surface separates administration, scoped draf
     $repository = file_get_contents($root . '/lib/Repository/RecruitmentRepository.php');
     assertTrue($repository !== false && str_contains($repository, 'saveStatusMailRule(string $fromStatus, string $toStatus, int $templateId, bool $enabled, string $timing, int $expectedVersion'), 'Concurrent mail-rule edits have no optimistic version contract');
     assertTrue(str_contains($controller, 'public function approveMailDraft') && !preg_match('/#\[NoCSRFRequired\]\s+public function approveMailDraft/', $controller), 'Mail approval bypasses CSRF protection');
-    assertTrue(str_contains($info, 'OCA\Recruitment\BackgroundJob\DeliverStatusMailJob'), 'The due-mail background job is not registered');
+    assertTrue(str_contains($info, 'OCA\FlzRecruitment\BackgroundJob\DeliverStatusMailJob'), 'The due-mail background job is not registered');
 });

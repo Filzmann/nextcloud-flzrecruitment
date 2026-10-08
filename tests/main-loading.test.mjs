@@ -41,10 +41,10 @@ const tabs = new FakeElement()
 const status = new FakeElement()
 const errorBox = new FakeElement()
 const elements = {
-    'adrecruitment-content': content,
-    'adrecruitment-tabs': tabs,
-    'adrecruitment-status': status,
-    'adrecruitment-error': errorBox,
+    'flzrecruitment-content': content,
+    'flzrecruitment-tabs': tabs,
+    'flzrecruitment-status': status,
+    'flzrecruitment-error': errorBox,
 }
 const document = {
     createElement: () => new FakeElement(),

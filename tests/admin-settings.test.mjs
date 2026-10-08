@@ -18,7 +18,7 @@ elements['recr-admin-mail-test-recipient'].value = 'test@example.invalid'
 elements['recr-admin-extraction-form'].dataset.revision = '4'
 elements['recr-admin-extraction-method'].value = 'rules'
 elements['recr-admin-first-guide-form'].dataset.revision = '5'
-elements['recr-admin-first-guide-group'].value = 'ad-erstbegleitung'
+elements['recr-admin-first-guide-group'].value = 'flz-erstbegleitung'
 
 const calls = []
 const api = {
@@ -38,7 +38,7 @@ for (const id of ['recr-admin-mail-form', 'recr-admin-extraction-form', 'recr-ad
 const expected = [
     ['mail', { testMode: true, testRecipient: 'test@example.invalid', revision: 2 }],
     ['extraction', { method: 'rules', revision: 4 }],
-    ['group', { groupId: 'ad-erstbegleitung', revision: 5 }],
+    ['group', { groupId: 'flz-erstbegleitung', revision: 5 }],
 ]
 if (JSON.stringify(calls) !== JSON.stringify(expected)) throw new Error(`Adminspeicherpfade stimmen nicht: ${JSON.stringify(calls)}`)
 if (elements['recr-admin-mail-form'].dataset.revision !== '3'
@@ -50,4 +50,4 @@ for (const id of ['recr-admin-mail-status', 'recr-admin-extraction-status', 'rec
     if (!elements[id].textContent.includes('gespeichert')) throw new Error(`Erfolgsmeldung fehlt: ${id}`)
 }
 
-console.log('AD Recruitment admin settings tests passed')
+console.log('Filzmann Recruitment admin settings tests passed')

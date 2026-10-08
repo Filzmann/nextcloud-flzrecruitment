@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-use OCA\Recruitment\Contract\HiringDataStore;
-use OCA\Recruitment\Exception\ConflictException;
-use OCA\Recruitment\Service\HiringMasterDataService;
-use OCA\Recruitment\Service\HiringWorkflowService;
+use OCA\FlzRecruitment\Contract\HiringDataStore;
+use OCA\FlzRecruitment\Exception\ConflictException;
+use OCA\FlzRecruitment\Service\HiringMasterDataService;
+use OCA\FlzRecruitment\Service\HiringWorkflowService;
 use RecruitmentTests\TestRunner;
 
 use function RecruitmentTests\assertSame;
@@ -69,8 +69,8 @@ TestRunner::test('hiring workflow validates before optimistic persistence', stat
 
 TestRunner::test('PersRef cannot write LoBu-only or job-derived fields', static function (): void {
     $store = new MemoryHiringStore(); $workflow = new HiringWorkflowService(new HiringMasterDataService());
-    assertThrows(static fn() => $workflow->save($store, 1, ['iban' => 'DE89370400440532013000'], 0, 'hr-user'), \OCA\Recruitment\Exception\ValidationException::class);
-    assertThrows(static fn() => $workflow->save($store, 1, ['payGrade' => '5'], 0, 'hr-user'), \OCA\Recruitment\Exception\ValidationException::class);
+    assertThrows(static fn() => $workflow->save($store, 1, ['iban' => 'DE89370400440532013000'], 0, 'hr-user'), \OCA\FlzRecruitment\Exception\ValidationException::class);
+    assertThrows(static fn() => $workflow->save($store, 1, ['payGrade' => '5'], 0, 'hr-user'), \OCA\FlzRecruitment\Exception\ValidationException::class);
     assertSame([], $store->data);
 });
 
@@ -78,15 +78,15 @@ TestRunner::test('LoBu writes only sensitive fields after hire approval', static
     $store = new MemoryHiringStore(); $workflow = new HiringWorkflowService(new HiringMasterDataService());
     $saved = $workflow->savePayroll($store, 1, ['iban' => 'DE89370400440532013000', 'healthInsurance' => 'Beispielkasse'], 0, 'payroll');
     assertSame('DE89370400440532013000', $saved['data']['iban']);
-    assertThrows(static fn() => $workflow->savePayroll($store, 2, ['taxId' => '123'], 0, 'payroll'), \OCA\Recruitment\Exception\ValidationException::class);
-    assertThrows(static fn() => $workflow->savePayroll($store, 1, ['city' => 'Manipuliert'], 1, 'payroll'), \OCA\Recruitment\Exception\ValidationException::class);
+    assertThrows(static fn() => $workflow->savePayroll($store, 2, ['taxId' => '123'], 0, 'payroll'), \OCA\FlzRecruitment\Exception\ValidationException::class);
+    assertThrows(static fn() => $workflow->savePayroll($store, 1, ['city' => 'Manipuliert'], 1, 'payroll'), \OCA\FlzRecruitment\Exception\ValidationException::class);
 });
 
 TestRunner::test('job-derived contract data cannot be overridden in applicant master data', static function (): void {
     $store = new MemoryHiringStore();
     $workflow = new HiringWorkflowService(new HiringMasterDataService());
 
-    assertThrows(static fn () => $workflow->save($store, 5, ['workingTimeModel' => 'kapovaz'], 0, 'hr-user'), \OCA\Recruitment\Exception\ValidationException::class);
+    assertThrows(static fn () => $workflow->save($store, 5, ['workingTimeModel' => 'kapovaz'], 0, 'hr-user'), \OCA\FlzRecruitment\Exception\ValidationException::class);
 });
 
 TestRunner::test('payroll list projects released hiring records without dossier fields', static function (): void {

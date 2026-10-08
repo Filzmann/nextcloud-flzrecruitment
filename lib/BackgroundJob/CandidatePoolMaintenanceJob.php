@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace OCA\Recruitment\BackgroundJob;
+namespace OCA\FlzRecruitment\BackgroundJob;
 
 use DateTimeImmutable;
-use OCA\Recruitment\Contract\CandidatePoolStore;
-use OCA\Recruitment\Service\CandidatePoolMatchingService;
-use OCA\Recruitment\Service\CandidatePoolService;
-use OCA\Recruitment\Service\CandidatePoolSettingsService;
+use OCA\FlzRecruitment\Contract\CandidatePoolStore;
+use OCA\FlzRecruitment\Service\CandidatePoolMatchingService;
+use OCA\FlzRecruitment\Service\CandidatePoolService;
+use OCA\FlzRecruitment\Service\CandidatePoolSettingsService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\BackgroundJob\TimedJob;
 

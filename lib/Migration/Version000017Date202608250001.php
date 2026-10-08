@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Recruitment\Migration;
+namespace OCA\FlzRecruitment\Migration;
 
 use Closure;
 use OCP\DB\ISchemaWrapper;

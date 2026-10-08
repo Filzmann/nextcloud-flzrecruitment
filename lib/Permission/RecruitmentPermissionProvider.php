@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace OCA\Recruitment\Permission;
+namespace OCA\FlzRecruitment\Permission;
 
-use OCA\FilzmannPermissionMatrix\PublicApi\V1\PermissionCondition;
-use OCA\FilzmannPermissionMatrix\PublicApi\V1\PermissionProvider;
-use OCA\FilzmannPermissionMatrix\PublicApi\V1\PermissionProviderDescriptor;
-use OCA\FilzmannPermissionMatrix\PublicApi\V1\PermissionProviderResult;
-use OCA\FilzmannPermissionMatrix\PublicApi\V1\PermissionRule;
-use OCA\Recruitment\Service\RecruitmentPermissionPolicy;
+use OCA\FlzPermissionMatrix\PublicApi\V1\PermissionCondition;
+use OCA\FlzPermissionMatrix\PublicApi\V1\PermissionProvider;
+use OCA\FlzPermissionMatrix\PublicApi\V1\PermissionProviderDescriptor;
+use OCA\FlzPermissionMatrix\PublicApi\V1\PermissionProviderResult;
+use OCA\FlzPermissionMatrix\PublicApi\V1\PermissionRule;
+use OCA\FlzRecruitment\Service\RecruitmentPermissionPolicy;
 
 final class RecruitmentPermissionProvider implements PermissionProvider {
     private const MANAGE_TEMPORARY_ADMIN_ACCESS = 'manage_temporary_admin_access';
@@ -37,7 +37,7 @@ final class RecruitmentPermissionProvider implements PermissionProvider {
     public function __construct(private RecruitmentPermissionSourceInterface $source) {}
 
     public function descriptor(): PermissionProviderDescriptor {
-        return new PermissionProviderDescriptor('adrecruitment', 'AD Recruitment', '1.0', ['permissions']);
+        return new PermissionProviderDescriptor('flzrecruitment', 'Filzmann Recruitment', '1.0', ['permissions']);
     }
 
     public function collect(): PermissionProviderResult {
@@ -66,7 +66,7 @@ final class RecruitmentPermissionProvider implements PermissionProvider {
         $complete = true;
         if (!$organization->isValid()) {
             $complete = false;
-            $warnings[] = 'Der kanonische AD-Organisationssnapshot ist ungültig; Nicht-Admin-Rechte bleiben deny by default.';
+            $warnings[] = 'Der kanonische Filzmann-Organisationssnapshot ist ungültig; Nicht-Admin-Rechte bleiben deny by default.';
         } else {
             $hrGroup = $organization->roleGroupId('staff_hr');
             if ($hrGroup !== null) {
@@ -130,7 +130,7 @@ final class RecruitmentPermissionProvider implements PermissionProvider {
             'allow',
             $scope,
             $condition,
-            'adrecruitment:RecruitmentPermissionPolicy',
+            'flzrecruitment:RecruitmentPermissionPolicy',
             'high',
         );
     }

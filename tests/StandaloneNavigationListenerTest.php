@@ -11,9 +11,9 @@ namespace OCP {
 namespace OCP\App { interface IAppManager { public function isEnabledForUser($appId, $user = null); } }
 
 namespace {
-    use OCA\LocalBase\Catalog\AdProductCatalog;
+    use OCA\LocalBase\Catalog\FlzProductCatalog;
     use OCA\LocalBase\Service\StandaloneAppNavigationService;
-    use OCA\Recruitment\Listener\StandaloneNavigationListener;
+    use OCA\FlzRecruitment\Listener\StandaloneNavigationListener;
     use OCP\App\IAppManager;
     use OCP\INavigationManager;
     use OCP\IURLGenerator;
@@ -30,12 +30,12 @@ namespace {
         public function imagePath(string $appName, string $file): string { return '/image/' . $appName . '/' . $file; }
     };
 
-    $service = new StandaloneAppNavigationService($session, $apps, $navigation, $url, new AdProductCatalog());
+    $service = new StandaloneAppNavigationService($session, $apps, $navigation, $url, new FlzProductCatalog());
     $listener = new StandaloneNavigationListener($service);
     $listener->handle(new LoadAdditionalEntriesEvent());
     $entry = ($navigation->entries[0] ?? static fn(): array => [])();
-    if (($entry['id'] ?? null) !== 'adrecruitment' || ($entry['href'] ?? null) !== '/route/adrecruitment.page.index') {
-        throw new RuntimeException('AD Recruitment erhält keinen katalogisierten Standalone-Einstieg.');
+    if (($entry['id'] ?? null) !== 'flzrecruitment' || ($entry['href'] ?? null) !== '/route/flzrecruitment.page.index') {
+        throw new RuntimeException('Filzmann Recruitment erhält keinen katalogisierten Standalone-Einstieg.');
     }
 
     $apps->suiteEnabled = true;
@@ -44,5 +44,5 @@ namespace {
         throw new RuntimeException('Aktive OrgSuite unterdrückt den Recruitment-Standalone-Einstieg nicht.');
     }
 
-    echo "AD Recruitment standalone navigation test passed\n";
+    echo "Filzmann Recruitment standalone navigation test passed\n";
 }

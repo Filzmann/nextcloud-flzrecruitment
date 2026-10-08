@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use OCA\Recruitment\Organization\OrganizationSnapshot;
-use OCA\Recruitment\Service\RecruitmentPermissionPolicy;
+use OCA\FlzRecruitment\Organization\OrganizationSnapshot;
+use OCA\FlzRecruitment\Service\RecruitmentPermissionPolicy;
 use RecruitmentTests\TestRunner;
 
 use function RecruitmentTests\assertSame;

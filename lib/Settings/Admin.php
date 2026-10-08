@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace OCA\Recruitment\Settings;
+namespace OCA\FlzRecruitment\Settings;
 
-use OCA\Recruitment\AppInfo\Application;
-use OCA\Recruitment\Service\RecruitmentPermissionSettingsService;
-use OCA\Recruitment\Service\ResumeExtractionSettingsService;
-use OCA\Recruitment\Service\StatusMailSettingsService;
+use OCA\FlzRecruitment\AppInfo\Application;
+use OCA\FlzRecruitment\Service\RecruitmentPermissionSettingsService;
+use OCA\FlzRecruitment\Service\ResumeExtractionSettingsService;
+use OCA\FlzRecruitment\Service\StatusMailSettingsService;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\Settings\ISettings;
 

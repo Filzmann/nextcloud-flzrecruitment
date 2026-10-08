@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace OCA\Recruitment\Permission;
+namespace OCA\FlzRecruitment\Permission;
 
-use OCA\Recruitment\Organization\OrganizationSnapshot;
+use OCA\FlzRecruitment\Organization\OrganizationSnapshot;
 
 interface RecruitmentPermissionSourceInterface {
     public function organization(): OrganizationSnapshot;

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Recruitment\Service;
+namespace OCA\FlzRecruitment\Service;
 
 /** Liefert neutrale, standardmäßig deaktivierte Vorlagen für jede erlaubte Statuskante. */
 final class DefaultStatusMailTemplateCatalog {

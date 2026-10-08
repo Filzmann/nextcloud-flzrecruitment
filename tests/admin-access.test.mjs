@@ -31,4 +31,4 @@ if (!status.textContent.includes('widerrufen')) throw new Error('Widerruf bestä
 for (const contract of ['recr-admin-grant-warning', '<details', 'Datenschutzbeauftragte', 'target="_blank"']) if (!template.includes(contract)) throw new Error(`Titelwarnung für fehlenden Admin-Vollzugriff fehlt: ${contract}`)
 if (!style.includes('.recr-admin-grant-warning')) throw new Error('Titelwarnung für fehlenden Admin-Vollzugriff ist nicht als kleines Floating-Icon gestaltet.')
 
-console.log('AD Recruitment admin access UI tests passed')
+console.log('Filzmann Recruitment admin access UI tests passed')

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace OCA\Recruitment\Permission;
+namespace OCA\FlzRecruitment\Permission;
 
-use OCA\FilzmannPermissionMatrix\PublicApi\V1\RegisterPermissionProvidersEvent;
+use OCA\FlzPermissionMatrix\PublicApi\V1\RegisterPermissionProvidersEvent;
 
 final class RecruitmentPermissionProviderListener {
     public function __construct(private RecruitmentPermissionProvider $provider) {}

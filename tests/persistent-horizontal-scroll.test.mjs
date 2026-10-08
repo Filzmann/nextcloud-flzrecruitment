@@ -11,6 +11,6 @@ assert.match(script, /className:\s*'app-horizontal-scroll-proxy'/)
 assert.match(script, /ResizeObserver/)
 assert.match(script, /proxy\.addEventListener\('scroll'/)
 assert.match(script, /target\.addEventListener\('scroll'/)
-assert.match(script, /result\.querySelector\('\.adrecruitment-board, \.adrecruitment-table-wrap'\)/)
+assert.match(script, /result\.querySelector\('\.flzrecruitment-board, \.flzrecruitment-table-wrap'\)/)
 
-console.log('AD Recruitment persistent horizontal scroll contract passed')
+console.log('Filzmann Recruitment persistent horizontal scroll contract passed')

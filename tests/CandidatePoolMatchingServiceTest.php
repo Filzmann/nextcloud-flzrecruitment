@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use OCA\Recruitment\Service\CandidatePoolMatchingService;
+use OCA\FlzRecruitment\Service\CandidatePoolMatchingService;
 use RecruitmentTests\TestRunner;
 
 use function RecruitmentTests\assertSame;

@@ -2,25 +2,25 @@
 
 declare(strict_types=1);
 
-namespace OCA\Recruitment\Controller;
+namespace OCA\FlzRecruitment\Controller;
 
-use OCA\Recruitment\AppInfo\Application;
-use OCA\Recruitment\Exception\AccessDeniedException;
-use OCA\Recruitment\Exception\ConflictException;
-use OCA\Recruitment\Exception\NotFoundException;
-use OCA\Recruitment\Exception\ValidationException;
-use OCA\Recruitment\Service\RecruitmentAccessService;
-use OCA\Recruitment\Service\RecruitmentPermissionPolicy;
-use OCA\Recruitment\Service\RecruitmentUseCaseService;
-use OCA\Recruitment\Service\MailInboxService;
-use OCA\Recruitment\Service\DocumentReviewService;
-use OCA\Recruitment\Service\DocumentFieldLinkService;
-use OCA\Recruitment\Service\StatusMailService;
-use OCA\Recruitment\Service\JobResponsibilityService;
-use OCA\Recruitment\Contract\CandidatePoolStore;
-use OCA\Recruitment\Service\CandidatePoolService;
-use OCA\Recruitment\Service\CandidatePoolSettingsService;
-use OCA\Recruitment\Service\ResumeExtractionSettingsService;
+use OCA\FlzRecruitment\AppInfo\Application;
+use OCA\FlzRecruitment\Exception\AccessDeniedException;
+use OCA\FlzRecruitment\Exception\ConflictException;
+use OCA\FlzRecruitment\Exception\NotFoundException;
+use OCA\FlzRecruitment\Exception\ValidationException;
+use OCA\FlzRecruitment\Service\RecruitmentAccessService;
+use OCA\FlzRecruitment\Service\RecruitmentPermissionPolicy;
+use OCA\FlzRecruitment\Service\RecruitmentUseCaseService;
+use OCA\FlzRecruitment\Service\MailInboxService;
+use OCA\FlzRecruitment\Service\DocumentReviewService;
+use OCA\FlzRecruitment\Service\DocumentFieldLinkService;
+use OCA\FlzRecruitment\Service\StatusMailService;
+use OCA\FlzRecruitment\Service\JobResponsibilityService;
+use OCA\FlzRecruitment\Contract\CandidatePoolStore;
+use OCA\FlzRecruitment\Service\CandidatePoolService;
+use OCA\FlzRecruitment\Service\CandidatePoolSettingsService;
+use OCA\FlzRecruitment\Service\ResumeExtractionSettingsService;
 use DateTimeImmutable;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -863,7 +863,7 @@ final class ApiController extends Controller {
         if ($error instanceof ValidationException) {
             return new JSONResponse(['message' => $error->getMessage()], Http::STATUS_UNPROCESSABLE_ENTITY);
         }
-        $this->logger->error('AD-Recruitment-Anfrage fehlgeschlagen.', ['exceptionClass' => $error::class]);
+        $this->logger->error('Filzmann-Recruitment-Anfrage fehlgeschlagen.', ['exceptionClass' => $error::class]);
         return new JSONResponse(
             ['message' => 'Die Anfrage konnte technisch nicht verarbeitet werden.'],
             Http::STATUS_INTERNAL_SERVER_ERROR,

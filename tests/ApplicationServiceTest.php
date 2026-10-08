@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-use OCA\Recruitment\Contract\ApplicationStatusStore;
-use OCA\Recruitment\Contract\RecruitmentStore;
-use OCA\Recruitment\Exception\ConflictException;
-use OCA\Recruitment\Exception\NotFoundException;
-use OCA\Recruitment\Exception\ValidationException;
-use OCA\Recruitment\Service\ApplicationStatusService;
-use OCA\Recruitment\Service\RecruitmentService;
+use OCA\FlzRecruitment\Contract\ApplicationStatusStore;
+use OCA\FlzRecruitment\Contract\RecruitmentStore;
+use OCA\FlzRecruitment\Exception\ConflictException;
+use OCA\FlzRecruitment\Exception\NotFoundException;
+use OCA\FlzRecruitment\Exception\ValidationException;
+use OCA\FlzRecruitment\Service\ApplicationStatusService;
+use OCA\FlzRecruitment\Service\RecruitmentService;
 use RecruitmentTests\TestRunner;
 
 use function RecruitmentTests\assertSame;

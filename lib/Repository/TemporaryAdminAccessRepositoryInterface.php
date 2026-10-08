@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Recruitment\Repository;
+namespace OCA\FlzRecruitment\Repository;
 
 use DateTimeImmutable;
 

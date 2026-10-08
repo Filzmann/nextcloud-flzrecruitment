@@ -1,16 +1,16 @@
-# AGENTS.md – AD Recruitment
+# AGENTS.md – Filzmann Recruitment
 
 ## Projekt
 
-Nextcloud-App `adrecruitment` für strukturierte Bewerbungs- und Recruitingprozesse.
+Nextcloud-App `flzrecruitment` für strukturierte Bewerbungs- und Recruitingprozesse.
 
 Lokale App-URL:
 
-    https://nextcloud-dev.ddev.site/apps/adrecruitment/
+    https://nextcloud-dev.ddev.site/apps/flzrecruitment/
 
 Nextcloud-App-ID:
 
-    adrecruitment
+    flzrecruitment
 
 Die priorisierte Produktplanung und offene Entscheidungen stehen in
 `ROADMAP.md`; verbindliche Fach-, Sicherheits- und Architekturregeln bleiben
@@ -21,8 +21,8 @@ Entscheidung verkürzen oder verändern.
 
 ## Produktziel
 
-AD Recruitment bildet einen durchgängigen, an einem Odoo-artigen
-Bewerbermanagement orientierten Prozess innerhalb der AD-Suite ab:
+Filzmann Recruitment bildet einen durchgängigen, an einem Odoo-artigen
+Bewerbermanagement orientierten Prozess innerhalb der Filzmann Nextcloud Plugins ab:
 
 - Bewerbernachrichten aus konfigurierten Postfächern landen in einem
   unbearbeiteten Eingang und werden einer Person, Bewerbung und Stelle
@@ -76,7 +76,7 @@ Bewerbermanagement orientierten Prozess innerhalb der AD-Suite ab:
   Zuordnung zu einem BQ-Durchlauf erteilt noch keinen LoBu-Zugriff. Erst eine
   anschließende ausdrückliche Einstellungsfreigabe öffnet die getrennte
   LoBu-Projektion und darf Erstbegleitungszugriff auslösen.
-- AD Recruitment muss BQ-Zuordnung und Bewertung zunächst eigenständig
+- Filzmann Recruitment muss BQ-Zuordnung und Bewertung zunächst eigenständig
   abbilden können. Ein späteres BQ-Modul wird ausschließlich über einen
   kleinen optionalen Capability-/Event-Vertrag angebunden; sein Fehlen bleibt
   ein gültiger Standalone-Zustand.
@@ -90,7 +90,7 @@ Bewerbermanagement orientierten Prozess innerhalb der AD-Suite ab:
 
 ## Architektur, Rechte und Datenschutz
 
-- AD Recruitment bezieht seine Standalone-Navigation und seine
+- Filzmann Recruitment bezieht seine Standalone-Navigation und seine
   OrgSuite-Menüposition aus dem versionierten LocalBase-Produktkatalog. Der
   wirkungslose OrgSuite-Host lädt keine fremden Assets direkt; sichtbare
   Navigation erteilt keine Fachberechtigung.
@@ -130,18 +130,18 @@ Bewerbermanagement orientierten Prozess innerhalb der AD-Suite ab:
   Formatwortschatz beschränkt und wird stets mit Klartextalternative versandt.
 - Schreibende Routen verwenden den Nextcloud-CSRF-Schutz. Requestwerte werden validiert; SQL-Werte werden gebunden.
 - Der direkte App-Root erfüllt den Nextcloud-Scrollvertrag. Alle Funktionen sind per Tastatur bedienbar, besitzen sichtbaren Fokus und verständliche Fehlerzustände.
-- Der technische PHP-Namespace `OCA\Recruitment` und das bestehende
-  Tabellenpräfix `rec_` bleiben bei der App-ID-Umbenennung stabil, damit
+- Der technische PHP-Namespace `OCA\FlzRecruitment` und das bestehende
+  Tabellenpräfix `flz_recruitment_` bleiben bei der App-ID-Umbenennung stabil, damit
   bestehende Installationen ihre Klassen und Fachdaten ohne Tabellenkopie
   weiterverwenden.
 - Der `PersonalDataProvider` registriert sich für Nextcloud-Nutzer*innen lazy
   über den öffentlichen Standalone-V1-Vertrag von
-  `filzmann_data_protection` und umfasst alle internen
+  `flz_data_protection` und umfasst alle internen
   UID-Bezüge in Zuständigkeiten, Status-, Interview-, BQ-, Posteingangs-,
   Berechtigungs-, Dokument- und Statusmail-Bearbeitungsnachweisen. Bewerberakten werden
   diesem Subject-Typ nicht über eine bloße E-Mail-Übereinstimmung zugeordnet;
   sie benötigen einen eigenen authentifizierten Subject-Vertrag.
-- AD Recruitment registriert zusätzlich einen `ProcessingMetadataProvider`
+- Filzmann Recruitment registriert zusätzlich einen `ProcessingMetadataProvider`
   lazy über den öffentlichen V1-Vertrag des Datenschutz-Centers. Seine
   einzige fachliche Policyquelle ist `resources/privacy-processing.json`; sie
   enthält keine personenbezogenen Laufzeitdaten. Der beschlossene manuelle
@@ -155,7 +155,7 @@ Bewerbermanagement orientierten Prozess innerhalb der AD-Suite ab:
 - Eigenständiges Git-Repository. Diese Datei und die lokal referenzierten Skills bilden beim direkten Start die vollständige Repository-Steuerung.
 - Für Git-, Sandbox-, DDEV-/`occ`-Sicherheit, Verifikation und Learning Candidates gilt der lokal mitgeführte Skill `work-in-nextcloud-app`.
 - Jede Verhaltensänderung folgt dem lokalen Skill `test-driven-change`.
-- DDEV-Mount: `/var/www/html/html/custom_apps/adrecruitment`.
+- DDEV-Mount: `/var/www/html/html/custom_apps/flzrecruitment`.
 - Ausschließlich lokale Test- und Demokonten verwenden ihre UID zugleich als
   Passwort (`username=password`); dieser Vertrag gilt niemals für produktive
   Konten oder Zugangsdaten.

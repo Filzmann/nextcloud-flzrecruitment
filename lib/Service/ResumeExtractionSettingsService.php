@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace OCA\Recruitment\Service;
+namespace OCA\FlzRecruitment\Service;
 
-use OCA\Recruitment\AppInfo\Application;
-use OCA\Recruitment\Exception\ConflictException;
-use OCA\Recruitment\Exception\ValidationException;
+use OCA\FlzRecruitment\AppInfo\Application;
+use OCA\FlzRecruitment\Exception\ConflictException;
+use OCA\FlzRecruitment\Exception\ValidationException;
 use OCP\IAppConfig;
-use OCA\Recruitment\Contract\PdfTextExtractor;
+use OCA\FlzRecruitment\Contract\PdfTextExtractor;
 
 final class ResumeExtractionSettingsService {
     public const RULES = 'rules';

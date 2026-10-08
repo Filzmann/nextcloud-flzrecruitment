@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace OCA\Recruitment\Controller;
+namespace OCA\FlzRecruitment\Controller;
 
-use OCA\Recruitment\AppInfo\Application;
-use OCA\Recruitment\Exception\AccessDeniedException;
-use OCA\Recruitment\Service\RecruitmentAccessService;
-use OCA\Recruitment\Service\TemporaryAdminAccessService;
+use OCA\FlzRecruitment\AppInfo\Application;
+use OCA\FlzRecruitment\Exception\AccessDeniedException;
+use OCA\FlzRecruitment\Service\RecruitmentAccessService;
+use OCA\FlzRecruitment\Service\TemporaryAdminAccessService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;

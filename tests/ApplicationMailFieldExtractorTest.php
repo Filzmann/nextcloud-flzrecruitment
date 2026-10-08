@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use OCA\Recruitment\Exception\ValidationException;
-use OCA\Recruitment\Service\ApplicationMailFieldExtractor;
+use OCA\FlzRecruitment\Exception\ValidationException;
+use OCA\FlzRecruitment\Service\ApplicationMailFieldExtractor;
 use RecruitmentTests\TestRunner;
 
 use function RecruitmentTests\assertSame;

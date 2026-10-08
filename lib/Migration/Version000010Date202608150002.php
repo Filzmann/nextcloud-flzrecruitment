@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace OCA\Recruitment\Migration;
+namespace OCA\FlzRecruitment\Migration;
 
 use Closure;
-use OCA\Recruitment\BackgroundJob\DeliverStatusMailJob;
+use OCA\FlzRecruitment\BackgroundJob\DeliverStatusMailJob;
 use OCP\BackgroundJob\IJobList;
 use OCP\Migration\IOutput;
 use OCP\Migration\SimpleMigrationStep;

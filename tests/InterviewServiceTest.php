@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-use OCA\Recruitment\Contract\InterviewStore;
-use OCA\Recruitment\Contract\TemplateStore;
-use OCA\Recruitment\Exception\ConflictException;
-use OCA\Recruitment\Exception\NotFoundException;
-use OCA\Recruitment\Exception\ValidationException;
-use OCA\Recruitment\Service\InterviewService;
-use OCA\Recruitment\Service\InterviewWorkflow;
-use OCA\Recruitment\Service\TemplateService;
+use OCA\FlzRecruitment\Contract\InterviewStore;
+use OCA\FlzRecruitment\Contract\TemplateStore;
+use OCA\FlzRecruitment\Exception\ConflictException;
+use OCA\FlzRecruitment\Exception\NotFoundException;
+use OCA\FlzRecruitment\Exception\ValidationException;
+use OCA\FlzRecruitment\Service\InterviewService;
+use OCA\FlzRecruitment\Service\InterviewWorkflow;
+use OCA\FlzRecruitment\Service\TemplateService;
 use RecruitmentTests\TestRunner;
 
 use function RecruitmentTests\assertSame;

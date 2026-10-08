@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use OCA\Recruitment\Service\LocalPdfTextExtractor;
+use OCA\FlzRecruitment\Service\LocalPdfTextExtractor;
 use RecruitmentTests\TestRunner;
 
 use function RecruitmentTests\assertSame;
@@ -10,7 +10,7 @@ use function RecruitmentTests\assertTrue;
 
 /** @return array{directory:string,executable:string} */
 function pdfExtractorFixture(string $program): array {
-    $directory = sys_get_temp_dir() . '/adrecruitment-extractor-test-' . bin2hex(random_bytes(8));
+    $directory = sys_get_temp_dir() . '/flzrecruitment-extractor-test-' . bin2hex(random_bytes(8));
     if (!mkdir($directory, 0700) || file_put_contents($directory . '/pdftotext', '#!' . PHP_BINARY . "\n<?php\n" . $program) === false) {
         throw new RuntimeException('Die synthetische PDF-Engine konnte nicht angelegt werden.');
     }
@@ -31,7 +31,7 @@ TestRunner::test('missing local PDF tools are reported unavailable and fail clos
 });
 
 TestRunner::test('pdftotext is discovered through PATH and temporary files are removed', static function (): void {
-    $marker = sys_get_temp_dir() . '/adrecruitment-extractor-marker-' . bin2hex(random_bytes(8));
+    $marker = sys_get_temp_dir() . '/flzrecruitment-extractor-marker-' . bin2hex(random_bytes(8));
     $fixture = pdfExtractorFixture(
         'file_put_contents(' . var_export($marker, true) . ', json_encode($argv));' . "\n"
         . 'file_put_contents($argv[5], "Name: Beispiel\\0\\r\\nWohnort: Berlin\\n");' . "\n",

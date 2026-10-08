@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace OCA\Recruitment\Service;
+namespace OCA\FlzRecruitment\Service;
 
 use DateTimeImmutable;
-use OCA\Recruitment\Contract\RecruitmentStore;
-use OCA\Recruitment\Exception\NotFoundException;
-use OCA\Recruitment\Exception\ValidationException;
+use OCA\FlzRecruitment\Contract\RecruitmentStore;
+use OCA\FlzRecruitment\Exception\NotFoundException;
+use OCA\FlzRecruitment\Exception\ValidationException;
 
 /**
  * Anwendungsfälle für Stellen, Personen und Bewerbungen.

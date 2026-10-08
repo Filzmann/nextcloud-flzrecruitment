@@ -11,6 +11,6 @@ PhpTestRunner::run(
     lintDirectories: ['appinfo', 'lib', 'templates', 'tests'],
     testDirectories: ['tests'],
     testSuffixes: ['Test.php'],
-    successMessage: 'AD Recruitment PHP tests passed',
+    successMessage: 'Filzmann Recruitment PHP tests passed',
     prependBootstrap: true,
 );

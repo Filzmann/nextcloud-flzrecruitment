@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace OCA\Recruitment\Service;
+namespace OCA\FlzRecruitment\Service;
 
 use DOMDocument;
 use DOMElement;
 use DOMNode;
-use OCA\Recruitment\Exception\ValidationException;
+use OCA\FlzRecruitment\Exception\ValidationException;
 
 /** Bereinigt den bewusst kleinen HTML-Wortschatz für Statusmails. */
 final class StatusMailBodyService {
@@ -23,14 +23,14 @@ final class StatusMailBodyService {
         $document = new DOMDocument('1.0', 'UTF-8');
         $previous = libxml_use_internal_errors(true);
         $loaded = $document->loadHTML(
-            '<?xml encoding="UTF-8"><div id="adrecruitment-mail-root">' . $html . '</div>',
+            '<?xml encoding="UTF-8"><div id="flzrecruitment-mail-root">' . $html . '</div>',
             LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD | LIBXML_NONET | LIBXML_NOERROR | LIBXML_NOWARNING,
         );
         libxml_clear_errors();
         libxml_use_internal_errors($previous);
         if (!$loaded) throw new ValidationException('Der HTML-Nachrichtentext konnte nicht verarbeitet werden.');
 
-        $root = $document->getElementById('adrecruitment-mail-root');
+        $root = $document->getElementById('flzrecruitment-mail-root');
         if (!$root instanceof DOMElement) throw new ValidationException('Der HTML-Nachrichtentext konnte nicht verarbeitet werden.');
         $this->cleanChildren($root);
 
@@ -53,12 +53,12 @@ final class StatusMailBodyService {
         $document = new DOMDocument('1.0', 'UTF-8');
         $previous = libxml_use_internal_errors(true);
         $document->loadHTML(
-            '<?xml encoding="UTF-8"><div id="adrecruitment-mail-root">' . $html . '</div>',
+            '<?xml encoding="UTF-8"><div id="flzrecruitment-mail-root">' . $html . '</div>',
             LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD | LIBXML_NONET | LIBXML_NOERROR | LIBXML_NOWARNING,
         );
         libxml_clear_errors();
         libxml_use_internal_errors($previous);
-        $root = $document->getElementById('adrecruitment-mail-root');
+        $root = $document->getElementById('flzrecruitment-mail-root');
         if (!$root instanceof DOMElement) return '';
         $text = $this->nodeText($root);
         $text = preg_replace("/[ \t]+\n/", "\n", $text) ?? $text;

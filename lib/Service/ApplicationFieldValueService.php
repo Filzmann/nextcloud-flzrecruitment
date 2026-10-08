@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace OCA\Recruitment\Service;
+namespace OCA\FlzRecruitment\Service;
 
-use OCA\Recruitment\Exception\ValidationException;
+use OCA\FlzRecruitment\Exception\ValidationException;
 
 /** Kanonische Normalisierung der aus mehreren Quellen befüllbaren Bewerbungsfelder. */
 final class ApplicationFieldValueService {

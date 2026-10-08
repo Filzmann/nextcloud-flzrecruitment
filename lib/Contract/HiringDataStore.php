@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Recruitment\Contract;
+namespace OCA\FlzRecruitment\Contract;
 
 interface HiringDataStore {
     /** @return array<string,mixed> */

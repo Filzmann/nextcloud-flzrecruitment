@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Recruitment\Migration;
+namespace OCA\FlzRecruitment\Migration;
 
 use Closure;
 use OCP\DB\ISchemaWrapper;
@@ -16,8 +16,8 @@ final class Version000007Date202608020002 extends SimpleMigrationStep {
         /** @var ISchemaWrapper $schema */
         $schema = $schemaClosure();
 
-        if (!$schema->hasTable('rec_document_comments')) {
-            $table = $schema->createTable('rec_document_comments');
+        if (!$schema->hasTable('flz_recruitment_document_comments')) {
+            $table = $schema->createTable('flz_recruitment_document_comments');
             $table->addColumn('id', Types::BIGINT, ['autoincrement' => true, 'notnull' => true]);
             $table->addColumn('attachment_id', Types::BIGINT, ['notnull' => true]);
             $table->addColumn('kind', Types::STRING, ['length' => 16, 'notnull' => true]);
@@ -29,9 +29,9 @@ final class Version000007Date202608020002 extends SimpleMigrationStep {
             $table->addColumn('version', Types::INTEGER, ['notnull' => true, 'default' => 1]);
             $table->addColumn('created_at', Types::DATETIME_IMMUTABLE, ['notnull' => true]);
             $table->setPrimaryKey(['id']);
-            $table->addForeignKeyConstraint($schema->getTable('rec_attachments'), ['attachment_id'], ['id'], ['onDelete' => 'CASCADE'], 'rec_doc_comment_attachment_fk');
-            $table->addUniqueIndex(['attachment_id', 'client_key'], 'rec_doc_comment_request');
-            $table->addIndex(['attachment_id', 'created_at'], 'rec_doc_comment_history');
+            $table->addForeignKeyConstraint($schema->getTable('flz_recruitment_attachments'), ['attachment_id'], ['id'], ['onDelete' => 'CASCADE'], 'flz_recruitment_doc_comment_attachment_fk');
+            $table->addUniqueIndex(['attachment_id', 'client_key'], 'flz_recruitment_doc_comment_request');
+            $table->addIndex(['attachment_id', 'created_at'], 'flz_recruitment_doc_comment_history');
         }
 
         return $schema;

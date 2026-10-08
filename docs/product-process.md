@@ -2,13 +2,13 @@
 
 ## Zielbild
 
-AD Recruitment bildet den vollständigen Bewerbungsprozess innerhalb der
-AD-Suite ab. Das fachliche Vorbild ist die arbeitsorientierte Bedienung eines
+Filzmann Recruitment bildet den vollständigen Bewerbungsprozess innerhalb der
+Filzmann Nextcloud Plugins ab. Das fachliche Vorbild ist die arbeitsorientierte Bedienung eines
 Bewerbermanagements wie in Odoo: Neue Vorgänge landen in einem gemeinsamen
 Eingang, werden einer Person und einer Stelle zugeordnet und anschließend als
 Karten oder Tabelle durch einen konfigurierbaren Prozess geführt.
 
-Die Ähnlichkeit zu Odoo beschreibt den Prozess und die Bedienlogik. AD
+Die Ähnlichkeit zu Odoo beschreibt den Prozess und die Bedienlogik. FLZ
 Recruitment bleibt eine eigenständige Nextcloud-App mit eigener Datenhaltung,
 eigenen Berechtigungen und ohne technische Abhängigkeit von Odoo.
 
@@ -28,7 +28,7 @@ eigenen Berechtigungen und ohne technische Abhängigkeit von Odoo.
 - Eine **Stelle** beziehungsweise Ausschreibung bündelt Bezeichnung,
   Zuständigkeiten, Bürobereich, Eingangskanäle und optional einen eigenen
   Prozess. Nach Auswahl der Berufsgruppe stehen nur fachlich passende Gruppen
-  aus dem kanonischen AD-Organisationsmodell bereit. Verantwortliche Personen
+  aus dem kanonischen FLZ-Organisationsmodell bereit. Verantwortliche Personen
   werden in den ausgewählten Gruppen über die native Nextcloud-Benutzersuche
   gefunden; frei eingegebene Gruppen- oder Benutzerkennungen sind unzulässig.
 - Ein **Prozessstatus** ist eine administrativ konfigurierte Phase mit
@@ -129,7 +129,7 @@ Vertretungen gepflegt, niemals abgeleitet, bewertet oder für automatische
 Entscheidungen genutzt und nur intern nach Least-to-know angezeigt.
 Assistenznehmer*innen erhalten in diesem Recruitingprozess keine Information
 daraus. Eine spätere Übergabe an einen noch zu modellierenden Folgeprozess
-wird hier nur als Systemgrenze benannt; AD Recruitment bleibt bis dahin die
+wird hier nur als Systemgrenze benannt; Filzmann Recruitment bleibt bis dahin die
 kanonische Quelle.
 
 Eine optionale respektvolle Wunschanrede ist fachlich und technisch von
@@ -331,7 +331,7 @@ erst am hinterlegten BQ-Beginn zu aktivieren. Diese Terminregel darf den
 Zugriff nicht vor dem Start erteilen und muss Verschiebungen, Abbruch und
 manuelle Korrekturen nachvollziehbar behandeln.
 
-Bis zur Anbindung der eigenständigen BQ-Planer-App verwaltet AD Recruitment Durchlauf,
+Bis zur Anbindung der eigenständigen BQ-Planer-App verwaltet Filzmann Recruitment Durchlauf,
 Teilnahmezustand und freigegebenes Bewertungsergebnis selbst. Ein späteres
 BQ-Planer-Modul kann Terminplanung, Durchführung und ausführlichere Bewertung
 übernehmen. Die optionale Integration verwendet einen kleinen versionierten
@@ -432,7 +432,7 @@ Policyversion und Wirksamkeitszeitpunkt, Löschreihenfolge, Sperren,
 Nebenläufigkeit, Wiederholungsverhalten, Fehlernachweise und
 Backup-/Restore-Neuplanung aus dem ursprünglichen Trigger müssen vor der
 automatischen Ausführung verbindlich umgesetzt und abgenommen werden. Bis
-dahin behauptet AD Recruitment keine ausführende Retention-Funktion.
+dahin behauptet Filzmann Recruitment keine ausführende Retention-Funktion.
 Retentionwerte dürfen ausschließlich `Datenschutzbeauftragte` konfigurieren;
 Policyversionen und Wirksamkeitszeitpunkte werden 24 Monate auditierbar
 gehalten und mindestens jährlich durch diese Gruppe überprüft. Nach einem
@@ -517,7 +517,7 @@ mit festem Scope gepflegt, auditiert, jährlich und bei Organisationsänderung
 überprüft. Ein fehlender oder ungeklärter Status sperrt die Entscheidung.
 
 Für den Betriebsrat werden vorerst weder Gruppe, Dokumente, Fristen noch ein
-Workflow in AD Recruitment angelegt. Die Beteiligung erfolgt vollständig
+Workflow in Filzmann Recruitment angelegt. Die Beteiligung erfolgt vollständig
 außerhalb des Systems.
 
 ### Manuelle Betroffenenrechte
@@ -609,7 +609,7 @@ capability-gebundenen Einstellungsmenü zusammengefasst und belegen keine
 eigenen Haupttabs mehr. Ausschließlich systemweite Grundkonfigurationen für
 Mail-Testmodus, Datenextraktion und strukturelle
 Erstbegleitungsgruppe liegen im nativen, nur für Nextcloud-Admins sichtbaren
-Adminabschnitt `AD Recruitment`.
+Adminabschnitt `Filzmann Recruitment`.
 
 Ebenfalls umgesetzt ist ein erster privater Posteingang für bereits
 normalisierte Nachrichten: Websiteformular und freie Mail werden mit

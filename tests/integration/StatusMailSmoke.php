@@ -5,11 +5,11 @@ declare(strict_types=1);
 if (!defined('OC_CONSOLE')) define('OC_CONSOLE', true);
 require dirname(__DIR__, 4) . '/lib/base.php';
 
-use OCA\Recruitment\Repository\RecruitmentRepository;
-use OCA\Recruitment\Service\ApplicationStatusService;
-use OCA\Recruitment\Service\RecruitmentService;
-use OCA\Recruitment\Service\StatusMailService;
-use OCA\Recruitment\Service\StatusMailWorkflow;
+use OCA\FlzRecruitment\Repository\RecruitmentRepository;
+use OCA\FlzRecruitment\Service\ApplicationStatusService;
+use OCA\FlzRecruitment\Service\RecruitmentService;
+use OCA\FlzRecruitment\Service\StatusMailService;
+use OCA\FlzRecruitment\Service\StatusMailWorkflow;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
 
@@ -78,19 +78,19 @@ try {
     $assert($approved['deliveryRecipient'] === $approved['intendedRecipient'], 'Ohne Testmodus weicht der Zustellempfänger von der Freigabe ab.');
 
     $qb = $db->getQueryBuilder();
-    $outboxCount = (int)$qb->select($qb->createFunction('COUNT(*)'))->from('rec_mail_outbox')
+    $outboxCount = (int)$qb->select($qb->createFunction('COUNT(*)'))->from('flz_recruitment_mail_outbox')
         ->where($qb->expr()->eq('draft_id', $qb->createNamedParameter($ids['draft'], IQueryBuilder::PARAM_INT)))
         ->executeQuery()->fetchOne();
     $assert($outboxCount === 1, 'Die Freigabe hat nicht genau einen Outbox-Auftrag erzeugt.');
 
-    echo "AD Recruitment DDEV status mail persistence smoke: OK\n";
+    echo "Filzmann Recruitment DDEV status mail persistence smoke: OK\n";
 } catch (Throwable $error) {
     fwrite(STDERR, $error::class . ': ' . $error->getMessage() . "\n");
     throw $error;
 } finally {
     if ($ids['draft'] !== null) {
-        $delete('rec_mail_outbox', 'draft_id', $ids['draft']);
-        $delete('rec_mail_drafts', 'id', $ids['draft']);
+        $delete('flz_recruitment_mail_outbox', 'draft_id', $ids['draft']);
+        $delete('flz_recruitment_mail_drafts', 'id', $ids['draft']);
     }
     if (is_array($ruleRestore)) {
         $current = array_values(array_filter(
@@ -105,13 +105,13 @@ try {
         }
     }
     if ($ids['application'] !== null) {
-        $delete('rec_status_log', 'application_id', $ids['application']);
-        $delete('rec_applications', 'id', $ids['application']);
+        $delete('flz_recruitment_status_log', 'application_id', $ids['application']);
+        $delete('flz_recruitment_applications', 'id', $ids['application']);
     }
     if ($ids['template'] !== null) {
-        $delete('rec_mail_template_revisions', 'template_id', $ids['template']);
-        $delete('rec_mail_templates', 'id', $ids['template']);
+        $delete('flz_recruitment_mail_template_revisions', 'template_id', $ids['template']);
+        $delete('flz_recruitment_mail_templates', 'id', $ids['template']);
     }
-    if ($ids['person'] !== null) $delete('rec_people', 'id', $ids['person']);
-    if ($ids['job'] !== null) $delete('rec_jobs', 'id', $ids['job']);
+    if ($ids['person'] !== null) $delete('flz_recruitment_people', 'id', $ids['person']);
+    if ($ids['job'] !== null) $delete('flz_recruitment_jobs', 'id', $ids['job']);
 }

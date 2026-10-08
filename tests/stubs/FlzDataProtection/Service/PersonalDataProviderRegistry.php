@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace OCA\FilzmannDataProtection\Service;
+namespace OCA\FlzDataProtection\Service;
 
 use DomainException;
-use OCA\FilzmannDataProtection\PublicApi\V1\PersonalDataProvider;
+use OCA\FlzDataProtection\PublicApi\V1\PersonalDataProvider;
 
 final class PersonalDataProviderRegistry {
     public const CONTRACT_VERSION = '1.0';

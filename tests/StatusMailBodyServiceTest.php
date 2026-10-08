@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use OCA\Recruitment\Exception\ValidationException;
-use OCA\Recruitment\Service\StatusMailBodyService;
+use OCA\FlzRecruitment\Exception\ValidationException;
+use OCA\FlzRecruitment\Service\StatusMailBodyService;
 use RecruitmentTests\TestRunner;
 
 use function RecruitmentTests\assertSame;

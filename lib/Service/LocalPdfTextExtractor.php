@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace OCA\Recruitment\Service;
+namespace OCA\FlzRecruitment\Service;
 
-use OCA\Recruitment\Contract\PdfTextExtractor;
+use OCA\FlzRecruitment\Contract\PdfTextExtractor;
 
 /** Lokale, KI-freie PDF-Textextraktion ohne Netzwerkzugriff. */
 final class LocalPdfTextExtractor implements PdfTextExtractor {
@@ -54,7 +54,7 @@ final class LocalPdfTextExtractor implements PdfTextExtractor {
 
     public function extract(string $pdfContent): string {
         if (!$this->available()) return '';
-        $inputPath = tempnam(sys_get_temp_dir(), 'adrecruitment-pdf-');
+        $inputPath = tempnam(sys_get_temp_dir(), 'flzrecruitment-pdf-');
         if ($inputPath === false) return '';
         $outputPath = $inputPath . '.txt';
         try {

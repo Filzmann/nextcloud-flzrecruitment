@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\FilzmannPermissionMatrix\PublicApi\V1 {
+namespace OCA\FlzPermissionMatrix\PublicApi\V1 {
     interface PermissionProvider { public function descriptor(): PermissionProviderDescriptor; public function collect(): PermissionProviderResult; }
     final class PermissionProviderDescriptor {
         public function __construct(public string $appId, public string $displayName, public string $version, public array $capabilities) {}
@@ -38,25 +38,25 @@ namespace OCA\FilzmannPermissionMatrix\PublicApi\V1 {
 }
 
 namespace RecruitmentTests {
-    use OCA\FilzmannPermissionMatrix\PublicApi\V1\RegisterPermissionProvidersEvent;
-    use OCA\Recruitment\Organization\OrganizationSnapshot;
-    use OCA\Recruitment\Permission\RecruitmentPermissionProvider;
-    use OCA\Recruitment\Permission\RecruitmentPermissionProviderListener;
-    use OCA\Recruitment\Permission\RecruitmentPermissionSourceInterface;
+    use OCA\FlzPermissionMatrix\PublicApi\V1\RegisterPermissionProvidersEvent;
+    use OCA\FlzRecruitment\Organization\OrganizationSnapshot;
+    use OCA\FlzRecruitment\Permission\RecruitmentPermissionProvider;
+    use OCA\FlzRecruitment\Permission\RecruitmentPermissionProviderListener;
+    use OCA\FlzRecruitment\Permission\RecruitmentPermissionSourceInterface;
 
     $snapshot = OrganizationSnapshot::valid('1.0', 4, 'test-checksum', [
-        'staff_hr' => ['groupId' => 'ad-HR', 'label' => 'HR'],
-        'payroll' => ['groupId' => 'ad-Payroll', 'label' => 'Lohn'],
-        'eb' => ['groupId' => 'ad-EB', 'label' => 'Einsatzbegleitung'],
+        'staff_hr' => ['groupId' => 'flz-HR', 'label' => 'HR'],
+        'payroll' => ['groupId' => 'flz-Payroll', 'label' => 'Lohn'],
+        'eb' => ['groupId' => 'flz-EB', 'label' => 'Einsatzbegleitung'],
     ], [
-        'north' => ['groupId' => 'ad-Area-North', 'label' => 'Nord'],
+        'north' => ['groupId' => 'flz-Area-North', 'label' => 'Nord'],
     ]);
 
     $source = new class($snapshot) implements RecruitmentPermissionSourceInterface {
         public function __construct(private OrganizationSnapshot $snapshot) {}
         public function organization(): OrganizationSnapshot { return $this->snapshot; }
         public function permissionSettings(): array {
-            return ['firstGuideGroupId' => 'ad-first-guides', 'representatives' => []];
+            return ['firstGuideGroupId' => 'flz-first-guides', 'representatives' => []];
         }
     };
     $provider = new RecruitmentPermissionProvider($source);
@@ -74,9 +74,9 @@ namespace RecruitmentTests {
         $rules($permission),
     );
 
-    assertTrue(in_array('group:ad-HR', $conditions('recruitment.view_dossier'), true));
-    assertTrue(in_array('group:ad-Payroll', $conditions('recruitment.edit_payroll_data'), true));
-    assertTrue(!in_array('group:ad-HR', $conditions('recruitment.edit_payroll_data'), true));
+    assertTrue(in_array('group:flz-HR', $conditions('recruitment.view_dossier'), true));
+    assertTrue(in_array('group:flz-Payroll', $conditions('recruitment.edit_payroll_data'), true));
+    assertTrue(!in_array('group:flz-HR', $conditions('recruitment.edit_payroll_data'), true));
     $adminRule = array_values(array_filter($rules('recruitment.manage_delegations'), static fn($rule): bool => $rule->scope === 'all'))[0] ?? null;
     assertSame('all', $adminRule?->condition->operator);
     assertSame(['nextcloud-admin', 'app-admin-grant'], array_map(static fn($condition): string => $condition->operator, $adminRule?->condition->children ?? []));
@@ -92,7 +92,7 @@ namespace RecruitmentTests {
     assertTrue($firstGuide !== null);
     assertSame('all', $firstGuide->condition->operator);
     assertSame(
-        ['ad-first-guides', 'ad-EB', 'ad-Area-North'],
+        ['flz-first-guides', 'flz-EB', 'flz-Area-North'],
         array_map(static fn($condition): ?string => $condition->groupId, $firstGuide->condition->children),
     );
 
@@ -104,7 +104,7 @@ namespace RecruitmentTests {
         public function organization(): OrganizationSnapshot { return $this->snapshot; }
         public function permissionSettings(): array {
             return [
-                'firstGuideGroupId' => 'ad-first-guides',
+                'firstGuideGroupId' => 'flz-first-guides',
                 'representatives' => [[
                     'uid' => 'representative-a',
                     'capabilities' => ['view_dossier'],

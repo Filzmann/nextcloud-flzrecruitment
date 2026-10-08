@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace OCA\Recruitment\Service;
+namespace OCA\FlzRecruitment\Service;
 
-use OCA\Recruitment\Contract\DocumentReviewStore;
-use OCA\Recruitment\Contract\MailAttachmentStorage;
-use OCA\Recruitment\Exception\ValidationException;
+use OCA\FlzRecruitment\Contract\DocumentReviewStore;
+use OCA\FlzRecruitment\Contract\MailAttachmentStorage;
+use OCA\FlzRecruitment\Exception\ValidationException;
 
 /** Liest unveränderliche PDF-Originale und verwaltet getrennte append-only Review-Kommentare. */
 final class DocumentReviewService {

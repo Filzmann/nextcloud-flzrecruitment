@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Recruitment\Migration;
+namespace OCA\FlzRecruitment\Migration;
 
 use Closure;
 use OCP\DB\ISchemaWrapper;
@@ -18,8 +18,8 @@ final class Version000001Date202607260001 extends SimpleMigrationStep {
         /** @var ISchemaWrapper $schema */
         $schema = $schemaClosure();
 
-        if (!$schema->hasTable('rec_jobs')) {
-            $table = $schema->createTable('rec_jobs');
+        if (!$schema->hasTable('flz_recruitment_jobs')) {
+            $table = $schema->createTable('flz_recruitment_jobs');
             $table->addColumn('id', Types::BIGINT, ['autoincrement' => true, 'notnull' => true]);
             $table->addColumn('internal_title', Types::STRING, ['length' => 255, 'notnull' => true]);
             $table->addColumn('public_title', Types::STRING, ['length' => 255, 'notnull' => true, 'default' => '']);
@@ -31,12 +31,12 @@ final class Version000001Date202607260001 extends SimpleMigrationStep {
             $table->addColumn('created_at', Types::DATETIME_IMMUTABLE, ['notnull' => true]);
             $table->addColumn('updated_at', Types::DATETIME_IMMUTABLE, ['notnull' => true]);
             $table->setPrimaryKey(['id']);
-            $table->addIndex(['active', 'internal_title'], 'rec_job_active');
-            $table->addUniqueIndex(['assignment_key'], 'rec_job_key');
+            $table->addIndex(['active', 'internal_title'], 'flz_recruitment_job_active');
+            $table->addUniqueIndex(['assignment_key'], 'flz_recruitment_job_key');
         }
 
-        if (!$schema->hasTable('rec_people')) {
-            $table = $schema->createTable('rec_people');
+        if (!$schema->hasTable('flz_recruitment_people')) {
+            $table = $schema->createTable('flz_recruitment_people');
             $table->addColumn('id', Types::BIGINT, ['autoincrement' => true, 'notnull' => true]);
             $table->addColumn('given_name', Types::STRING, ['length' => 255, 'notnull' => true]);
             $table->addColumn('family_name', Types::STRING, ['length' => 255, 'notnull' => true]);
@@ -46,11 +46,11 @@ final class Version000001Date202607260001 extends SimpleMigrationStep {
             $table->addColumn('created_at', Types::DATETIME_IMMUTABLE, ['notnull' => true]);
             $table->addColumn('updated_at', Types::DATETIME_IMMUTABLE, ['notnull' => true]);
             $table->setPrimaryKey(['id']);
-            $table->addIndex(['family_name', 'given_name'], 'rec_person_name');
+            $table->addIndex(['family_name', 'given_name'], 'flz_recruitment_person_name');
         }
 
-        if (!$schema->hasTable('rec_applications')) {
-            $table = $schema->createTable('rec_applications');
+        if (!$schema->hasTable('flz_recruitment_applications')) {
+            $table = $schema->createTable('flz_recruitment_applications');
             $table->addColumn('id', Types::BIGINT, ['autoincrement' => true, 'notnull' => true]);
             $table->addColumn('person_id', Types::BIGINT, ['notnull' => true]);
             $table->addColumn('job_id', Types::BIGINT, ['notnull' => true]);
@@ -64,14 +64,14 @@ final class Version000001Date202607260001 extends SimpleMigrationStep {
             $table->addColumn('created_at', Types::DATETIME_IMMUTABLE, ['notnull' => true]);
             $table->addColumn('updated_at', Types::DATETIME_IMMUTABLE, ['notnull' => true]);
             $table->setPrimaryKey(['id']);
-            $table->addForeignKeyConstraint($schema->getTable('rec_people'), ['person_id'], ['id'], ['onDelete' => 'RESTRICT'], 'rec_app_person_fk');
-            $table->addForeignKeyConstraint($schema->getTable('rec_jobs'), ['job_id'], ['id'], ['onDelete' => 'RESTRICT'], 'rec_app_job_fk');
-            $table->addUniqueIndex(['person_id', 'job_id', 'received_on'], 'rec_app_identity');
-            $table->addIndex(['status', 'received_on'], 'rec_app_status');
+            $table->addForeignKeyConstraint($schema->getTable('flz_recruitment_people'), ['person_id'], ['id'], ['onDelete' => 'RESTRICT'], 'flz_recruitment_app_person_fk');
+            $table->addForeignKeyConstraint($schema->getTable('flz_recruitment_jobs'), ['job_id'], ['id'], ['onDelete' => 'RESTRICT'], 'flz_recruitment_app_job_fk');
+            $table->addUniqueIndex(['person_id', 'job_id', 'received_on'], 'flz_recruitment_app_identity');
+            $table->addIndex(['status', 'received_on'], 'flz_recruitment_app_status');
         }
 
-        if (!$schema->hasTable('rec_status_log')) {
-            $table = $schema->createTable('rec_status_log');
+        if (!$schema->hasTable('flz_recruitment_status_log')) {
+            $table = $schema->createTable('flz_recruitment_status_log');
             $table->addColumn('id', Types::BIGINT, ['autoincrement' => true, 'notnull' => true]);
             $table->addColumn('application_id', Types::BIGINT, ['notnull' => true]);
             $table->addColumn('from_status', Types::STRING, ['length' => 64, 'notnull' => true]);
@@ -79,12 +79,12 @@ final class Version000001Date202607260001 extends SimpleMigrationStep {
             $table->addColumn('actor_uid', Types::STRING, ['length' => 64, 'notnull' => true]);
             $table->addColumn('changed_at', Types::DATETIME_IMMUTABLE, ['notnull' => true]);
             $table->setPrimaryKey(['id']);
-            $table->addForeignKeyConstraint($schema->getTable('rec_applications'), ['application_id'], ['id'], ['onDelete' => 'CASCADE'], 'rec_log_app_fk');
-            $table->addIndex(['application_id', 'changed_at'], 'rec_log_history');
+            $table->addForeignKeyConstraint($schema->getTable('flz_recruitment_applications'), ['application_id'], ['id'], ['onDelete' => 'CASCADE'], 'flz_recruitment_log_app_fk');
+            $table->addIndex(['application_id', 'changed_at'], 'flz_recruitment_log_history');
         }
 
-        if (!$schema->hasTable('rec_templates')) {
-            $table = $schema->createTable('rec_templates');
+        if (!$schema->hasTable('flz_recruitment_templates')) {
+            $table = $schema->createTable('flz_recruitment_templates');
             $table->addColumn('id', Types::BIGINT, ['autoincrement' => true, 'notnull' => true]);
             $table->addColumn('name', Types::STRING, ['length' => 255, 'notnull' => true]);
             $table->addColumn('type', Types::STRING, ['length' => 64, 'notnull' => true]);
@@ -96,11 +96,11 @@ final class Version000001Date202607260001 extends SimpleMigrationStep {
             $table->addColumn('created_at', Types::DATETIME_IMMUTABLE, ['notnull' => true]);
             $table->addColumn('updated_at', Types::DATETIME_IMMUTABLE, ['notnull' => true]);
             $table->setPrimaryKey(['id']);
-            $table->addIndex(['active', 'name'], 'rec_tpl_active');
+            $table->addIndex(['active', 'name'], 'flz_recruitment_tpl_active');
         }
 
-        if (!$schema->hasTable('rec_questions')) {
-            $table = $schema->createTable('rec_questions');
+        if (!$schema->hasTable('flz_recruitment_questions')) {
+            $table = $schema->createTable('flz_recruitment_questions');
             $table->addColumn('id', Types::BIGINT, ['autoincrement' => true, 'notnull' => true]);
             $table->addColumn('template_id', Types::BIGINT, ['notnull' => true]);
             $table->addColumn('prompt', Types::TEXT, ['notnull' => true]);
@@ -115,12 +115,12 @@ final class Version000001Date202607260001 extends SimpleMigrationStep {
             $table->addColumn('created_at', Types::DATETIME_IMMUTABLE, ['notnull' => true]);
             $table->addColumn('updated_at', Types::DATETIME_IMMUTABLE, ['notnull' => true]);
             $table->setPrimaryKey(['id']);
-            $table->addForeignKeyConstraint($schema->getTable('rec_templates'), ['template_id'], ['id'], ['onDelete' => 'CASCADE'], 'rec_question_tpl_fk');
-            $table->addIndex(['template_id', 'sort_order'], 'rec_question_order');
+            $table->addForeignKeyConstraint($schema->getTable('flz_recruitment_templates'), ['template_id'], ['id'], ['onDelete' => 'CASCADE'], 'flz_recruitment_question_tpl_fk');
+            $table->addIndex(['template_id', 'sort_order'], 'flz_recruitment_question_order');
         }
 
-        if (!$schema->hasTable('rec_bubbles')) {
-            $table = $schema->createTable('rec_bubbles');
+        if (!$schema->hasTable('flz_recruitment_bubbles')) {
+            $table = $schema->createTable('flz_recruitment_bubbles');
             $table->addColumn('id', Types::BIGINT, ['autoincrement' => true, 'notnull' => true]);
             $table->addColumn('question_id', Types::BIGINT, ['notnull' => true]);
             $table->addColumn('label', Types::STRING, ['length' => 100, 'notnull' => true]);
@@ -131,12 +131,12 @@ final class Version000001Date202607260001 extends SimpleMigrationStep {
             $table->addColumn('created_at', Types::DATETIME_IMMUTABLE, ['notnull' => true]);
             $table->addColumn('updated_at', Types::DATETIME_IMMUTABLE, ['notnull' => true]);
             $table->setPrimaryKey(['id']);
-            $table->addForeignKeyConstraint($schema->getTable('rec_questions'), ['question_id'], ['id'], ['onDelete' => 'CASCADE'], 'rec_bubble_question_fk');
-            $table->addIndex(['question_id', 'sort_order'], 'rec_bubble_order');
+            $table->addForeignKeyConstraint($schema->getTable('flz_recruitment_questions'), ['question_id'], ['id'], ['onDelete' => 'CASCADE'], 'flz_recruitment_bubble_question_fk');
+            $table->addIndex(['question_id', 'sort_order'], 'flz_recruitment_bubble_order');
         }
 
-        if (!$schema->hasTable('rec_interviews')) {
-            $table = $schema->createTable('rec_interviews');
+        if (!$schema->hasTable('flz_recruitment_interviews')) {
+            $table = $schema->createTable('flz_recruitment_interviews');
             $table->addColumn('id', Types::BIGINT, ['autoincrement' => true, 'notnull' => true]);
             $table->addColumn('application_id', Types::BIGINT, ['notnull' => true]);
             $table->addColumn('template_id', Types::BIGINT, ['notnull' => true]);
@@ -150,9 +150,9 @@ final class Version000001Date202607260001 extends SimpleMigrationStep {
             $table->addColumn('updated_at', Types::DATETIME_IMMUTABLE, ['notnull' => true]);
             $table->addColumn('completed_at', Types::DATETIME_IMMUTABLE, ['notnull' => false]);
             $table->setPrimaryKey(['id']);
-            $table->addForeignKeyConstraint($schema->getTable('rec_applications'), ['application_id'], ['id'], ['onDelete' => 'CASCADE'], 'rec_interview_app_fk');
-            $table->addForeignKeyConstraint($schema->getTable('rec_templates'), ['template_id'], ['id'], ['onDelete' => 'RESTRICT'], 'rec_interview_tpl_fk');
-            $table->addIndex(['application_id', 'created_at'], 'rec_interview_app');
+            $table->addForeignKeyConstraint($schema->getTable('flz_recruitment_applications'), ['application_id'], ['id'], ['onDelete' => 'CASCADE'], 'flz_recruitment_interview_app_fk');
+            $table->addForeignKeyConstraint($schema->getTable('flz_recruitment_templates'), ['template_id'], ['id'], ['onDelete' => 'RESTRICT'], 'flz_recruitment_interview_tpl_fk');
+            $table->addIndex(['application_id', 'created_at'], 'flz_recruitment_interview_app');
         }
 
         return $schema;

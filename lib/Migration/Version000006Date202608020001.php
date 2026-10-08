@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Recruitment\Migration;
+namespace OCA\FlzRecruitment\Migration;
 
 use Closure;
 use OCP\DB\ISchemaWrapper;
@@ -16,8 +16,8 @@ final class Version000006Date202608020001 extends SimpleMigrationStep {
         /** @var ISchemaWrapper $schema */
         $schema = $schemaClosure();
 
-        if (!$schema->hasTable('rec_mailboxes')) {
-            $table = $schema->createTable('rec_mailboxes');
+        if (!$schema->hasTable('flz_recruitment_mailboxes')) {
+            $table = $schema->createTable('flz_recruitment_mailboxes');
             $table->addColumn('id', Types::BIGINT, ['autoincrement' => true, 'notnull' => true]);
             $table->addColumn('technical_key', Types::STRING, ['length' => 100, 'notnull' => true]);
             $table->addColumn('label', Types::STRING, ['length' => 255, 'notnull' => true]);
@@ -27,11 +27,11 @@ final class Version000006Date202608020001 extends SimpleMigrationStep {
             $table->addColumn('created_at', Types::DATETIME_IMMUTABLE, ['notnull' => true]);
             $table->addColumn('updated_at', Types::DATETIME_IMMUTABLE, ['notnull' => true]);
             $table->setPrimaryKey(['id']);
-            $table->addUniqueIndex(['technical_key'], 'rec_mailbox_key');
+            $table->addUniqueIndex(['technical_key'], 'flz_recruitment_mailbox_key');
         }
 
-        if (!$schema->hasTable('rec_messages')) {
-            $table = $schema->createTable('rec_messages');
+        if (!$schema->hasTable('flz_recruitment_messages')) {
+            $table = $schema->createTable('flz_recruitment_messages');
             $table->addColumn('id', Types::BIGINT, ['autoincrement' => true, 'notnull' => true]);
             $table->addColumn('mailbox_id', Types::BIGINT, ['notnull' => true]);
             $table->addColumn('external_message_id', Types::STRING, ['length' => 255, 'notnull' => false]);
@@ -49,16 +49,16 @@ final class Version000006Date202608020001 extends SimpleMigrationStep {
             $table->addColumn('created_at', Types::DATETIME_IMMUTABLE, ['notnull' => true]);
             $table->addColumn('updated_at', Types::DATETIME_IMMUTABLE, ['notnull' => true]);
             $table->setPrimaryKey(['id']);
-            $table->addForeignKeyConstraint($schema->getTable('rec_mailboxes'), ['mailbox_id'], ['id'], ['onDelete' => 'RESTRICT'], 'rec_message_mailbox_fk');
-            $table->addForeignKeyConstraint($schema->getTable('rec_applications'), ['application_id'], ['id'], ['onDelete' => 'RESTRICT'], 'rec_message_app_fk');
-            $table->addUniqueIndex(['mailbox_id', 'external_message_id'], 'rec_message_external');
-            $table->addUniqueIndex(['mailbox_id', 'content_hash'], 'rec_message_content');
-            $table->addIndex(['state', 'received_at'], 'rec_message_state');
-            $table->addIndex(['application_id', 'received_at'], 'rec_message_app');
+            $table->addForeignKeyConstraint($schema->getTable('flz_recruitment_mailboxes'), ['mailbox_id'], ['id'], ['onDelete' => 'RESTRICT'], 'flz_recruitment_message_mailbox_fk');
+            $table->addForeignKeyConstraint($schema->getTable('flz_recruitment_applications'), ['application_id'], ['id'], ['onDelete' => 'RESTRICT'], 'flz_recruitment_message_app_fk');
+            $table->addUniqueIndex(['mailbox_id', 'external_message_id'], 'flz_recruitment_message_external');
+            $table->addUniqueIndex(['mailbox_id', 'content_hash'], 'flz_recruitment_message_content');
+            $table->addIndex(['state', 'received_at'], 'flz_recruitment_message_state');
+            $table->addIndex(['application_id', 'received_at'], 'flz_recruitment_message_app');
         }
 
-        if (!$schema->hasTable('rec_attachments')) {
-            $table = $schema->createTable('rec_attachments');
+        if (!$schema->hasTable('flz_recruitment_attachments')) {
+            $table = $schema->createTable('flz_recruitment_attachments');
             $table->addColumn('id', Types::BIGINT, ['autoincrement' => true, 'notnull' => true]);
             $table->addColumn('message_id', Types::BIGINT, ['notnull' => true]);
             $table->addColumn('original_name', Types::STRING, ['length' => 255, 'notnull' => true]);
@@ -69,12 +69,12 @@ final class Version000006Date202608020001 extends SimpleMigrationStep {
             $table->addColumn('storage_path', Types::STRING, ['length' => 255, 'notnull' => true]);
             $table->addColumn('created_at', Types::DATETIME_IMMUTABLE, ['notnull' => true]);
             $table->setPrimaryKey(['id']);
-            $table->addForeignKeyConstraint($schema->getTable('rec_messages'), ['message_id'], ['id'], ['onDelete' => 'CASCADE'], 'rec_attachment_message_fk');
-            $table->addUniqueIndex(['message_id', 'content_hash'], 'rec_attachment_content');
+            $table->addForeignKeyConstraint($schema->getTable('flz_recruitment_messages'), ['message_id'], ['id'], ['onDelete' => 'CASCADE'], 'flz_recruitment_attachment_message_fk');
+            $table->addUniqueIndex(['message_id', 'content_hash'], 'flz_recruitment_attachment_content');
         }
 
-        if (!$schema->hasTable('rec_message_audit')) {
-            $table = $schema->createTable('rec_message_audit');
+        if (!$schema->hasTable('flz_recruitment_message_audit')) {
+            $table = $schema->createTable('flz_recruitment_message_audit');
             $table->addColumn('id', Types::BIGINT, ['autoincrement' => true, 'notnull' => true]);
             $table->addColumn('message_id', Types::BIGINT, ['notnull' => true]);
             $table->addColumn('from_state', Types::STRING, ['length' => 32, 'notnull' => true]);
@@ -83,8 +83,8 @@ final class Version000006Date202608020001 extends SimpleMigrationStep {
             $table->addColumn('details_json', Types::TEXT, ['notnull' => true, 'default' => '{}']);
             $table->addColumn('changed_at', Types::DATETIME_IMMUTABLE, ['notnull' => true]);
             $table->setPrimaryKey(['id']);
-            $table->addForeignKeyConstraint($schema->getTable('rec_messages'), ['message_id'], ['id'], ['onDelete' => 'CASCADE'], 'rec_message_audit_fk');
-            $table->addIndex(['message_id', 'changed_at'], 'rec_message_audit_history');
+            $table->addForeignKeyConstraint($schema->getTable('flz_recruitment_messages'), ['message_id'], ['id'], ['onDelete' => 'CASCADE'], 'flz_recruitment_message_audit_fk');
+            $table->addIndex(['message_id', 'changed_at'], 'flz_recruitment_message_audit_history');
         }
 
         return $schema;

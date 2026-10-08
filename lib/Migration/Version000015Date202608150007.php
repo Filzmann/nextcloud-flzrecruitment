@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace OCA\Recruitment\Migration;
+namespace OCA\FlzRecruitment\Migration;
 
 use Closure;
 use DateTimeImmutable;
 use DateTimeZone;
-use OCA\Recruitment\Service\ApplicationMailFieldExtractor;
+use OCA\FlzRecruitment\Service\ApplicationMailFieldExtractor;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
 use OCP\Migration\IOutput;
@@ -23,7 +23,7 @@ final class Version000015Date202608150007 extends SimpleMigrationStep {
     public function postSchemaChange(IOutput $output, Closure $schemaClosure, array $options): void {
         $query = $this->db->getQueryBuilder();
         $rows = $query->select('id', 'sender_address', 'body_text', 'field_suggestions_json', 'version')
-            ->from('rec_messages')->executeQuery()->fetchAllAssociative();
+            ->from('flz_recruitment_messages')->executeQuery()->fetchAllAssociative();
         foreach ($rows as $row) {
             try {
                 $suggestions = json_decode((string)$row['field_suggestions_json'], true, 512, JSON_THROW_ON_ERROR);
@@ -35,7 +35,7 @@ final class Version000015Date202608150007 extends SimpleMigrationStep {
             if ($name === null) continue;
             $suggestions['name'] = $name;
             $update = $this->db->getQueryBuilder();
-            $update->update('rec_messages')
+            $update->update('flz_recruitment_messages')
                 ->set('field_suggestions_json', $update->createNamedParameter(json_encode($suggestions, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE), IQueryBuilder::PARAM_STR))
                 ->set('version', $update->createFunction('version + 1'))
                 ->set('updated_at', $update->createNamedParameter(new DateTimeImmutable('now', new DateTimeZone('UTC')), IQueryBuilder::PARAM_DATETIME_IMMUTABLE))

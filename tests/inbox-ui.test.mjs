@@ -76,10 +76,10 @@ const tabs = new FakeElement('nav')
 const status = new FakeElement('span')
 const errorBox = new FakeElement('div')
 const elements = {
-    'adrecruitment-content': content,
-    'adrecruitment-tabs': tabs,
-    'adrecruitment-status': status,
-    'adrecruitment-error': errorBox,
+    'flzrecruitment-content': content,
+    'flzrecruitment-tabs': tabs,
+    'flzrecruitment-status': status,
+    'flzrecruitment-error': errorBox,
 }
 const document = {
     createElement: (tag) => new FakeElement(tag),
@@ -122,7 +122,7 @@ const api = {
     assignInboxMessage: async (...args) => { calls.push(['assign', ...args]); return {} },
     createApplicationFromInbox: async (...args) => { calls.push(['create-application', ...args]); return { personId: 8, applicationId: 9 } },
     ignoreInboxMessage: async (...args) => { calls.push(['ignore', ...args]); return {} },
-    documentUrl: (id) => `/apps/adrecruitment/api/attachments/${id}/document`,
+    documentUrl: (id) => `/apps/flzrecruitment/api/attachments/${id}/document`,
     attachmentFieldContext: async (...args) => { calls.push(['field-context', ...args]); return { targetField: args[1], value: '', version: 3 } },
     createAttachmentFieldLink: async (...args) => { calls.push(['field-link', ...args]); return { id: 1 } },
 }
@@ -152,7 +152,7 @@ assert.ok(findByText(content, 'Bewerbung.pdf · 2 KB · PDF'))
 assert.ok(findByText(content, 'Freier Hinweis · hr-user · 2026-08-02 11:00:00'))
 findByText(content, 'PDF in Lightbox öffnen').dispatch('click')
 await waitFor(() => calls.some(([action]) => action === 'lightbox'), 'PDF lightbox was not opened')
-assert.equal(calls.find(([action]) => action === 'lightbox')[1].url, '/apps/adrecruitment/api/attachments/31/document')
+assert.equal(calls.find(([action]) => action === 'lightbox')[1].url, '/apps/flzrecruitment/api/attachments/31/document')
 assert.equal(descendants(content).some((node) => node.tagName === 'IFRAME'), false)
 
 const creationForm = descendants(content).find((node) => node.tagName === 'FORM' && findByText(node, 'Person und Bewerbung anlegen'))
@@ -199,7 +199,7 @@ assert.deepEqual(JSON.parse(JSON.stringify(calls.find(([action]) => action === '
 }])
 
 await waitFor(() => findByText(content, 'Bereits zugeordnet'), 'Inbox list was not restored after assignment')
-const assignedCard = descendants(content).find((node) => node.className.includes('adrecruitment-card') && findByText(node, 'Bereits zugeordnet'))
+const assignedCard = descendants(content).find((node) => node.className.includes('flzrecruitment-card') && findByText(node, 'Bereits zugeordnet'))
 findByText(assignedCard, 'Nachricht prüfen').dispatch('click')
 await waitFor(() => findByText(content, 'PDF in Lightbox öffnen'), 'Assigned inbox detail was not opened')
 findByText(content, 'PDF in Lightbox öffnen').dispatch('click')

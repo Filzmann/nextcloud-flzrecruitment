@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace OCA\Recruitment\Service;
+namespace OCA\FlzRecruitment\Service;
 
 use InvalidArgumentException;
-use OCA\Recruitment\Repository\TemporaryAdminAccessRepositoryInterface;
+use OCA\FlzRecruitment\Repository\TemporaryAdminAccessRepositoryInterface;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IGroupManager;
 use OCP\IUserSession;

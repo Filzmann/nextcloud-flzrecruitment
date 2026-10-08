@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace OCA\Recruitment\Command;
+namespace OCA\FlzRecruitment\Command;
 
-use OCA\Recruitment\Service\MailInboxService;
+use OCA\FlzRecruitment\Service\MailInboxService;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -14,7 +14,7 @@ final class SeedInboxCommand extends Command {
     public function __construct(private MailInboxService $inbox) { parent::__construct(); }
 
     protected function configure(): void {
-        $this->setName('adrecruitment:inbox:seed')
+        $this->setName('flzrecruitment:inbox:seed')
             ->setDescription('Importiert wiederholbar zwei synthetische Bewerbungs-Mails mit PDF-Anhängen.');
     }
 

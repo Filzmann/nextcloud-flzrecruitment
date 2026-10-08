@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace OCA\Recruitment\Service;
+namespace OCA\FlzRecruitment\Service;
 
 use DateTimeImmutable;
-use OCA\Recruitment\Contract\DocumentFieldLinkStore;
-use OCA\Recruitment\Exception\ConflictException;
-use OCA\Recruitment\Exception\ValidationException;
+use OCA\FlzRecruitment\Contract\DocumentFieldLinkStore;
+use OCA\FlzRecruitment\Exception\ConflictException;
+use OCA\FlzRecruitment\Exception\ValidationException;
 
 /** Verknüpft nachgewiesene PDF-Fundstellen kontrolliert mit Bewerbungsfeldern. */
 final class DocumentFieldLinkService {

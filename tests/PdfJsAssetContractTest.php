@@ -16,7 +16,7 @@ TestRunner::test('pinned app-local PDF.js assets and license remain reproducible
     $inventory = json_decode((string)file_get_contents($inventoryPath), true, 512, JSON_THROW_ON_ERROR);
     assertSame('CycloneDX', $inventory['bomFormat'] ?? null, 'Third-party inventory must use CycloneDX');
     assertSame('1.6', $inventory['specVersion'] ?? null, 'Third-party inventory must use CycloneDX 1.6');
-    assertSame('adrecruitment', $inventory['metadata']['properties'][0]['value'] ?? null, 'Third-party inventory owner changed');
+    assertSame('flzrecruitment', $inventory['metadata']['properties'][0]['value'] ?? null, 'Third-party inventory owner changed');
     assertSame(1, count($inventory['components'] ?? []), 'Third-party inventory must contain exactly PDF.js');
 
     $component = $inventory['components'][0] ?? [];

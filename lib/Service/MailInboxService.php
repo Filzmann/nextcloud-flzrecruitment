@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace OCA\Recruitment\Service;
+namespace OCA\FlzRecruitment\Service;
 
 use DateTimeImmutable;
-use OCA\Recruitment\Contract\MailAttachmentStorage;
-use OCA\Recruitment\Contract\MailInboxStore;
-use OCA\Recruitment\Contract\PdfTextExtractor;
-use OCA\Recruitment\Exception\ValidationException;
+use OCA\FlzRecruitment\Contract\MailAttachmentStorage;
+use OCA\FlzRecruitment\Contract\MailInboxStore;
+use OCA\FlzRecruitment\Contract\PdfTextExtractor;
+use OCA\FlzRecruitment\Exception\ValidationException;
 
 /** Fachgrenze für unveränderlichen, wiederholbaren Mailimport und versionierte Zuordnung. */
 final class MailInboxService {

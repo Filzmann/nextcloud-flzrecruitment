@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-use OCA\Recruitment\Service\RecruitmentAccessService;
-use OCA\Recruitment\Repository\RecruitmentRepository;
-use OCA\Recruitment\Service\RecruitmentUseCaseService;
-use OCA\Recruitment\Service\DocumentReviewService;
-use OCA\Recruitment\Service\MailInboxService;
+use OCA\FlzRecruitment\Service\RecruitmentAccessService;
+use OCA\FlzRecruitment\Repository\RecruitmentRepository;
+use OCA\FlzRecruitment\Service\RecruitmentUseCaseService;
+use OCA\FlzRecruitment\Service\DocumentReviewService;
+use OCA\FlzRecruitment\Service\MailInboxService;
 
 $objectStorageMail = static fn(): array => [
     'mailbox' => [
@@ -33,22 +33,22 @@ $postgresqlTemplateName = 'FR-04 PostgreSQL Upgrade-Vorlage';
 
 return [
     'providerRegistrations' => [
-        'filzmann_data_protection' => [
-            OCA\FilzmannDataProtection\PublicApi\V1\RegisterPersonalDataProvidersEvent::class,
-            OCA\FilzmannDataProtection\PublicApi\V1\RegisterProcessingMetadataProvidersEvent::class,
+        'flz_data_protection' => [
+            OCA\FlzDataProtection\PublicApi\V1\RegisterPersonalDataProvidersEvent::class,
+            OCA\FlzDataProtection\PublicApi\V1\RegisterProcessingMetadataProvidersEvent::class,
         ],
-        'filzmann_permission_matrix' => [
-            OCA\FilzmannPermissionMatrix\PublicApi\V1\RegisterPermissionProvidersEvent::class,
+        'flz_permission_matrix' => [
+            OCA\FlzPermissionMatrix\PublicApi\V1\RegisterPermissionProvidersEvent::class,
         ],
     ],
-    'uiPath' => '/index.php/apps/adrecruitment/',
+    'uiPath' => '/index.php/apps/flzrecruitment/',
     'preGrantUiStatuses' => [200],
     'postGrantUiStatuses' => [200],
-    'grantService' => OCA\Recruitment\Service\TemporaryAdminAccessService::class,
+    'grantService' => OCA\FlzRecruitment\Service\TemporaryAdminAccessService::class,
     'permissionProbe' => static fn(string $uid): bool => OCP\Server::get(RecruitmentAccessService::class)
         ->canSomewhere(RecruitmentAccessService::VIEW),
     'apiSmokes' => [
-        ['/index.php/apps/adrecruitment/api/bootstrap', [200]],
+        ['/index.php/apps/flzrecruitment/api/bootstrap', [200]],
     ],
     'postgresqlUpgradeSeed' => static function (string $uid) use ($postgresqlAssignmentKey, $postgresqlPersonEmail, $postgresqlTemplateName): void {
         $useCases = OCP\Server::get(RecruitmentUseCaseService::class);
@@ -103,7 +103,7 @@ return [
                 $uid,
             );
             throw new RuntimeException('Der Recruitment-Konfliktfall hat unerwartet committed.');
-        } catch (OCA\Recruitment\Exception\ConflictException) {
+        } catch (OCA\FlzRecruitment\Exception\ConflictException) {
             // Die optimistische Sperre muss die Transaktion ohne Teilmutation zurückrollen.
         }
         $unchanged = $repository->mailTemplate((int)$template['id']);

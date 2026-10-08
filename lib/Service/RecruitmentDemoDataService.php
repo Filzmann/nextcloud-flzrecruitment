@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Recruitment\Service;
+namespace OCA\FlzRecruitment\Service;
 
 /** Installiert einen ausschließlich synthetischen, wiederholbaren Recruitment-Datensatz. */
 final class RecruitmentDemoDataService {
@@ -299,7 +299,7 @@ final class RecruitmentDemoDataService {
             $jobId,
             $fixture['source'],
             $fixture['receivedOn'],
-            'ad-demo-persref',
+            'flz-demo-persref',
             $fixture['desiredWeeklyHours'],
             $fixture['desiredWeeklyHoursMax'] ?? null,
         );

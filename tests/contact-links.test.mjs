@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs'
 const context = { window: {} }
 vm.createContext(context)
 vm.runInContext(readFileSync(new URL('../js/modules/contact-links.js', import.meta.url), 'utf8'), context)
-const links = context.window.ADRecruitmentContactLinks
+const links = context.window.FlzRecruitmentContactLinks
 
 assert.equal(links.emailHref('alex.beispiel+job@example.invalid'), 'mailto:alex.beispiel+job@example.invalid')
 assert.deepEqual(
@@ -18,4 +18,4 @@ assert.equal(links.phoneHref('+49 (0)30 / 555 01-01'), 'tel:+49305550101')
 assert.equal(links.phoneHref('030 5550102'), 'tel:0305550102')
 assert.equal(links.phoneHref('Telefon unbekannt'), '')
 
-console.log('AD Recruitment contact-link tests passed')
+console.log('Filzmann Recruitment contact-link tests passed')

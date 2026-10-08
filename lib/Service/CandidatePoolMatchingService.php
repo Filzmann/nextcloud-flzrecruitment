@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace OCA\Recruitment\Service;
+namespace OCA\FlzRecruitment\Service;
 
-use OCA\Recruitment\Contract\CandidatePoolStore;
+use OCA\FlzRecruitment\Contract\CandidatePoolStore;
 
 final class CandidatePoolMatchingService {
     /** @param array<string,mixed> $entry @param list<array<string,mixed>> $jobs @return list<array{jobId:int,reasons:list<string>}> */

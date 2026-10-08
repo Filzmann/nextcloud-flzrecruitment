@@ -15,4 +15,4 @@ for (const file of files) {
     }
 }
 
-console.log('AD Recruitment JavaScript tests passed')
+console.log('Filzmann Recruitment JavaScript tests passed')

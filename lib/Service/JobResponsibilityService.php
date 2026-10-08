@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace OCA\Recruitment\Service;
+namespace OCA\FlzRecruitment\Service;
 
-use OCA\Recruitment\Exception\ValidationException;
-use OCA\Recruitment\Organization\OrganizationSnapshotService;
+use OCA\FlzRecruitment\Exception\ValidationException;
+use OCA\FlzRecruitment\Organization\OrganizationSnapshotService;
 use OCP\IGroupManager;
 use OCP\IUser;
 
-/** Begrenzt Stellenzuständigkeiten auf fachlich passende AD-Organisationsgruppen. */
+/** Begrenzt Stellenzuständigkeiten auf fachlich passende FLZ-Organisationsgruppen. */
 final class JobResponsibilityService {
     /** @var array<string,list<string>> */
     private const ROLE_KEYS_BY_PROFESSION = [

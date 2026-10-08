@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Recruitment\Repository {
+namespace OCA\FlzRecruitment\Repository {
     final class RecruitmentRepository {
         public array $calls = [];
         public array $application = ['id' => 2, 'status' => 'received'];
@@ -21,7 +21,7 @@ namespace OCA\Recruitment\Repository {
     }
 }
 
-namespace OCA\Recruitment\Service {
+namespace OCA\FlzRecruitment\Service {
     trait RecordsCalls {
         public array $calls = [];
         public array $returns = [];
@@ -42,15 +42,15 @@ namespace OCA\Recruitment\Service {
 }
 
 namespace {
-    use OCA\Recruitment\Repository\RecruitmentRepository;
-    use OCA\Recruitment\Service\ApplicationStatusService;
-    use OCA\Recruitment\Service\InterviewService;
-    use OCA\Recruitment\Service\HiringWorkflowService;
-    use OCA\Recruitment\Service\BasisQualificationService;
-    use OCA\Recruitment\Service\RecruitmentService;
-    use OCA\Recruitment\Service\RecruitmentUseCaseService;
-    use OCA\Recruitment\Service\TemplateService;
-    use OCA\Recruitment\Service\RecruitmentPermissionSettingsService;
+    use OCA\FlzRecruitment\Repository\RecruitmentRepository;
+    use OCA\FlzRecruitment\Service\ApplicationStatusService;
+    use OCA\FlzRecruitment\Service\InterviewService;
+    use OCA\FlzRecruitment\Service\HiringWorkflowService;
+    use OCA\FlzRecruitment\Service\BasisQualificationService;
+    use OCA\FlzRecruitment\Service\RecruitmentService;
+    use OCA\FlzRecruitment\Service\RecruitmentUseCaseService;
+    use OCA\FlzRecruitment\Service\TemplateService;
+    use OCA\FlzRecruitment\Service\RecruitmentPermissionSettingsService;
 
     $assert = static function (bool $condition, string $message): void {
         if (!$condition) {
@@ -156,5 +156,5 @@ namespace {
         ['basisQualificationAssignments', [2]],
     ], 'Direct repository access exceeds the explicit detail reads.');
 
-    echo "AD Recruitment use-case service tests passed\n";
+    echo "Filzmann Recruitment use-case service tests passed\n";
 }

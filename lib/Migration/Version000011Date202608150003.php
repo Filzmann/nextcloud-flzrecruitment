@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace OCA\Recruitment\Migration;
+namespace OCA\FlzRecruitment\Migration;
 
 use Closure;
 use DateTimeImmutable;
 use DateTimeZone;
-use OCA\Recruitment\Service\ApplicationStatusService;
-use OCA\Recruitment\Service\DefaultStatusMailTemplateCatalog;
+use OCA\FlzRecruitment\Service\ApplicationStatusService;
+use OCA\FlzRecruitment\Service\DefaultStatusMailTemplateCatalog;
 use OCP\DB\ISchemaWrapper;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\DB\Types;
@@ -27,14 +27,14 @@ final class Version000011Date202608150003 extends SimpleMigrationStep {
     public function changeSchema(IOutput $output, Closure $schemaClosure, array $options): ?ISchemaWrapper {
         /** @var ISchemaWrapper $schema */
         $schema = $schemaClosure();
-        if ($schema->hasTable('rec_mail_template_revisions')) {
-            $revisions = $schema->getTable('rec_mail_template_revisions');
+        if ($schema->hasTable('flz_recruitment_mail_template_revisions')) {
+            $revisions = $schema->getTable('flz_recruitment_mail_template_revisions');
             if (!$revisions->hasColumn('body_format')) {
                 $revisions->addColumn('body_format', Types::STRING, ['length' => 16, 'notnull' => true, 'default' => 'plain']);
             }
         }
-        if ($schema->hasTable('rec_mail_drafts')) {
-            $drafts = $schema->getTable('rec_mail_drafts');
+        if ($schema->hasTable('flz_recruitment_mail_drafts')) {
+            $drafts = $schema->getTable('flz_recruitment_mail_drafts');
             if (!$drafts->hasColumn('body_format')) {
                 $drafts->addColumn('body_format', Types::STRING, ['length' => 16, 'notnull' => true, 'default' => 'plain']);
             }
@@ -45,7 +45,7 @@ final class Version000011Date202608150003 extends SimpleMigrationStep {
     public function postSchemaChange(IOutput $output, Closure $schemaClosure, array $options): void {
         foreach ($this->catalog->templates($this->statuses->transitions()) as $default) {
             $ruleQuery = $this->db->getQueryBuilder();
-            $existingRule = $ruleQuery->select('id')->from('rec_status_mail_rules')
+            $existingRule = $ruleQuery->select('id')->from('flz_recruitment_status_mail_rules')
                 ->where($ruleQuery->expr()->eq('from_status', $ruleQuery->createNamedParameter($default['fromStatus'], IQueryBuilder::PARAM_STR)))
                 ->andWhere($ruleQuery->expr()->eq('to_status', $ruleQuery->createNamedParameter($default['toStatus'], IQueryBuilder::PARAM_STR)))
                 ->setMaxResults(1)->executeQuery()->fetchOne();
@@ -57,7 +57,7 @@ final class Version000011Date202608150003 extends SimpleMigrationStep {
                 if ($templateId === null) $templateId = $this->createTemplate($default);
                 $now = $this->now();
                 $insert = $this->db->getQueryBuilder();
-                $insert->insert('rec_status_mail_rules')
+                $insert->insert('flz_recruitment_status_mail_rules')
                     ->setValue('from_status', $insert->createNamedParameter($default['fromStatus'], IQueryBuilder::PARAM_STR))
                     ->setValue('to_status', $insert->createNamedParameter($default['toStatus'], IQueryBuilder::PARAM_STR))
                     ->setValue('template_id', $insert->createNamedParameter($templateId, IQueryBuilder::PARAM_INT))
@@ -78,7 +78,7 @@ final class Version000011Date202608150003 extends SimpleMigrationStep {
 
     private function templateId(string $name): ?int {
         $query = $this->db->getQueryBuilder();
-        $id = $query->select('id')->from('rec_mail_templates')
+        $id = $query->select('id')->from('flz_recruitment_mail_templates')
             ->where($query->expr()->eq('name', $query->createNamedParameter($name, IQueryBuilder::PARAM_STR)))
             ->setMaxResults(1)->executeQuery()->fetchOne();
         return $id === false ? null : (int)$id;
@@ -88,7 +88,7 @@ final class Version000011Date202608150003 extends SimpleMigrationStep {
     private function createTemplate(array $default): int {
         $now = $this->now();
         $template = $this->db->getQueryBuilder();
-        $template->insert('rec_mail_templates')
+        $template->insert('flz_recruitment_mail_templates')
             ->setValue('name', $template->createNamedParameter($default['name'], IQueryBuilder::PARAM_STR))
             ->setValue('active', $template->createNamedParameter(true, IQueryBuilder::PARAM_BOOL))
             ->setValue('current_revision', $template->createNamedParameter(1, IQueryBuilder::PARAM_INT))
@@ -100,7 +100,7 @@ final class Version000011Date202608150003 extends SimpleMigrationStep {
         $templateId = $template->getLastInsertId();
 
         $revision = $this->db->getQueryBuilder();
-        $revision->insert('rec_mail_template_revisions')
+        $revision->insert('flz_recruitment_mail_template_revisions')
             ->setValue('template_id', $revision->createNamedParameter($templateId, IQueryBuilder::PARAM_INT))
             ->setValue('revision', $revision->createNamedParameter(1, IQueryBuilder::PARAM_INT))
             ->setValue('subject_template', $revision->createNamedParameter($default['subject'], IQueryBuilder::PARAM_STR))

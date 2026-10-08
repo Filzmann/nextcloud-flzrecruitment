@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace OCA\Recruitment\Service;
+namespace OCA\FlzRecruitment\Service;
 
-use OCA\Recruitment\Contract\HiringDataStore;
-use OCA\Recruitment\Exception\ValidationException;
+use OCA\FlzRecruitment\Contract\HiringDataStore;
+use OCA\FlzRecruitment\Exception\ValidationException;
 
 /** Orchestriert versionsgeschützte Einstellungsdaten und die datensparsame Lohnsicht. */
 final class HiringWorkflowService {

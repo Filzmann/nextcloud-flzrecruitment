@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace OCA\Recruitment\Service;
+namespace OCA\FlzRecruitment\Service;
 
-use OCA\Recruitment\Exception\ConflictException;
-use OCA\Recruitment\Exception\ValidationException;
+use OCA\FlzRecruitment\Exception\ConflictException;
+use OCA\FlzRecruitment\Exception\ValidationException;
 
 /**
  * Fachregeln für Vorlagen-Snapshots, Entwürfe und Interviewabschluss.

@@ -8,7 +8,7 @@
     const pdfLightbox = root.RecruitmentPdfLightbox
     const richTextEditor = root.RecruitmentRichTextEditor
     const settingsNavigation = root.RecruitmentSettingsNavigation
-    const contactLinks = root.ADRecruitmentContactLinks || { emailHref: () => '', emailLinkAttributes: () => null, phoneHref: () => '' }
+    const contactLinks = root.FlzRecruitmentContactLinks || { emailHref: () => '', emailLinkAttributes: () => null, phoneHref: () => '' }
     const {
         DEFAULT_APPLICATION_VIEW,
         canMoveApplication,
@@ -17,10 +17,10 @@
         requiresStatusOverride,
         statusTargets,
     } = root.RecruitmentApplicationWorkbench
-    const content = document.getElementById('adrecruitment-content')
-    const tabs = document.getElementById('adrecruitment-tabs')
-    const status = document.getElementById('adrecruitment-status')
-    const errorBox = document.getElementById('adrecruitment-error')
+    const content = document.getElementById('flzrecruitment-content')
+    const tabs = document.getElementById('flzrecruitment-tabs')
+    const status = document.getElementById('flzrecruitment-status')
+    const errorBox = document.getElementById('flzrecruitment-error')
     let horizontalScrollCleanup = () => {}
     const state = {
         data: null,
@@ -107,7 +107,7 @@
         const control = choices
             ? select(name, [{ value: '', label: 'Bitte wählen' }].concat(choices), value ?? '')
             : input(name, type, false, value ?? '')
-        control.classList.add('adrecruitment-content-input')
+        control.classList.add('flzrecruitment-content-input')
         if (type === 'date') control.classList.add('is-date')
         const maxlength = hiringLengths[name]
         if (maxlength) {
@@ -154,7 +154,7 @@
     function bindPersistentHorizontalScroll(target) {
         horizontalScrollCleanup()
         if (!target) return
-        const root = document.getElementById('adrecruitment-app')
+        const root = document.getElementById('flzrecruitment-app')
         if (!root) return
         const proxy = element('div', {
             className: 'app-horizontal-scroll-proxy',
@@ -191,7 +191,7 @@
     }
 
     function field(labelText, control, hint = '') {
-        const label = element('label', { className: 'adrecruitment-field' }, [
+        const label = element('label', { className: 'flzrecruitment-field' }, [
             element('span', { text: labelText }),
             control,
         ])
@@ -200,7 +200,7 @@
     }
 
     function richTextField(labelText, editor, hint = '') {
-        const wrapper = element('div', { className: 'adrecruitment-field' }, [
+        const wrapper = element('div', { className: 'flzrecruitment-field' }, [
             element('span', { text: labelText }), editor.element,
         ])
         if (hint) wrapper.append(element('small', { text: hint }))
@@ -233,11 +233,11 @@
         if (kind === 'email') {
             const attributes = contactLinks.emailLinkAttributes(text)
             return attributes
-                ? element('a', { ...attributes, target: '_blank', rel: 'noopener noreferrer', text, className: 'adrecruitment-contact-link' })
+                ? element('a', { ...attributes, target: '_blank', rel: 'noopener noreferrer', text, className: 'flzrecruitment-contact-link' })
                 : element('span', { text })
         }
         const href = contactLinks.phoneHref(text)
-        return href ? element('a', { href, text, className: 'adrecruitment-contact-link' }) : element('span', { text })
+        return href ? element('a', { href, text, className: 'flzrecruitment-contact-link' }) : element('span', { text })
     }
 
     function contactLine(email, phone) {
@@ -245,7 +245,7 @@
         if (email) children.push(contactNode(email, 'email'))
         if (email && phone) children.push(element('span', { text: ' · ', 'aria-hidden': 'true' }))
         if (phone) children.push(contactNode(phone, 'phone'))
-        return element('span', { className: 'adrecruitment-contact-line' }, children)
+        return element('span', { className: 'flzrecruitment-contact-line' }, children)
     }
 
     function mailBodyHtml(body, format = 'plain') {
@@ -262,17 +262,17 @@
 
     let overlaySequence = 0
     function createFormOverlay(title, triggerLabel, form, description = '') {
-        const headingId = `adrecruitment-overlay-title-${++overlaySequence}`
+        const headingId = `flzrecruitment-overlay-title-${++overlaySequence}`
         const trigger = button(triggerLabel, 'button', 'primary')
-        const close = button('Schließen', 'button', 'adrecruitment-secondary')
-        const body = element('div', { className: 'adrecruitment-overlay__body' })
+        const close = button('Schließen', 'button', 'flzrecruitment-secondary')
+        const body = element('div', { className: 'flzrecruitment-overlay__body' })
         if (description) body.append(element('p', { text: description }))
         body.append(form)
         const dialog = element('dialog', {
-            className: 'adrecruitment-overlay',
+            className: 'flzrecruitment-overlay',
             'aria-labelledby': headingId,
         }, [
-            element('header', { className: 'adrecruitment-overlay__header' }, [
+            element('header', { className: 'flzrecruitment-overlay__header' }, [
                 element('h2', { id: headingId, text: title }),
                 close,
             ]),
@@ -284,7 +284,7 @@
         dialog.addEventListener('click', (event) => {
             if (event.target === dialog) controller.close()
         })
-        return element('div', { className: 'adrecruitment-actions' }, [trigger, dialog])
+        return element('div', { className: 'flzrecruitment-actions' }, [trigger, dialog])
     }
 
     function showError(error) {
@@ -346,10 +346,10 @@
             state.activeTab = definitions[0]?.[0] || ''
         }
         for (const [id, label] of definitions) {
-            const tab = button(label, 'button', 'adrecruitment-tab')
-            tab.id = `adrecruitment-tab-${id}`
+            const tab = button(label, 'button', 'flzrecruitment-tab')
+            tab.id = `flzrecruitment-tab-${id}`
             tab.setAttribute('role', 'tab')
-            tab.setAttribute('aria-controls', `adrecruitment-panel-${id}`)
+            tab.setAttribute('aria-controls', `flzrecruitment-panel-${id}`)
             tab.setAttribute('aria-selected', String(state.activeTab === id))
             tab.tabIndex = state.activeTab === id ? 0 : -1
             tab.addEventListener('click', () => showTab(id))
@@ -360,7 +360,7 @@
                 const offset = event.key === 'ArrowRight' ? 1 : -1
                 const next = definitions[(index + offset + definitions.length) % definitions.length][0]
                 showTab(next)
-                document.getElementById(`adrecruitment-tab-${next}`)?.focus()
+                document.getElementById(`flzrecruitment-tab-${next}`)?.focus()
             })
             tabs.append(tab)
         }
@@ -381,26 +381,26 @@
 
     function panel(id, title) {
         return element('section', {
-            id: `adrecruitment-panel-${id}`,
-            className: 'adrecruitment-panel',
+            id: `flzrecruitment-panel-${id}`,
+            className: 'flzrecruitment-panel',
             role: 'tabpanel',
-            'aria-labelledby': `adrecruitment-tab-${id}`,
+            'aria-labelledby': `flzrecruitment-tab-${id}`,
         }, [element('h2', { text: title })])
     }
 
     function settingsPanel(id, title) {
         return element('section', {
-            id: `adrecruitment-settings-panel-${id}`,
-            className: 'adrecruitment-settings-panel',
+            id: `flzrecruitment-settings-panel-${id}`,
+            className: 'flzrecruitment-settings-panel',
             role: 'tabpanel',
-            'aria-labelledby': `adrecruitment-settings-tab-${id}`,
+            'aria-labelledby': `flzrecruitment-settings-tab-${id}`,
         }, [element('h3', { text: title })])
     }
 
     function showSettingsSection(id, moveFocus = false) {
         state.activeSettingsSection = id
         renderSettings()
-        if (moveFocus) document.getElementById(`adrecruitment-settings-tab-${id}`)?.focus()
+        if (moveFocus) document.getElementById(`flzrecruitment-settings-tab-${id}`)?.focus()
     }
 
     function renderSettings() {
@@ -414,15 +414,15 @@
             text: 'Hier finden Sie Funktionen, die nur gelegentlich für die Einrichtung und Pflege des Recruitings benötigt werden.',
         }))
         const navigation = element('div', {
-            className: 'adrecruitment-settings-nav',
+            className: 'flzrecruitment-settings-nav',
             role: 'tablist',
             'aria-label': 'Einstellungsbereiche',
         })
         for (const [index, definition] of definitions.entries()) {
-            const tab = button(definition.label, 'button', 'adrecruitment-settings-tab')
-            tab.id = `adrecruitment-settings-tab-${definition.id}`
+            const tab = button(definition.label, 'button', 'flzrecruitment-settings-tab')
+            tab.id = `flzrecruitment-settings-tab-${definition.id}`
             tab.setAttribute('role', 'tab')
-            tab.setAttribute('aria-controls', `adrecruitment-settings-panel-${definition.id}`)
+            tab.setAttribute('aria-controls', `flzrecruitment-settings-panel-${definition.id}`)
             tab.setAttribute('aria-selected', String(state.activeSettingsSection === definition.id))
             tab.tabIndex = state.activeSettingsSection === definition.id ? 0 : -1
             tab.addEventListener('click', () => showSettingsSection(definition.id, true))
@@ -438,7 +438,7 @@
             })
             navigation.append(tab)
         }
-        const settingsContent = element('div', { className: 'adrecruitment-settings-content' })
+        const settingsContent = element('div', { className: 'flzrecruitment-settings-content' })
         view.append(navigation, settingsContent)
         content.replaceChildren(view)
 
@@ -452,8 +452,8 @@
         const view = panel('candidate-pool', 'Datenschutzgerechte Rückstellungen')
         const pool = state.candidatePool || { entries: [], settings: {} }
         view.append(element('p', { text: 'Nur reduzierte Profile mit dokumentierter, freiwilliger Einwilligung werden berücksichtigt. Vorschläge sind Hinweise für eine menschliche Prüfung und lösen weder Kontakt noch Entscheidung automatisch aus.' }))
-        if (!pool.settings.enabled) view.append(element('p', { className: 'adrecruitment-warning', text: 'Der Bewerberpool ist bis zur Freigabe des Datenschutzhinweises deaktiviert.' }))
-        const requestForm = element('form', { className: 'adrecruitment-form adrecruitment-card' }, [
+        if (!pool.settings.enabled) view.append(element('p', { className: 'flzrecruitment-warning', text: 'Der Bewerberpool ist bis zur Freigabe des Datenschutzhinweises deaktiviert.' }))
+        const requestForm = element('form', { className: 'flzrecruitment-form flzrecruitment-card' }, [
             element('h3', { text: 'Rückstellung anfragen' }),
             field('Bewerbungs-ID', input('applicationId', 'number', true)),
             button('Einwilligung anfragen'),
@@ -462,21 +462,21 @@
         view.append(requestForm)
         if (!pool.entries.length) view.append(emptyState('Noch keine Rückstellung vorhanden.'))
         for (const entry of pool.entries) {
-            const card = element('article', { className: 'adrecruitment-card' }, [
+            const card = element('article', { className: 'flzrecruitment-card' }, [
                 element('h3', { text: `Bewerbung #${entry.sourceApplicationId}` }),
                 element('p', { text: `Status: ${entry.status} · Berufsgruppe: ${entry.professionCategory}` }),
                 element('p', { text: entry.expiresAt ? `Einwilligung bis ${entry.expiresAt}` : 'Einwilligung noch nicht erfasst' }),
             ])
             for (const match of entry.matches || []) card.append(element('p', { text: `Passende Stelle #${match.jobId}: ${(match.reasons || []).join(' ')}` }))
             if (entry.status === 'requested') {
-                const form = element('form', { className: 'adrecruitment-form' }, [
+                const form = element('form', { className: 'flzrecruitment-form' }, [
                     field('Nachweisreferenz', input('evidenceReference', 'text', true), 'Zum Beispiel die Message-ID der bestätigenden E-Mail; nicht den Mailinhalt kopieren.'),
                     button('Einwilligung erfassen'),
                 ])
                 form.addEventListener('submit', (event) => { event.preventDefault(); run(() => api.grantCandidatePoolConsent(entry.id, { evidenceType: 'email_reply', evidenceReference: new FormData(form).get('evidenceReference'), noticeVersion: pool.settings.noticeVersion, areaKeys: [] }), 'Einwilligung wurde dokumentiert.', load) })
                 card.append(form)
             } else if (entry.status === 'active') {
-                const revoke = button('Einwilligung widerrufen', 'button', 'adrecruitment-secondary')
+                const revoke = button('Einwilligung widerrufen', 'button', 'flzrecruitment-secondary')
                 revoke.addEventListener('click', () => run(() => api.withdrawCandidatePoolConsent(entry.id), 'Einwilligung wurde widerrufen.', load))
                 card.append(revoke)
             }
@@ -492,7 +492,7 @@
             text: 'Das Personalreferat pflegt hier Datenschutzhinweis und Einwilligungsfristen. Die Funktion bleibt aus, bis ein versionierter Datenschutzhinweis freigegeben ist.',
         }))
         const enabled = input('enabled', 'checkbox'); enabled.checked = settings.enabled
-        const form = element('form', { className: 'adrecruitment-form adrecruitment-card' }, [
+        const form = element('form', { className: 'flzrecruitment-form flzrecruitment-card' }, [
             field('Bewerberpool aktiv', enabled),
             field('Version Datenschutzhinweis', input('noticeVersion', 'text', false, settings.noticeVersion)),
             field('Einwilligung (Monate)', input('consentMonths', 'number', true, settings.consentMonths)),
@@ -519,7 +519,7 @@
     }
 
     function emptyState(text) {
-        return element('p', { className: 'adrecruitment-empty', text })
+        return element('p', { className: 'flzrecruitment-empty', text })
     }
 
     async function renderInbox() {
@@ -535,11 +535,11 @@
                 view.append(emptyState('Aktuell liegen keine Eingangsnachrichten vor.'))
             } else {
                 const stateLabels = { new: 'Neu', unclear: 'Unklar', assigned: 'Zugeordnet', error: 'Importfehler', ignored: 'Ignoriert' }
-                const list = element('div', { className: 'adrecruitment-grid' })
+                const list = element('div', { className: 'flzrecruitment-grid' })
                 for (const message of state.inboxMessages) {
                     const open = button('Nachricht prüfen', 'button')
                     open.addEventListener('click', () => openInboxMessage(message.id))
-                    list.append(element('article', { className: 'adrecruitment-card' }, [
+                    list.append(element('article', { className: 'flzrecruitment-card' }, [
                         element('h3', { text: message.subject || 'Ohne Betreff' }),
                         element('p', {}, [contactNode(message.senderAddress, 'email'), element('span', { text: ` · ${message.receivedAt}` })]),
                         element('p', { text: stateLabels[message.state] || message.state }),
@@ -566,18 +566,18 @@
     }
 
     function renderInboxDetail(message) {
-        const view = element('section', { className: 'adrecruitment-panel' })
-        const back = button('← Zurück zum Posteingang', 'button', 'adrecruitment-secondary')
+        const view = element('section', { className: 'flzrecruitment-panel' })
+        const back = button('← Zurück zum Posteingang', 'button', 'flzrecruitment-secondary')
         back.addEventListener('click', renderInbox)
         view.append(back, element('h2', { text: message.subject || 'Ohne Betreff' }))
-        view.append(element('dl', { className: 'adrecruitment-facts' }, [
+        view.append(element('dl', { className: 'flzrecruitment-facts' }, [
             element('div', {}, [element('dt', { text: 'Absender' }), element('dd', {}, contactNode(message.senderAddress, 'email'))]),
             element('div', {}, [element('dt', { text: 'Empfangen' }), element('dd', { text: message.receivedAt })]),
             element('div', {}, [element('dt', { text: 'Postfach' }), element('dd', { text: message.mailbox.label })]),
         ]))
-        view.append(element('section', { className: 'adrecruitment-card' }, [
+        view.append(element('section', { className: 'flzrecruitment-card' }, [
             element('h3', { text: 'Unveränderter Mailtext' }),
-            element('pre', { className: 'adrecruitment-mail-body', text: message.bodyText }),
+            element('pre', { className: 'flzrecruitment-mail-body', text: message.bodyText }),
         ]))
         view.append(renderMailSuggestions(message.fieldSuggestions))
         view.append(renderMailAttachments(message.attachments, message.applicationId, () => openInboxMessage(message.id)))
@@ -590,7 +590,7 @@
                 const familyName = nameParts.length > 1 ? nameParts.pop() : ''
                 const givenName = nameParts.join(' ') || suggestedName
                 const suggestionSelection = renderAssignableMailSuggestions(message.fieldSuggestions)
-                const creationForm = element('form', { className: 'adrecruitment-inline-form adrecruitment-card' }, [
+                const creationForm = element('form', { className: 'flzrecruitment-inline-form flzrecruitment-card' }, [
                     element('h3', { text: 'Neue Bewerbung aus diesem Eingang' }),
                     field('Stelle', select('jobId', jobs.map((job) => ({
                         value: job.id,
@@ -624,7 +624,7 @@
                 })
                 view.append(creationForm)
             } else {
-                view.append(element('section', { className: 'adrecruitment-card' }, [
+                view.append(element('section', { className: 'flzrecruitment-card' }, [
                     element('h3', { text: 'Neue Bewerbung anlegen' }),
                     element('p', { text: 'Es ist keine aktive Stelle verfügbar. Legen Sie zuerst eine Stelle an oder aktivieren Sie eine vorhandene Stelle.' }),
                 ]))
@@ -640,7 +640,7 @@
                 })), message.applicationId || '')
                 : input('applicationId', 'number', true, message.applicationId || '')
             const suggestionSelection = renderAssignableMailSuggestions(message.fieldSuggestions)
-            const form = element('form', { className: 'adrecruitment-inline-form adrecruitment-card' }, [
+            const form = element('form', { className: 'flzrecruitment-inline-form flzrecruitment-card' }, [
                 field('Vorhandene Bewerbung', applicationControl, 'Falls keine Auswahl sichtbar ist, kann die Bewerbungs-ID eingetragen werden.'),
                 suggestionSelection.node,
                 button(message.state === 'assigned' ? 'Zuordnung korrigieren' : 'Bewerbung zuordnen'),
@@ -661,7 +661,7 @@
             view.append(form)
         }
         if (['new', 'unclear', 'error'].includes(message.state)) {
-            const ignore = button('Als keine Bewerbung schließen', 'button', 'adrecruitment-secondary')
+            const ignore = button('Als keine Bewerbung schließen', 'button', 'flzrecruitment-secondary')
             ignore.addEventListener('click', () => run(
                 () => api.ignoreInboxMessage(message.id, message.version),
                 'Eingangsnachricht wurde geschlossen.',
@@ -673,8 +673,8 @@
     }
 
     function renderMailSuggestions(suggestions) {
-        const card = element('section', { className: 'adrecruitment-card' }, [element('h3', { text: 'Ausgelesene Vorschläge' })])
-        const facts = element('dl', { className: 'adrecruitment-facts' })
+        const card = element('section', { className: 'flzrecruitment-card' }, [element('h3', { text: 'Ausgelesene Vorschläge' })])
+        const facts = element('dl', { className: 'flzrecruitment-facts' })
         const labels = { salutation: 'Anrede', title: 'Titel', name: 'Name', email: 'E-Mail', phone: 'Telefon', jobPreference: 'Stellenwunsch', desiredWeeklyHours: 'Wunschstunden', availableFrom: 'Verfügbar ab', previousExperience: 'Berufserfahrung', germanLanguageLevel: 'Deutschkenntnisse', location: 'Wohnort', message: 'Nachricht' }
         for (const [key, label] of Object.entries(labels)) {
             if (!suggestions?.[key]?.value) continue
@@ -716,7 +716,7 @@
                 const match = String(suggestion).replace(',', '.').match(/(\d+(?:\.\d+)?)\s*(?:(?:-|bis)\s*(\d+(?:\.\d+)?))?/i)
                 const minimum = element('input', { name: `suggestion-${key}-min`, type: 'number', min: 0.01, max: 80, step: 0.5, required: true, value: match?.[1] || '' })
                 const maximum = element('input', { name: `suggestion-${key}-max`, type: 'number', min: 0.01, max: 80, step: 0.5, value: match?.[2] || '' })
-                editor = element('div', { className: 'adrecruitment-hours-range' }, [
+                editor = element('div', { className: 'flzrecruitment-hours-range' }, [
                     field('Von', minimum), field('Bis (optional)', maximum),
                 ])
                 read = () => maximum.value === '' ? minimum.value : `${minimum.value}-${maximum.value}`
@@ -724,12 +724,12 @@
                 editor = input(`suggestion-${key}`, key === 'email' ? 'email' : 'text', false, suggestion)
             }
             controls.set(key, { accepted, read: read || (() => editor.value) })
-            fields.push(element('div', { className: 'adrecruitment-suggestion-choice' }, [
+            fields.push(element('div', { className: 'flzrecruitment-suggestion-choice' }, [
                 element('label', {}, [accepted, element('span', { text: `${label} übernehmen` })]),
                 field(`Wert für ${label}`, editor),
             ]))
         }
-        const node = element('fieldset', { className: 'adrecruitment-suggestion-selection' }, [
+        const node = element('fieldset', { className: 'flzrecruitment-suggestion-selection' }, [
             element('legend', { text: 'Vorschläge einzeln übernehmen' }),
             element('p', { text: 'Nur markierte Werte werden übernommen. Werte können vor der Zuordnung korrigiert werden.' }),
             ...(fields.length ? fields : [emptyState('Keine übernehmbaren Kontakt- oder Eintrittsdaten erkannt.')]),
@@ -748,13 +748,13 @@
     }
 
     function renderMailAttachments(attachments, applicationId = null, reload = null) {
-        const card = element('section', { className: 'adrecruitment-card' }, [element('h3', { text: 'Bewerbungsunterlagen' })])
+        const card = element('section', { className: 'flzrecruitment-card' }, [element('h3', { text: 'Bewerbungsunterlagen' })])
         if (!attachments?.length) {
             card.append(emptyState('Keine PDF-Anhänge vorhanden.'))
             return card
         }
         for (const attachment of attachments) {
-            const review = element('article', { className: 'adrecruitment-document-review' }, [
+            const review = element('article', { className: 'flzrecruitment-document-review' }, [
                 element('h4', { text: `${attachment.originalName} · ${Math.ceil(attachment.sizeBytes / 1024)} KB · PDF` }),
             ])
             const openButton = button('PDF in Lightbox öffnen', 'button', 'primary')
@@ -782,10 +782,10 @@
     }
 
     function renderLegacyDocumentComments(comments) {
-        const section = element('section', { className: 'adrecruitment-document-comments' }, [
+        const section = element('section', { className: 'flzrecruitment-document-comments' }, [
             element('h5', { text: 'Bisherige Dokumentnotizen' }),
         ])
-        const list = element('ol', { className: 'adrecruitment-history' })
+        const list = element('ol', { className: 'flzrecruitment-history' })
         for (const comment of comments) {
             const location = comment.pageNumber ? `Seite ${comment.pageNumber} · ` : ''
             list.append(element('li', { text: `${location}${comment.body} · ${comment.actorUid} · ${comment.createdAt}` }))
@@ -803,14 +803,14 @@
     }
 
     function renderDocumentFieldLinks(links) {
-        const section = element('section', { className: 'adrecruitment-document-comments' }, [
+        const section = element('section', { className: 'flzrecruitment-document-comments' }, [
             element('h5', { text: 'Verknüpfte PDF-Fundstellen' }),
         ])
         if (!links.length) {
             section.append(emptyState('Noch keine PDF-Fundstelle mit Bewerbungsdaten verknüpft.'))
             return section
         }
-        const list = element('ol', { className: 'adrecruitment-field-link-list' })
+        const list = element('ol', { className: 'flzrecruitment-field-link-list' })
         for (const link of links) {
             const source = link.selectedText ? `„${link.selectedText}“ → ` : ''
             list.append(element('li', {
@@ -827,7 +827,7 @@
             element('p', { text: 'Markieren Sie Text oder einen Bereich. Alternativ können Seite und Quelltext vollständig per Tastatur eingetragen werden.' }),
         ])
         const selection = { pageNumber: 1, selectedText: '', rectangles: [] }
-        const summary = element('p', { className: 'adrecruitment-pdf-selection-summary', text: 'Noch keine Fundstelle ausgewählt.' })
+        const summary = element('p', { className: 'flzrecruitment-pdf-selection-summary', text: 'Noch keine Fundstelle ausgewählt.' })
         panel.append(summary, renderDocumentFieldLinks(attachment.fieldLinks || []))
 
         const canEditApplication = Boolean(state.capabilities.manage_documents && state.capabilities.edit_applications)
@@ -861,7 +861,7 @@
         const replaceField = field('Vorhandenen strukturierten Wert ausdrücklich ersetzen', replace)
         replaceField.hidden = true
         const contextStatus = element('p', { role: 'status' })
-        const form = element('form', { className: 'adrecruitment-form' }, [
+        const form = element('form', { className: 'flzrecruitment-form' }, [
             field('Zielfeld', target),
             field('PDF-Seite', page, 'Für eine rein tastaturbediente Erfassung kann die Seite manuell angegeben werden.'),
             field('Markierter Quelltext', sourceText, 'Bei einer grafischen Bereichsmarkierung darf dieses Feld leer bleiben.'),
@@ -969,18 +969,18 @@
             const userSearch = input('responsibilityUserSearch', 'search')
             userSearch.autocomplete = 'off'
             userSearch.placeholder = 'Name oder Benutzerkennung'
-            const searchButton = button('Suchen', 'button', 'adrecruitment-secondary')
+            const searchButton = button('Suchen', 'button', 'flzrecruitment-secondary')
             const searchResults = element('div', {
-                className: 'adrecruitment-responsibility-results',
+                className: 'flzrecruitment-responsibility-results',
                 role: 'list',
                 'aria-label': 'Gefundene verantwortliche Personen',
             })
             const selectedUsers = new Map()
             const selectedUserList = element('div', {
-                className: 'adrecruitment-responsibility-selection',
+                className: 'flzrecruitment-responsibility-selection',
                 'aria-live': 'polite',
             })
-            const bqRule = element('p', { className: 'adrecruitment-callout' })
+            const bqRule = element('p', { className: 'flzrecruitment-callout' })
 
             const selectedGroupIds = () => Array.from(groupSelect.selectedOptions, (option) => option.value)
             const renderSelectedUsers = () => {
@@ -990,7 +990,7 @@
                     return
                 }
                 for (const user of selectedUsers.values()) {
-                    const remove = button(`Entfernen: ${user.displayName}`, 'button', 'adrecruitment-chip')
+                    const remove = button(`Entfernen: ${user.displayName}`, 'button', 'flzrecruitment-chip')
                     remove.addEventListener('click', () => {
                         selectedUsers.delete(user.uid)
                         renderSelectedUsers()
@@ -1040,7 +1040,7 @@
                         return
                     }
                     for (const user of payload.users) {
-                        const add = button(`${user.displayName} (${user.uid})`, 'button', 'adrecruitment-secondary')
+                        const add = button(`${user.displayName} (${user.uid})`, 'button', 'flzrecruitment-secondary')
                         add.addEventListener('click', () => {
                             selectedUsers.set(user.uid, user)
                             renderSelectedUsers()
@@ -1057,12 +1057,12 @@
                 searchButton.click()
             })
 
-            const form = element('form', { className: 'adrecruitment-form adrecruitment-card' }, [
+            const form = element('form', { className: 'flzrecruitment-form flzrecruitment-card' }, [
                 field('Interne Bezeichnung', input('internalTitle', 'text', true)),
                 field('Öffentliche Bezeichnung', input('publicTitle')),
                 field('Berufsgruppe', profession),
                 bqRule,
-                field('Beteiligte Gruppen', groupSelect, 'Nur fachlich passende Gruppen der AD-Organisation werden angeboten.'),
+                field('Beteiligte Gruppen', groupSelect, 'Nur fachlich passende Gruppen der Filzmann-Organisation werden angeboten.'),
                 field('Verantwortliche Personen suchen', userSearch, 'Die Suche berücksichtigt ausschließlich die ausgewählten Gruppen.'),
                 searchButton,
                 searchResults,
@@ -1107,9 +1107,9 @@
         if (jobs.length === 0) {
             view.append(emptyState('Noch keine Stellen vorhanden.'))
         } else {
-            const list = element('div', { className: 'adrecruitment-grid' })
+            const list = element('div', { className: 'flzrecruitment-grid' })
             for (const job of jobs) {
-                const card = element('article', { className: 'adrecruitment-card' }, [
+                const card = element('article', { className: 'flzrecruitment-card' }, [
                     element('h3', { text: job.internalTitle }),
                     job.publicTitle ? element('p', { text: job.publicTitle }) : null,
                     element('p', { text: job.active ? 'Aktiv' : 'Deaktiviert' }),
@@ -1138,8 +1138,8 @@
             view.append(element('p', {
                 text: 'Im Regelbetrieb entstehen Bewerber*innen und Bewerbungen aus eingehenden E-Mails. Die manuelle Anlage bleibt für Ausnahmen und Empfehlungen verfügbar.',
             }))
-            const forms = element('div', { className: 'adrecruitment-actions' })
-            const personForm = element('form', { className: 'adrecruitment-form adrecruitment-card' }, [
+            const forms = element('div', { className: 'flzrecruitment-actions' })
+            const personForm = element('form', { className: 'flzrecruitment-form flzrecruitment-card' }, [
                 field('Vorname', input('givenName', 'text', true)),
                 field('Nachname', input('familyName', 'text', true)),
                 field('E-Mail', input('email', 'email')),
@@ -1171,7 +1171,7 @@
                 control.max = '80'
                 control.step = '0.01'
             }
-            const applicationForm = element('form', { className: 'adrecruitment-form adrecruitment-card' }, [
+            const applicationForm = element('form', { className: 'flzrecruitment-form flzrecruitment-card' }, [
                 field('Person', select('personId', personOptions, '', true)),
                 field('Stelle', select('jobId', jobOptions, '', true)),
                 field('Eingangskanal', select('source', [
@@ -1214,7 +1214,7 @@
     }
 
     function renderApplicationWorkbench() {
-        const workbench = element('section', { className: 'adrecruitment-workbench', 'aria-label': 'Bewerbungsarbeitsplatz' })
+        const workbench = element('section', { className: 'flzrecruitment-workbench', 'aria-label': 'Bewerbungsarbeitsplatz' })
         const result = element('div')
         const query = input('applicationQuery', 'search', false, state.applicationFilters.query)
         query.placeholder = 'Name, Stelle oder Zuständigkeit'
@@ -1259,7 +1259,7 @@
         const tableButton = button('Tabelle', 'button')
         const boardButton = button('Karten', 'button')
         const viewSwitch = element('div', {
-            className: 'adrecruitment-actions adrecruitment-view-switch',
+            className: 'flzrecruitment-actions flzrecruitment-view-switch',
             role: 'group',
             'aria-label': 'Darstellung der Bewerbungen',
         }, [tableButton, boardButton])
@@ -1274,7 +1274,7 @@
                 : state.applicationView === 'board'
                     ? renderApplicationBoard(applications)
                     : renderApplicationTable(applications))
-            bindPersistentHorizontalScroll(result.querySelector('.adrecruitment-board, .adrecruitment-table-wrap'))
+            bindPersistentHorizontalScroll(result.querySelector('.flzrecruitment-board, .flzrecruitment-table-wrap'))
         }
         query.addEventListener('input', () => {
             state.applicationFilters.query = query.value
@@ -1318,7 +1318,7 @@
             updatePressed()
             updateResult()
         })
-        const toolbar = element('div', { className: 'adrecruitment-workbench__toolbar' }, [
+        const toolbar = element('div', { className: 'flzrecruitment-workbench__toolbar' }, [
             field('Bewerbungen durchsuchen', query),
             field('Nach Stelle filtern', job),
             field('Nach Status filtern', applicationStatus),
@@ -1339,7 +1339,7 @@
     }
 
     function renderApplicationTable(applications) {
-        const tableWrap = element('div', { className: 'adrecruitment-table-wrap' })
+        const tableWrap = element('div', { className: 'flzrecruitment-table-wrap' })
         const table = element('table')
         table.append(element('thead', {}, element('tr', {}, [
             element('th', { text: 'Person' }),
@@ -1353,7 +1353,7 @@
         const body = element('tbody')
         for (const application of applications) {
             const { person, job } = applicationReferences(application)
-            const tableActions = element('div', { className: 'adrecruitment-table-actions' }, [applicationOpenButton(application.id)])
+            const tableActions = element('div', { className: 'flzrecruitment-table-actions' }, [applicationOpenButton(application.id)])
             const tableStatusMove = renderApplicationStatusMove(application)
             if (tableStatusMove) tableActions.append(tableStatusMove)
             const withdrawal = renderWithdrawalAction(application)
@@ -1384,13 +1384,13 @@
             value,
             label: `${statusLabel(value)}${requiresStatusOverride(application, value) ? ' · Ausnahme' : ''}`,
         })), '', true)
-        const move = button('Status verschieben', 'button', 'adrecruitment-secondary')
+        const move = button('Status verschieben', 'button', 'flzrecruitment-secondary')
         move.addEventListener('click', () => {
             const override = requiresStatusOverride(application, target.value)
             if (override && !confirm('Dieser Statuswechsel ist im Regelprozess nicht vorgesehen. Als Personalreferentin trotzdem durchführen?')) return
             moveApplication(application, target.value, override)
         })
-        return element('div', { className: 'adrecruitment-card-move' }, [
+        return element('div', { className: 'flzrecruitment-card-move' }, [
             field('Nächster Status', target),
             move,
         ])
@@ -1398,7 +1398,7 @@
 
     function renderWithdrawalAction(application) {
         if (!state.capabilities.edit_applications || !application.allowedStatuses?.includes('withdrawn')) return null
-        const withdraw = button('Bewerbung zurückziehen', 'button', 'adrecruitment-danger')
+        const withdraw = button('Bewerbung zurückziehen', 'button', 'flzrecruitment-danger')
         withdraw.addEventListener('click', () => {
             if (!confirm('Bewerbung wirklich zurückziehen?')) return
             moveApplication(application, 'withdrawn')
@@ -1407,14 +1407,14 @@
     }
 
     function renderApplicationBoard(applications) {
-        const board = element('div', { className: 'adrecruitment-board' })
+        const board = element('div', { className: 'flzrecruitment-board' })
         const groups = groupApplicationsByStatus(applications, state.data.applicationStatuses || [])
         for (const [statusId, items] of Object.entries(groups)) {
-            const headingId = `adrecruitment-board-${statusId}`
-            const cards = element('div', { className: 'adrecruitment-board__cards' })
+            const headingId = `flzrecruitment-board-${statusId}`
+            const cards = element('div', { className: 'flzrecruitment-board__cards' })
             for (const application of items) {
                 const { person, job } = applicationReferences(application)
-                const card = element('article', { className: 'adrecruitment-card adrecruitment-application-card' }, [
+                const card = element('article', { className: 'flzrecruitment-card flzrecruitment-application-card' }, [
                     element('h4', { text: person ? `${person.givenName} ${person.familyName}` : 'Unbekannt' }),
                     element('p', { text: job?.internalTitle || 'Unbekannte Stelle' }),
                     element('p', { text: `Eingang: ${application.receivedOn}` }),
@@ -1437,9 +1437,9 @@
                 }
                 cards.append(card)
             }
-            if (items.length === 0) cards.append(element('p', { className: 'adrecruitment-board__empty', text: 'Keine Bewerbung' }))
+            if (items.length === 0) cards.append(element('p', { className: 'flzrecruitment-board__empty', text: 'Keine Bewerbung' }))
             const column = element('section', {
-                className: 'adrecruitment-board__column',
+                className: 'flzrecruitment-board__column',
                 'aria-labelledby': headingId,
                 dataset: { statusId },
             }, [
@@ -1449,12 +1449,12 @@
             if (state.capabilities.edit_applications) {
                 column.addEventListener('dragover', (event) => {
                     event.preventDefault()
-                    column.classList.add('adrecruitment-board__column--drop')
+                    column.classList.add('flzrecruitment-board__column--drop')
                 })
-                column.addEventListener('dragleave', () => column.classList.remove('adrecruitment-board__column--drop'))
+                column.addEventListener('dragleave', () => column.classList.remove('flzrecruitment-board__column--drop'))
                 column.addEventListener('drop', (event) => {
                     event.preventDefault()
-                    column.classList.remove('adrecruitment-board__column--drop')
+                    column.classList.remove('flzrecruitment-board__column--drop')
                     const applicationId = Number(event.dataTransfer?.getData('text/plain'))
                     const application = state.data.applications.find((item) => item.id === applicationId)
                     moveApplication(application, statusId)
@@ -1518,13 +1518,13 @@
     }
 
     function renderApplicationDetail(detail) {
-        const view = element('section', { className: 'adrecruitment-panel' })
-        const back = button('← Zurück zu Bewerbungen', 'button', 'adrecruitment-secondary')
+        const view = element('section', { className: 'flzrecruitment-panel' })
+        const back = button('← Zurück zu Bewerbungen', 'button', 'flzrecruitment-secondary')
         back.addEventListener('click', () => showTab('applications'))
         view.append(back, element('h2', {
             text: `${detail.person.givenName} ${detail.person.familyName} · ${detail.job.internalTitle}`,
         }))
-        view.append(element('dl', { className: 'adrecruitment-facts' }, [
+        view.append(element('dl', { className: 'flzrecruitment-facts' }, [
             element('div', {}, [element('dt', { text: 'Status' }), element('dd', { text: statusLabel(detail.application.status) })]),
             element('div', {}, [element('dt', { text: 'Eingang' }), element('dd', { text: detail.application.receivedOn })]),
             element('div', {}, [element('dt', { text: 'Kanal' }), element('dd', { text: sourceLabel(detail.application.source) })]),
@@ -1560,7 +1560,7 @@
                 areaField.hidden = statusSelect.value !== 'approved_for_hire'
                 areaSelect.required = !areaField.hidden
             })
-            const statusForm = element('form', { className: 'adrecruitment-inline-form adrecruitment-card' }, [
+            const statusForm = element('form', { className: 'flzrecruitment-inline-form flzrecruitment-card' }, [
                 field('Neuer Status', statusSelect),
                 areaField,
                 button('Status ändern'),
@@ -1582,17 +1582,17 @@
 
         if (detail.hiringData) view.append(renderHiringData(detail))
 
-        const mailCard = element('section', { className: 'adrecruitment-card' }, [
+        const mailCard = element('section', { className: 'flzrecruitment-card' }, [
             element('h3', { text: 'Eingegangene Bewerbungs-Mails' }),
         ])
         if (!detail.inboxMessages.length) {
             mailCard.append(emptyState('Dieser Bewerbung ist noch keine Eingangsnachricht zugeordnet.'))
         } else {
             for (const message of detail.inboxMessages) {
-                mailCard.append(element('article', { className: 'adrecruitment-question-editor' }, [
+                mailCard.append(element('article', { className: 'flzrecruitment-question-editor' }, [
                     element('h4', { text: message.subject || 'Ohne Betreff' }),
                     element('p', {}, [contactNode(message.senderAddress, 'email'), element('span', { text: ` · ${message.receivedAt}` })]),
-                    element('pre', { className: 'adrecruitment-mail-body', text: message.bodyText }),
+                    element('pre', { className: 'flzrecruitment-mail-body', text: message.bodyText }),
                     renderMailAttachments(message.attachments, detail.application.id, () => openApplication(detail.application.id)),
                 ]))
             }
@@ -1608,7 +1608,7 @@
         if (state.capabilities.manage_first_guide_access
             && ['approved_for_hire', 'hired'].includes(detail.application.status)) {
             const enabled = detail.application.firstGuideAccess === true
-            const guideCard = element('section', { className: 'adrecruitment-card' }, [
+            const guideCard = element('section', { className: 'flzrecruitment-card' }, [
                 element('h3', { text: 'Erstbegleitung' }),
                 element('p', { text: enabled
                     ? 'Der lesende Aktenzugriff für passende Erstbegleitungen ist aktiv.'
@@ -1625,7 +1625,7 @@
         }
 
         if (state.capabilities.interview && state.data.templates.some((template) => template.active)) {
-            const interviewForm = element('form', { className: 'adrecruitment-inline-form adrecruitment-card' }, [
+            const interviewForm = element('form', { className: 'flzrecruitment-inline-form flzrecruitment-card' }, [
                 field('Interviewvorlage', select('templateId', state.data.templates
                     .filter((template) => template.active)
                     .map((template) => ({ value: template.id, label: `${template.name} (Revision ${template.revision})` })))),
@@ -1656,7 +1656,7 @@
         if (detail.statusHistory.length === 0) {
             view.append(emptyState('Noch keine Statusänderung protokolliert.'))
         } else {
-            const list = element('ol', { className: 'adrecruitment-history' })
+            const list = element('ol', { className: 'flzrecruitment-history' })
             for (const item of detail.statusHistory) {
                 list.append(element('li', {
                     text: `${statusLabel(item.fromStatus)} → ${statusLabel(item.toStatus)} · ${item.changedAt} · ${item.actorUid}`,
@@ -1668,18 +1668,18 @@
     }
 
     function renderInterview(interview, applicationId) {
-        const article = element('article', { className: 'adrecruitment-card adrecruitment-interview' }, [
+        const article = element('article', { className: 'flzrecruitment-card flzrecruitment-interview' }, [
             element('h4', { text: `${interview.snapshot.name} · Revision ${interview.templateRevision}` }),
             element('p', { text: `Status: ${statusLabel(interview.status)}` }),
         ])
-        const form = element('form', { className: 'adrecruitment-form' })
+        const form = element('form', { className: 'flzrecruitment-form' })
         for (const question of interview.snapshot.questions || []) {
             if (!question.active) continue
             form.append(renderAnswer(question, interview.answers[String(question.id)], interview.status === 'completed'))
         }
         if (interview.status !== 'completed' && state.capabilities.interview) {
-            const actions = element('div', { className: 'adrecruitment-actions' }, [
-                button('Entwurf speichern', 'button', 'adrecruitment-secondary'),
+            const actions = element('div', { className: 'flzrecruitment-actions' }, [
+                button('Entwurf speichern', 'button', 'flzrecruitment-secondary'),
                 button('Interview abschließen', 'submit'),
             ])
             actions.firstElementChild.addEventListener('click', () => {
@@ -1706,7 +1706,7 @@
     }
 
     function renderAnswer(question, answer, readonly) {
-        const wrapper = element('fieldset', { className: 'adrecruitment-question' })
+        const wrapper = element('fieldset', { className: 'flzrecruitment-question' })
         const legend = element('legend', { text: question.prompt + (question.required ? ' *' : '') })
         wrapper.append(legend)
         if (question.hint) wrapper.append(element('small', { text: question.hint }))
@@ -1740,9 +1740,9 @@
         wrapper.append(control)
 
         if (!readonly && ['text', 'textarea'].includes(question.type) && question.bubbles?.length) {
-            const bubbles = element('div', { className: 'adrecruitment-bubbles', role: 'group', 'aria-label': 'Antwortbausteine' })
+            const bubbles = element('div', { className: 'flzrecruitment-bubbles', role: 'group', 'aria-label': 'Antwortbausteine' })
             for (const bubble of question.bubbles.filter((item) => item.active)) {
-                const bubbleButton = button(bubble.label, 'button', 'adrecruitment-bubble')
+                const bubbleButton = button(bubble.label, 'button', 'flzrecruitment-bubble')
                 bubbleButton.addEventListener('click', () => {
                     control.value = appendBubbleText(control.value, bubble.insertText)
                     control.focus()
@@ -1765,7 +1765,7 @@
     }
 
     function renderOutgoingMailDrafts(detail) {
-        const card = element('section', { className: 'adrecruitment-card' }, [
+        const card = element('section', { className: 'flzrecruitment-card' }, [
             element('h3', { text: 'Ausgehende E-Mails' }),
             element('p', { text: 'Die Empfängeradresse stammt zunächst aus dem Personendatensatz. Eine Korrektur vor der Freigabe wird getrennt vom ursprünglichen Wert dokumentiert.' }),
         ])
@@ -1775,16 +1775,16 @@
             return card
         }
         for (const draft of drafts) {
-            const article = element('article', { className: 'adrecruitment-question-editor' }, [
+            const article = element('article', { className: 'flzrecruitment-question-editor' }, [
                 element('h4', { text: `${statusLabel(draft.fromStatus)} → ${statusLabel(draft.toStatus)}` }),
                 element('p', { text: `Ursprüngliche Adresse: ${draft.originalRecipient} · Zustand: ${draft.status}` }),
             ])
-            if (draft.testMode) article.append(element('p', { className: 'adrecruitment-warning', text: `Testmodus: tatsächliche Zustellung an ${draft.deliveryRecipient}` }))
+            if (draft.testMode) article.append(element('p', { className: 'flzrecruitment-warning', text: `Testmodus: tatsächliche Zustellung an ${draft.deliveryRecipient}` }))
             if (draft.status !== 'draft') {
                 article.append(element('p', { text: `Freigegebene Zieladresse: ${draft.intendedRecipient || draft.originalRecipient}` }))
                 article.append(element('p', { text: draft.scheduledAt ? `Geplant für ${draft.scheduledAt}` : 'Nicht zum Versand geplant.' }))
                 article.append(element('strong', { text: draft.subject }), element('div', {
-                    className: 'adrecruitment-mail-body', innerHTML: mailBodyHtml(draft.body, draft.bodyFormat),
+                    className: 'flzrecruitment-mail-body', innerHTML: mailBodyHtml(draft.body, draft.bodyFormat),
                 }))
                 card.append(article)
                 continue
@@ -1792,16 +1792,16 @@
             const subject = input('subject', 'text', true, draft.subject)
             const recipient = input('recipient', 'email', true, draft.originalRecipient)
             if (state.mailConfiguration?.settings?.testMode) {
-                article.append(element('p', { className: 'adrecruitment-warning', text: `Aktiver Testmodus: Nach Freigabe erfolgt die tatsächliche Zustellung an ${state.mailConfiguration.settings.testRecipient}.` }))
+                article.append(element('p', { className: 'flzrecruitment-warning', text: `Aktiver Testmodus: Nach Freigabe erfolgt die tatsächliche Zustellung an ${state.mailConfiguration.settings.testRecipient}.` }))
             }
             const body = mailEditor(draft.body, draft.bodyFormat)
-            const form = element('form', { className: 'adrecruitment-form' }, [
+            const form = element('form', { className: 'flzrecruitment-form' }, [
                 field('Empfängeradresse', recipient), field('Betreff', subject), richTextField('Nachricht', body),
             ])
             const blocks = (state.mailConfiguration?.textBlocks || []).filter((block) => block.active)
             if (blocks.length) {
                 const blockSelect = select('textBlock', [{ value: '', label: 'Textblock wählen' }].concat(blocks.map((block) => ({ value: block.id, label: block.label }))))
-                const insertBlock = button('Textblock an Cursorposition einfügen', 'button', 'adrecruitment-secondary')
+                const insertBlock = button('Textblock an Cursorposition einfügen', 'button', 'flzrecruitment-secondary')
                 insertBlock.addEventListener('click', () => {
                     const block = blocks.find((item) => String(item.id) === String(blockSelect.value))
                     if (!block) return
@@ -1811,8 +1811,8 @@
             }
             const scheduled = input('scheduledAt', 'datetime-local')
             form.append(field('Freier Versandzeitpunkt', scheduled))
-            const actions = element('div', { className: 'adrecruitment-actions' })
-            const save = button('Entwurf speichern', 'button', 'adrecruitment-secondary')
+            const actions = element('div', { className: 'flzrecruitment-actions' })
+            const save = button('Entwurf speichern', 'button', 'flzrecruitment-secondary')
             save.addEventListener('click', () => run(
                 () => api.saveMailDraft(draft.id, { subject: subject.value, body: body.value(), bodyFormat: 'html', version: draft.version }),
                 'Mailentwurf wurde gespeichert.', () => openApplication(detail.application.id),
@@ -1828,7 +1828,7 @@
                 })
                 return control
             }
-            const cancel = button('Entwurf abbrechen', 'button', 'adrecruitment-secondary')
+            const cancel = button('Entwurf abbrechen', 'button', 'flzrecruitment-secondary')
             cancel.addEventListener('click', () => run(
                 () => api.cancelMailDraft(draft.id, draft.version), 'Mailentwurf wurde abgebrochen.', () => openApplication(detail.application.id),
             ))
@@ -1844,7 +1844,7 @@
             : panel('mail-templates', 'Mailvorlagen und Versandregeln')
         const configuration = state.mailConfiguration || { templates: [], rules: [], textBlocks: [], settings: {} }
         view.append(element('p', {
-            className: 'adrecruitment-callout',
+            className: 'flzrecruitment-callout',
             text: `${configuration.rules.length} erlaubte Übergänge sind mit bearbeitbaren Vorlagen vorbereitet. Diese Regel ist zunächst ausgeschaltet. Aktivieren Sie nur die gewünschten Entwürfe.`,
         }))
         const timingOptions = [
@@ -1857,7 +1857,7 @@
             const subject = input('subject', 'text', true, template.subject)
             const body = mailEditor(template.body, template.bodyFormat)
             const active = input('active', 'checkbox'); active.checked = template.active
-            const form = element('form', { className: 'adrecruitment-form adrecruitment-mail-template-editor' }, [
+            const form = element('form', { className: 'flzrecruitment-form flzrecruitment-mail-template-editor' }, [
                 field('Vorlagenname', name), field('Betreff', subject),
                 richTextField('Nachricht', body, 'Formatierung und Platzhalter können bis zum Versand erneut geändert werden.'),
                 element('p', { text: 'Platzhalter: {{given_name}}, {{family_name}}, {{job_title}}' }),
@@ -1876,7 +1876,7 @@
         for (const fromStatus of state.data.applicationStatuses) {
             const rules = configuration.rules.filter((rule) => rule.fromStatus === fromStatus)
             if (!rules.length) continue
-            const section = element('section', { className: 'adrecruitment-mail-transition-group' }, [
+            const section = element('section', { className: 'flzrecruitment-mail-transition-group' }, [
                 element('h2', { text: statusLabel(fromStatus) }),
             ])
             for (const rule of rules) {
@@ -1885,7 +1885,7 @@
                 const enabled = input(`enabled-${rule.id}`, 'checkbox'); enabled.checked = rule.enabled
                 const timing = select(`timing-${rule.id}`, timingOptions, rule.defaultTiming)
                 const templateChoice = select(`template-${rule.id}`, configuration.templates.filter((item) => item.active || item.id === rule.templateId).map((item) => ({ value: item.id, label: item.name })), rule.templateId, true)
-                const settings = element('form', { className: 'adrecruitment-mail-transition-settings' }, [
+                const settings = element('form', { className: 'flzrecruitment-mail-transition-settings' }, [
                     field('Entwurf erzeugen', enabled), field('Mailvorlage', templateChoice), field('Standardplanung', timing), button('Einstellung speichern'),
                 ])
                 settings.addEventListener('submit', (event) => {
@@ -1895,18 +1895,18 @@
                         defaultTiming: timing.value, version: rule.version,
                     }), 'Statusmail-Regel wurde gespeichert.')
                 })
-                const article = element('article', { className: 'adrecruitment-card adrecruitment-mail-transition' }, [
-                    element('div', { className: 'adrecruitment-mail-transition__heading' }, [
+                const article = element('article', { className: 'flzrecruitment-card flzrecruitment-mail-transition' }, [
+                    element('div', { className: 'flzrecruitment-mail-transition__heading' }, [
                         element('h3', { text: `${statusLabel(fromStatus)} → ${statusLabel(toStatus)}` }),
                         element('span', {
-                            className: rule.enabled ? 'adrecruitment-state adrecruitment-state--active' : 'adrecruitment-state',
+                            className: rule.enabled ? 'flzrecruitment-state flzrecruitment-state--active' : 'flzrecruitment-state',
                             text: rule.enabled ? 'Aktiv' : 'Aus',
                         }),
                     ]),
                     settings,
                 ])
                 const details = element('details', {}, [element('summary', { text: 'Vorlage bearbeiten' })])
-                details.append(template ? renderTemplateEditor(template) : element('p', { className: 'adrecruitment-warning', text: 'Die zugeordnete Vorlage fehlt.' }))
+                details.append(template ? renderTemplateEditor(template) : element('p', { className: 'flzrecruitment-warning', text: 'Die zugeordnete Vorlage fehlt.' }))
                 article.append(details)
                 section.append(article)
             }
@@ -1916,14 +1916,14 @@
         const assignedTemplateIds = new Set(configuration.rules.map((rule) => rule.templateId))
         const unassignedTemplates = configuration.templates.filter((template) => !assignedTemplateIds.has(template.id))
         if (unassignedTemplates.length) {
-            const additional = element('details', { className: 'adrecruitment-card' }, [
+            const additional = element('details', { className: 'flzrecruitment-card' }, [
                 element('summary', { text: 'Bisher nicht zugeordnete Vorlagen' }),
                 element('p', { text: 'Diese älteren Vorlagen bleiben bearbeitbar, lösen aber aktuell bei keinem Statusübergang einen Entwurf aus.' }),
                 ...unassignedTemplates.map(renderTemplateEditor),
             ])
             view.append(additional)
         }
-        const blockForm = element('form', { className: 'adrecruitment-form adrecruitment-card' }, [
+        const blockForm = element('form', { className: 'flzrecruitment-form flzrecruitment-card' }, [
             element('h3', { text: 'Textblock' }), field('Bezeichnung', input('label', 'text', true)),
             field('Einfügetext', element('textarea', { name: 'insertText', rows: 4, required: true })), button('Textblock anlegen'),
         ])
@@ -1939,7 +1939,7 @@
             ? settingsPanel('templates', 'Interviewfragen und Vorlagen')
             : panel('templates', 'Interviewvorlagen')
         if (state.capabilities.manage_catalog) {
-            const form = element('form', { className: 'adrecruitment-form adrecruitment-card' }, [
+            const form = element('form', { className: 'flzrecruitment-form flzrecruitment-card' }, [
                 field('Name', input('name', 'text', true)),
                 field('Interviewtyp', select('type', [
                     { value: 'questionnaire', label: 'Kurzfragebogen' },
@@ -1964,11 +1964,11 @@
         if (state.data.templates.length === 0) {
             view.append(emptyState('Noch keine Interviewvorlagen vorhanden.'))
         } else {
-            const list = element('div', { className: 'adrecruitment-grid' })
+            const list = element('div', { className: 'flzrecruitment-grid' })
             for (const template of state.data.templates) {
                 const open = button('Vorlage bearbeiten', 'button')
                 open.addEventListener('click', () => openTemplate(template.id))
-                list.append(element('article', { className: 'adrecruitment-card' }, [
+                list.append(element('article', { className: 'flzrecruitment-card' }, [
                     element('h3', { text: template.name }),
                     element('p', { text: `${template.type} · Revision ${template.revision}` }),
                     element('p', { text: template.active ? 'Aktiv' : 'Deaktiviert' }),
@@ -1993,7 +1993,7 @@
 
     function renderTemplateDetail(template) {
         const view = panel('settings', `${template.name} · Revision ${template.revision}`)
-        const back = button('← Zurück zu Vorlagen', 'button', 'adrecruitment-secondary')
+        const back = button('← Zurück zu Vorlagen', 'button', 'flzrecruitment-secondary')
         back.addEventListener('click', () => showSettingsSection('templates', true))
         view.prepend(back)
 
@@ -2021,7 +2021,7 @@
     }
 
     function questionForm(question = null) {
-        const form = element('form', { className: 'adrecruitment-form adrecruitment-card' }, [
+        const form = element('form', { className: 'flzrecruitment-form flzrecruitment-card' }, [
             field('Fragetext', input('prompt', 'text', true, question?.prompt || '')),
             field('Hinweis', input('hint', 'text', false, question?.hint || '')),
             field('Fragetyp', select('type', [
@@ -2039,7 +2039,7 @@
                 { value: 'external', label: 'Extern' },
             ], question?.visibility || 'internal')),
         ])
-        const checks = element('div', { className: 'adrecruitment-checks' })
+        const checks = element('div', { className: 'flzrecruitment-checks' })
         const required = input('required', 'checkbox')
         required.checked = question?.required || false
         checks.append(field('Pflichtfrage', required))
@@ -2067,7 +2067,7 @@
     }
 
     function renderQuestionEditor(question, templateId) {
-        const article = element('article', { className: 'adrecruitment-question-editor' })
+        const article = element('article', { className: 'flzrecruitment-question-editor' })
         const form = questionForm(question)
         form.addEventListener('submit', (event) => {
             event.preventDefault()
@@ -2079,7 +2079,7 @@
         })
         article.append(form)
 
-        const bubbles = element('div', { className: 'adrecruitment-card' }, [
+        const bubbles = element('div', { className: 'flzrecruitment-card' }, [
             element('h4', { text: 'Antwort-Bubbles' }),
         ])
         if (!['text', 'textarea'].includes(question.type)) {
@@ -2092,7 +2092,7 @@
                 }
                 bubbles.append(list)
             }
-            const bubbleForm = element('form', { className: 'adrecruitment-form' }, [
+            const bubbleForm = element('form', { className: 'flzrecruitment-form' }, [
                 field('Beschriftung', input('label', 'text', true)),
                 field('Einfügetext', element('textarea', { name: 'insertText', rows: 3, required: true })),
                 field('Reihenfolge', input('sortOrder', 'number', true, 10)),
@@ -2116,7 +2116,7 @@
     }
 
     function renderHiringData(detail) {
-        const card = element('section', { className: 'adrecruitment-card' }, [
+        const card = element('section', { className: 'flzrecruitment-card' }, [
             element('h3', { text: 'Vertragsbereich' }),
             element('p', { text: 'Bank-, Steuer-, Sozialversicherungs- und Vertragsangaben werden ausschließlich hier für die Vertragsvorbereitung verarbeitet.' }),
             element('p', { text: 'Tarifgrundlage: Haustarifvertrag ambulante dienste e.V., bereitgestellte Fassung mit Änderungen 2024. Beträge werden nicht automatisch fortgeschrieben.' }),
@@ -2125,7 +2125,7 @@
         const facts = hiringFacts(stored.data)
         card.append(facts)
         if (!state.capabilities.edit_hiring_data) return card
-        const edit = button('Vertragsdaten bearbeiten', 'button', 'adrecruitment-secondary')
+        const edit = button('Vertragsdaten bearbeiten', 'button', 'flzrecruitment-secondary')
         card.append(edit)
         edit.addEventListener('click', () => {
             edit.remove()
@@ -2136,8 +2136,8 @@
     }
 
     function hiringEditor(detail, stored) {
-        const form = element('form', { className: 'adrecruitment-form adrecruitment-sensitive-form adrecruitment-compact-form' })
-        const fields = element('div', { className: 'adrecruitment-grid' })
+        const form = element('form', { className: 'flzrecruitment-form flzrecruitment-sensitive-form flzrecruitment-compact-form' })
+        const fields = element('div', { className: 'flzrecruitment-grid' })
         for (const [name, label, type = 'text'] of hiringFields) {
             const availableChoices = name === 'workingTimeModel' && detail.job.professionCategory !== 'assistance'
                 ? hiringChoices[name]?.filter((item) => item.value !== 'kapovaz')
@@ -2163,7 +2163,7 @@
     }
 
     function hiringFacts(data) {
-        const facts = element('dl', { className: 'adrecruitment-facts' })
+        const facts = element('dl', { className: 'flzrecruitment-facts' })
         for (const [name, label] of [...hiringFields, ...payrollOnlyFields, ...jobDerivedHiringFields]) {
             const value = data[name]
             if (value === '' || value === null || value === undefined) continue
@@ -2188,7 +2188,7 @@
             view.append(emptyState('Aktuell liegen keine freigegebenen Einstellungsdaten vor.'))
         } else {
             for (const item of state.hiringData) {
-                const card = element('article', { className: 'adrecruitment-card adrecruitment-hiring-record' }, [
+                const card = element('article', { className: 'flzrecruitment-card flzrecruitment-hiring-record' }, [
                     element('h3', { text: `${item.givenName} ${item.familyName}` }),
                     element('p', { text: `${item.position || 'Ohne Stellenbezeichnung'} · ${statusLabel(item.status)}` }),
                     element('p', {}, contactLine(item.email, item.phone)),
@@ -2196,13 +2196,13 @@
                 const payrollFacts = hiringFacts(item.hiringData)
                 card.append(payrollFacts)
                 if (state.capabilities.edit_payroll_data) {
-                    const edit = button('LoBu-Daten bearbeiten', 'button', 'adrecruitment-secondary')
+                    const edit = button('LoBu-Daten bearbeiten', 'button', 'flzrecruitment-secondary')
                     card.append(edit)
                     edit.addEventListener('click', () => {
                         edit.remove()
                         payrollFacts.remove()
-                        const form = element('form', { className: 'adrecruitment-form adrecruitment-sensitive-form adrecruitment-compact-form' })
-                        const fields = element('div', { className: 'adrecruitment-grid' })
+                        const form = element('form', { className: 'flzrecruitment-form flzrecruitment-sensitive-form flzrecruitment-compact-form' })
+                        const fields = element('div', { className: 'flzrecruitment-grid' })
                         for (const [name, label, type = 'text'] of payrollOnlyFields) {
                             fields.append(field(label, hiringControl(name, type, item.hiringData[name], hiringChoices[name])))
                         }
@@ -2225,7 +2225,7 @@
         view.append(element('p', {
             text: 'BQ-Durchläufe gelten ausschließlich für Assistenz-Stellen. Diese lokale Verwaltung bleibt eine Übergangslösung, bis die eigenständige BQ-Planer-App angebunden ist; Bewertungen verwalten vorerst nur Personalreferent*innen.',
         }))
-        const form = element('form', { className: 'adrecruitment-inline-form adrecruitment-card' }, [
+        const form = element('form', { className: 'flzrecruitment-inline-form flzrecruitment-card' }, [
             field('Beginn', input('startsOn', 'date', true)),
             field('Ende', input('endsOn', 'date', true)),
             button('BQ-Durchlauf anlegen'),
@@ -2242,9 +2242,9 @@
         if (!state.basisQualificationRuns.length) {
             view.append(emptyState('Noch kein BQ-Durchlauf angelegt.'))
         } else {
-            const list = element('div', { className: 'adrecruitment-grid' })
+            const list = element('div', { className: 'flzrecruitment-grid' })
             for (const run of state.basisQualificationRuns) {
-                list.append(element('article', { className: 'adrecruitment-card' }, [
+                list.append(element('article', { className: 'flzrecruitment-card' }, [
                     element('h3', { text: run.label }),
                     element('p', { text: `${run.startsOn} bis ${run.endsOn}` }),
                 ]))
@@ -2255,12 +2255,12 @@
     }
 
     function renderApplicationBasisQualification(detail) {
-        const card = element('section', { className: 'adrecruitment-card' }, [
+        const card = element('section', { className: 'flzrecruitment-card' }, [
             element('h3', { text: 'Basisqualifikation' }),
         ])
         const assignments = detail.basisQualifications || []
         if (detail.application.status === 'decision_pending' && state.basisQualificationRuns.length) {
-            const form = element('form', { className: 'adrecruitment-inline-form' }, [
+            const form = element('form', { className: 'flzrecruitment-inline-form' }, [
                 field('BQ-Durchlauf', select('runId', state.basisQualificationRuns.map((run) => ({
                     value: run.id,
                     label: `${run.label} · ${run.startsOn} bis ${run.endsOn}`,
@@ -2294,12 +2294,12 @@
             no_show: 'Nicht teilgenommen',
         }
         for (const assignment of assignments) {
-            const article = element('article', { className: 'adrecruitment-question-editor' }, [
+            const article = element('article', { className: 'flzrecruitment-question-editor' }, [
                 element('h4', { text: `${assignment.label} · ${resultLabels[assignment.result] || assignment.result}` }),
                 element('p', { text: `${assignment.startsOn} bis ${assignment.endsOn}` }),
             ])
             if (assignment.evaluationNote) article.append(element('p', { text: assignment.evaluationNote }))
-            const resultForm = element('form', { className: 'adrecruitment-form' }, [
+            const resultForm = element('form', { className: 'flzrecruitment-form' }, [
                 field('Einfaches Ergebnis', select('result', [
                     { value: 'suitable', label: 'Geeignet' },
                     { value: 'not_suitable', label: 'Nicht geeignet' },
@@ -2344,7 +2344,7 @@
         }))
 
         if (settings.representatives.length) {
-            const list = element('div', { className: 'adrecruitment-grid' })
+            const list = element('div', { className: 'flzrecruitment-grid' })
             for (const representative of settings.representatives) {
                 const scope = representative.all
                     ? 'Alle Bewerbungen'
@@ -2352,7 +2352,7 @@
                         representative.areaKeys.length ? `Bereiche: ${representative.areaKeys.join(', ')}` : '',
                         representative.applicationIds.length ? `Bewerbungen: ${representative.applicationIds.join(', ')}` : '',
                     ].filter(Boolean).join(' · ')
-                const remove = button('Vertretung entfernen', 'button', 'adrecruitment-secondary')
+                const remove = button('Vertretung entfernen', 'button', 'flzrecruitment-secondary')
                 remove.addEventListener('click', () => run(
                     () => api.saveRepresentatives(
                         settings.representatives.filter((item) => item.uid !== representative.uid),
@@ -2360,7 +2360,7 @@
                     ),
                     'Vertretung wurde entfernt.',
                 ))
-                list.append(element('article', { className: 'adrecruitment-card' }, [
+                list.append(element('article', { className: 'flzrecruitment-card' }, [
                     element('h3', { text: representative.uid }),
                     element('p', { text: representative.capabilities.map((capability) => capabilityLabels[capability] || capability).join(', ') }),
                     element('p', { text: scope }),
@@ -2372,11 +2372,11 @@
             view.append(emptyState('Noch keine Vertretungskraft konfiguriert.'))
         }
 
-        const form = element('form', { className: 'adrecruitment-form adrecruitment-card' }, [
+        const form = element('form', { className: 'flzrecruitment-form flzrecruitment-card' }, [
             element('h3', { text: 'Vertretungskraft hinzufügen' }),
             field('Nextcloud-Benutzerkennung', input('uid', 'text', true)),
         ])
-        const capabilityFieldset = element('fieldset', { className: 'adrecruitment-question' }, [
+        const capabilityFieldset = element('fieldset', { className: 'flzrecruitment-question' }, [
             element('legend', { text: 'Fähigkeiten' }),
         ])
         for (const capability of state.delegatableCapabilities) {
@@ -2434,7 +2434,7 @@
             showTab(state.activeTab)
             setReady()
         } catch (error) {
-            content.replaceChildren(emptyState('AD Recruitment konnte nicht geladen werden.'))
+            content.replaceChildren(emptyState('Filzmann Recruitment konnte nicht geladen werden.'))
             showError(error)
         }
     }

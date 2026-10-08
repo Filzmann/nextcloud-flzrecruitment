@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace OCA\Recruitment\Service;
+namespace OCA\FlzRecruitment\Service;
 
-use OCA\Recruitment\Repository\RecruitmentRepository;
+use OCA\FlzRecruitment\Repository\RecruitmentRepository;
 
 /**
  * Orchestriert die API-Anwendungsfälle zwischen Fachservices und dem app-eigenen Repository.

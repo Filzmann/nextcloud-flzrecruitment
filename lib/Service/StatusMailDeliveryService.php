@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace OCA\Recruitment\Service;
+namespace OCA\FlzRecruitment\Service;
 
 use DateTimeImmutable;
 use DateTimeZone;
-use OCA\Recruitment\Contract\OutboundMailTransport;
-use OCA\Recruitment\Contract\StatusMailOutboxStore;
+use OCA\FlzRecruitment\Contract\OutboundMailTransport;
+use OCA\FlzRecruitment\Contract\StatusMailOutboxStore;
 use Psr\Log\LoggerInterface;
 
 final class StatusMailDeliveryService {
@@ -30,7 +30,7 @@ final class StatusMailDeliveryService {
             $attempts = max(1, (int)$job['attempts']);
             $minutes = min(1440, 2 ** min(10, $attempts));
             $this->store->markMailJobFailed((int)$job['id'], (int)$job['draftId'], $error::class, $now->modify("+{$minutes} minutes"));
-            $this->logger->error('AD-Recruitment-Mailversand fehlgeschlagen.', [
+            $this->logger->error('Filzmann-Recruitment-Mailversand fehlgeschlagen.', [
                 'exceptionClass' => $error::class, 'outboxJobId' => (int)$job['id'], 'attempt' => $attempts,
             ]);
         }

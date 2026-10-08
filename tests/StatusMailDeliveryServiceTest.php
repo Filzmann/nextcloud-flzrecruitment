@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Psr\Log { interface LoggerInterface { public function error(string $message, array $context = []): void; } }
 
 namespace {
-    use OCA\Recruitment\Contract\OutboundMailTransport;
-    use OCA\Recruitment\Contract\StatusMailOutboxStore;
-    use OCA\Recruitment\Service\StatusMailDeliveryService;
-    use OCA\Recruitment\Service\StatusMailBodyService;
+    use OCA\FlzRecruitment\Contract\OutboundMailTransport;
+    use OCA\FlzRecruitment\Contract\StatusMailOutboxStore;
+    use OCA\FlzRecruitment\Service\StatusMailDeliveryService;
+    use OCA\FlzRecruitment\Service\StatusMailBodyService;
     use Psr\Log\LoggerInterface;
     use RecruitmentTests\TestRunner;
 

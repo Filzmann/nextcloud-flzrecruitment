@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Recruitment\Contract;
+namespace OCA\FlzRecruitment\Contract;
 
 interface MailInboxStore {
     /** @param array<string,mixed> $mailbox */

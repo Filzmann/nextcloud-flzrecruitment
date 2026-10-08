@@ -18,18 +18,18 @@ namespace OCP\EventDispatcher {
 }
 
 namespace {
-    use OCA\FilzmannDataProtection\PublicApi\V1\RegisterProcessingMetadataProvidersEvent;
-    use OCA\Recruitment\Privacy\RecruitmentProcessingMetadataProvider;
-    use OCA\Recruitment\Privacy\RecruitmentProcessingMetadataProviderListener;
+    use OCA\FlzDataProtection\PublicApi\V1\RegisterProcessingMetadataProvidersEvent;
+    use OCA\FlzRecruitment\Privacy\RecruitmentProcessingMetadataProvider;
+    use OCA\FlzRecruitment\Privacy\RecruitmentProcessingMetadataProviderListener;
     use OCP\EventDispatcher\Event;
 
     $provider = new RecruitmentProcessingMetadataProvider();
     $catalog = $provider->catalog();
     $descriptor = $provider->descriptor();
-    if ($descriptor->appId() !== 'adrecruitment' || $descriptor->displayName() !== 'AD Recruitment' || $descriptor->contractVersion() !== '1.0') {
-        throw new RuntimeException('Der Processing-Metadata-Provider beschreibt AD Recruitment nicht korrekt.');
+    if ($descriptor->appId() !== 'flzrecruitment' || $descriptor->displayName() !== 'Filzmann Recruitment' || $descriptor->contractVersion() !== '1.0') {
+        throw new RuntimeException('Der Processing-Metadata-Provider beschreibt Filzmann Recruitment nicht korrekt.');
     }
-    if ($catalog->appId() !== 'adrecruitment') {
+    if ($catalog->appId() !== 'flzrecruitment') {
         throw new RuntimeException('Processing-Metadata-Provider und Katalog verwenden nicht die kanonische App-ID.');
     }
     if ($catalog->processingIds() !== [
@@ -47,7 +47,7 @@ namespace {
         throw new RuntimeException('Der Processing-Katalog enthält personenbezogene Laufzeitdaten.');
     }
     $encodedCatalog = json_encode($catalog->toArray(), JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE);
-    if (!str_contains($encodedCatalog, 'Freigabesteuerung in der AD-Recruitment-Fachoberfläche') || str_contains($encodedCatalog, 'Allow-, Deny- und Manipulationsprüfungen stehen aus')) {
+    if (!str_contains($encodedCatalog, 'Freigabesteuerung in der Filzmann-Recruitment-Fachoberfläche') || str_contains($encodedCatalog, 'Allow-, Deny- und Manipulationsprüfungen stehen aus')) {
         throw new RuntimeException('Der Processing-Katalog bildet die durchgesetzte Datenschutzrollen-Grenze nicht ab.');
     }
 
@@ -58,7 +58,7 @@ namespace {
         throw new RuntimeException('Ein fremdes Event registriert den Processing-Metadata-Provider.');
     }
     $listener->handle($registration);
-    if (($registration->providers()['adrecruitment'] ?? null) !== $provider) {
+    if (($registration->providers()['flzrecruitment'] ?? null) !== $provider) {
         throw new RuntimeException('Der Processing-Metadata-Provider wird nicht lazy registriert.');
     }
 
@@ -67,5 +67,5 @@ namespace {
         throw new RuntimeException('Der Bootstrap registriert den Processing-Metadata-Provider nicht am öffentlichen V1-Event.');
     }
 
-    echo "AD Recruitment processing metadata provider test passed\n";
+    echo "Filzmann Recruitment processing metadata provider test passed\n";
 }

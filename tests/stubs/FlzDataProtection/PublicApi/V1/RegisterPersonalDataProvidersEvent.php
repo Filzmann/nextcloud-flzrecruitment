@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace OCA\FilzmannDataProtection\PublicApi\V1;
+namespace OCA\FlzDataProtection\PublicApi\V1;
 
 use DomainException;
-use OCA\FilzmannDataProtection\Service\PersonalDataProviderRegistry;
+use OCA\FlzDataProtection\Service\PersonalDataProviderRegistry;
 use OCP\EventDispatcher\Event;
 
 final class RegisterPersonalDataProvidersEvent extends Event {

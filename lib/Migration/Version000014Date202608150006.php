@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Recruitment\Migration;
+namespace OCA\FlzRecruitment\Migration;
 
 use Closure;
 use OCP\DB\ISchemaWrapper;
@@ -14,7 +14,7 @@ final class Version000014Date202608150006 extends SimpleMigrationStep {
     public function changeSchema(IOutput $output, Closure $schemaClosure, array $options): ?ISchemaWrapper {
         /** @var ISchemaWrapper $schema */
         $schema = $schemaClosure();
-        $jobs = $schema->getTable('rec_jobs');
+        $jobs = $schema->getTable('flz_recruitment_jobs');
         foreach ([
             'contract_term' => [Types::STRING, ['length' => 32, 'notnull' => false]],
             'pay_grade' => [Types::STRING, ['length' => 8, 'notnull' => false]],

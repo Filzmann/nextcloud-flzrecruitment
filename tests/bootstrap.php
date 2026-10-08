@@ -7,8 +7,8 @@ namespace {
     $appRoot = dirname(__DIR__);
     spl_autoload_register(static function (string $class) use ($workspaceRoot, $appRoot): void {
         foreach ([
-            'OCA\\Recruitment\\' => $appRoot . '/lib/',
-            'OCA\\FilzmannDataProtection\\' => $appRoot . '/tests/stubs/FilzmannDataProtection/',
+            'OCA\\FlzRecruitment\\' => $appRoot . '/lib/',
+            'OCA\\FlzDataProtection\\' => $appRoot . '/tests/stubs/FlzDataProtection/',
             'OCA\\LocalBase\\Tests\\Support\\' => $workspaceRoot . '/localbase/tests/Support/',
             'OCA\\LocalBase\\' => $workspaceRoot . '/localbase/lib/',
         ] as $prefix => $directory) {

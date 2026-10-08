@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace OCA\Recruitment\Service;
+namespace OCA\FlzRecruitment\Service;
 
 use DateTimeImmutable;
 use DateTimeZone;
-use OCA\Recruitment\AppInfo\Application;
-use OCA\Recruitment\Exception\ConflictException;
-use OCA\Recruitment\Exception\ValidationException;
+use OCA\FlzRecruitment\AppInfo\Application;
+use OCA\FlzRecruitment\Exception\ConflictException;
+use OCA\FlzRecruitment\Exception\ValidationException;
 use OCP\IAppConfig;
 use OCP\IGroupManager;
 use OCP\IUserManager;
@@ -157,7 +157,7 @@ final class RecruitmentPermissionSettingsService {
         return [
             'version' => 1,
             'revision' => 0,
-            'firstGuideGroupId' => 'adrecruitment-first-guides',
+            'firstGuideGroupId' => 'flzrecruitment-first-guides',
             'representatives' => [],
             'updatedBy' => '',
             'updatedAt' => '',

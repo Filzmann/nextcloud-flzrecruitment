@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace OCA\Recruitment\Service;
+namespace OCA\FlzRecruitment\Service;
 
 use DateTimeImmutable;
 use DateTimeZone;
-use OCA\Recruitment\Exception\ValidationException;
-use OCA\Recruitment\Repository\RecruitmentRepository;
+use OCA\FlzRecruitment\Exception\ValidationException;
+use OCA\FlzRecruitment\Repository\RecruitmentRepository;
 
 final class StatusMailService {
     public function __construct(

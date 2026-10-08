@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-use OCA\Recruitment\Contract\MailAttachmentStorage;
-use OCA\Recruitment\Contract\MailInboxStore;
-use OCA\Recruitment\Contract\PdfTextExtractor;
-use OCA\Recruitment\Exception\ConflictException;
-use OCA\Recruitment\Exception\ValidationException;
-use OCA\Recruitment\Service\ApplicationMailFieldExtractor;
-use OCA\Recruitment\Service\LocalPdfTextExtractor;
-use OCA\Recruitment\Service\MailInboxService;
+use OCA\FlzRecruitment\Contract\MailAttachmentStorage;
+use OCA\FlzRecruitment\Contract\MailInboxStore;
+use OCA\FlzRecruitment\Contract\PdfTextExtractor;
+use OCA\FlzRecruitment\Exception\ConflictException;
+use OCA\FlzRecruitment\Exception\ValidationException;
+use OCA\FlzRecruitment\Service\ApplicationMailFieldExtractor;
+use OCA\FlzRecruitment\Service\LocalPdfTextExtractor;
+use OCA\FlzRecruitment\Service\MailInboxService;
 use RecruitmentTests\TestRunner;
 
 use function RecruitmentTests\assertSame;
@@ -238,7 +238,7 @@ TestRunner::test('mail assignment is versioned, audited and limited to assignabl
 
 TestRunner::test('mail assignment prefills empty contract fields without replacing existing data', static function (): void {
     $store = new MemoryMailInboxStore();
-    $service = new MailInboxService(new ApplicationMailFieldExtractor(), $store, new MemoryMailAttachmentStorage(), new MemoryPdfTextExtractor(), new \OCA\Recruitment\Service\HiringMasterDataService());
+    $service = new MailInboxService(new ApplicationMailFieldExtractor(), $store, new MemoryMailAttachmentStorage(), new MemoryPdfTextExtractor(), new \OCA\FlzRecruitment\Service\HiringMasterDataService());
     $message = $service->import(syntheticMail(['bodyText' => "Anrede: Frau\nTitel: Dr.\nE-Mail: alex@example.invalid\nTelefon: +49 30 123\nVerfügbar ab: 01.10.2026\nWohnort: Berlin"]), 'importer')['message'];
     $service->assign($message['id'], 10, 1, 'hr-user', [
         'salutation' => 'Frau',
@@ -256,7 +256,7 @@ TestRunner::test('mail assignment prefills empty contract fields without replaci
 
 TestRunner::test('mail assignment applies only explicitly accepted and corrected suggestions', static function (): void {
     $store = new MemoryMailInboxStore();
-    $service = new MailInboxService(new ApplicationMailFieldExtractor(), $store, new MemoryMailAttachmentStorage(), new MemoryPdfTextExtractor(), new \OCA\Recruitment\Service\HiringMasterDataService());
+    $service = new MailInboxService(new ApplicationMailFieldExtractor(), $store, new MemoryMailAttachmentStorage(), new MemoryPdfTextExtractor(), new \OCA\FlzRecruitment\Service\HiringMasterDataService());
     $message = $service->import(syntheticMail(['bodyText' => "E-Mail: alex@example.invalid\nTelefon: +49 30 123\nVerfügbar ab: 01.10.2026\nWohnort: Berlin\nGewünschte Wochenstunden: 25 bis 30\nBerufserfahrung: Zwei Jahre Assistenz\nDeutschkenntnisse: C1"]), 'importer')['message'];
 
     $service->assign($message['id'], 10, 1, 'hr-user', [
@@ -287,7 +287,7 @@ TestRunner::test('mail assignment applies only explicitly accepted and corrected
 
 TestRunner::test('mail assignment rejects manipulated suggestion fields without mutation', static function (): void {
     $store = new MemoryMailInboxStore();
-    $service = new MailInboxService(new ApplicationMailFieldExtractor(), $store, new MemoryMailAttachmentStorage(), new MemoryPdfTextExtractor(), new \OCA\Recruitment\Service\HiringMasterDataService());
+    $service = new MailInboxService(new ApplicationMailFieldExtractor(), $store, new MemoryMailAttachmentStorage(), new MemoryPdfTextExtractor(), new \OCA\FlzRecruitment\Service\HiringMasterDataService());
     $message = $service->import(syntheticMail(), 'importer')['message'];
     $before = $store->messages[$message['id']];
 

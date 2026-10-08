@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace OCA\Recruitment\Permission;
+namespace OCA\FlzRecruitment\Permission;
 
-use OCA\Recruitment\Organization\OrganizationSnapshot;
-use OCA\Recruitment\Organization\OrganizationSnapshotService;
-use OCA\Recruitment\Service\RecruitmentPermissionSettingsService;
+use OCA\FlzRecruitment\Organization\OrganizationSnapshot;
+use OCA\FlzRecruitment\Organization\OrganizationSnapshotService;
+use OCA\FlzRecruitment\Service\RecruitmentPermissionSettingsService;
 
 final class NextcloudRecruitmentPermissionSource implements RecruitmentPermissionSourceInterface {
     public function __construct(

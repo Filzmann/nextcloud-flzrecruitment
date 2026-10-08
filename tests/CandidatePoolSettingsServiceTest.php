@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
-namespace OCA\Recruitment\AppInfo { if (!class_exists(Application::class, false)) { final class Application { public const APP_ID = 'adrecruitment'; } } }
+namespace OCA\FlzRecruitment\AppInfo { if (!class_exists(Application::class, false)) { final class Application { public const APP_ID = 'flzrecruitment'; } } }
 namespace {
-use OCA\Recruitment\Exception\ValidationException;
-use OCA\Recruitment\Service\CandidatePoolSettingsService;
+use OCA\FlzRecruitment\Exception\ValidationException;
+use OCA\FlzRecruitment\Service\CandidatePoolSettingsService;
 use RecruitmentTests\TestRunner;
 use function RecruitmentTests\assertSame;
 use function RecruitmentTests\assertThrows;

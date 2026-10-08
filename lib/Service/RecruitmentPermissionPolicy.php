@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace OCA\Recruitment\Service;
+namespace OCA\FlzRecruitment\Service;
 
-use OCA\Recruitment\Organization\OrganizationSnapshot;
+use OCA\FlzRecruitment\Organization\OrganizationSnapshot;
 
 /** Bewertet fachliche Fähigkeiten und Objektscopes ohne UI- oder Controllerannahmen. */
 final class RecruitmentPermissionPolicy {

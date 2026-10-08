@@ -8,6 +8,6 @@ Version, Paketquelle und -integrität, Lizenz, den App-Scope sowie den
 vollständigen ausgelieferten Dateibaum von PDF.js kryptografisch. Die lokale
 Lizenzkopie liegt unter `js/vendor/pdfjs/LICENSE`.
 
-AD Recruitment lädt die inventarisierten Browser-, Worker-, CMap-,
+Filzmann Recruitment lädt die inventarisierten Browser-, Worker-, CMap-,
 Standardfont- und WASM-Artefakte ausschließlich app-lokal; es gibt keine CDN-
 oder Laufzeitabhängigkeit.

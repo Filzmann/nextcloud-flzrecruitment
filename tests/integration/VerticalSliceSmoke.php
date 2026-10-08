@@ -5,16 +5,16 @@ declare(strict_types=1);
 if (!defined('OC_CONSOLE')) define('OC_CONSOLE', true);
 require dirname(__DIR__, 4) . '/lib/base.php';
 
-use OCA\Recruitment\Repository\RecruitmentRepository;
-use OCA\Recruitment\Controller\ApiController;
-use OCA\Recruitment\Controller\PageController;
-use OCA\Recruitment\Exception\ConflictException;
-use OCA\Recruitment\Service\ApplicationStatusService;
-use OCA\Recruitment\Service\BasisQualificationService;
-use OCA\Recruitment\Service\InterviewService;
-use OCA\Recruitment\Service\MailInboxService;
-use OCA\Recruitment\Service\RecruitmentService;
-use OCA\Recruitment\Service\TemplateService;
+use OCA\FlzRecruitment\Repository\RecruitmentRepository;
+use OCA\FlzRecruitment\Controller\ApiController;
+use OCA\FlzRecruitment\Controller\PageController;
+use OCA\FlzRecruitment\Exception\ConflictException;
+use OCA\FlzRecruitment\Service\ApplicationStatusService;
+use OCA\FlzRecruitment\Service\BasisQualificationService;
+use OCA\FlzRecruitment\Service\InterviewService;
+use OCA\FlzRecruitment\Service\MailInboxService;
+use OCA\FlzRecruitment\Service\RecruitmentService;
+use OCA\FlzRecruitment\Service\TemplateService;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
 
@@ -30,7 +30,7 @@ $assert = static function (bool $condition, string $message): void {
 
 $db = \OCP\Server::get(IDBConnection::class);
 $repository = \OCP\Server::get(RecruitmentRepository::class);
-$adrecruitment = \OCP\Server::get(RecruitmentService::class);
+$flzrecruitment = \OCP\Server::get(RecruitmentService::class);
 $templates = \OCP\Server::get(TemplateService::class);
 $interviews = \OCP\Server::get(InterviewService::class);
 $statuses = \OCP\Server::get(ApplicationStatusService::class);
@@ -77,25 +77,25 @@ try {
         'Ein abgewiesener Schreibzugriff hat Daten verändert.',
     );
 
-    $ids['job'] = $adrecruitment->createJob(
+    $ids['job'] = $flzrecruitment->createJob(
         $repository,
         'Synthetische Teststelle',
         '',
         true,
         [],
         [],
-        'adrecruitment-smoke-' . $suffix,
+        'flzrecruitment-smoke-' . $suffix,
         true,
         'assistance',
     );
-    $ids['person'] = $adrecruitment->createPerson(
+    $ids['person'] = $flzrecruitment->createPerson(
         $repository,
         'Alex',
         'Beispiel',
         "alex-{$suffix}@example.invalid",
         '',
     );
-    $ids['application'] = $adrecruitment->createApplication(
+    $ids['application'] = $flzrecruitment->createApplication(
         $repository,
         $ids['person'],
         $ids['job'],
@@ -162,8 +162,8 @@ try {
             $ids['createdMessage'],
             1,
             'admin',
-            $adrecruitment->personData('Robin', 'Muster', "neu-{$suffix}@example.invalid", ''),
-            $adrecruitment->applicationData($ids['job'], 'email_import', '2026-08-16', 'admin'),
+            $flzrecruitment->personData('Robin', 'Muster', "neu-{$suffix}@example.invalid", ''),
+            $flzrecruitment->applicationData($ids['job'], 'email_import', '2026-08-16', 'admin'),
         );
     } catch (ConflictException) {
         $retryConflict = true;
@@ -269,46 +269,46 @@ try {
         'Vorlagen-Snapshot enthält die Antwort-Bubble nicht.',
     );
 
-    echo "AD Recruitment DDEV vertical slice: OK\n";
+    echo "Filzmann Recruitment DDEV vertical slice: OK\n";
 } finally {
     if ($ids['createdMessage'] !== null) {
-        $delete('rec_message_audit', 'message_id', $ids['createdMessage']);
-        $delete('rec_messages', 'id', $ids['createdMessage']);
+        $delete('flz_recruitment_message_audit', 'message_id', $ids['createdMessage']);
+        $delete('flz_recruitment_messages', 'id', $ids['createdMessage']);
     }
     if ($ids['message'] !== null) {
-        $delete('rec_message_audit', 'message_id', $ids['message']);
-        $delete('rec_messages', 'id', $ids['message']);
+        $delete('flz_recruitment_message_audit', 'message_id', $ids['message']);
+        $delete('flz_recruitment_messages', 'id', $ids['message']);
     }
     if ($ids['createdApplication'] !== null) {
-        $delete('rec_hiring_data', 'application_id', $ids['createdApplication']);
-        $delete('rec_applications', 'id', $ids['createdApplication']);
+        $delete('flz_recruitment_hiring_data', 'application_id', $ids['createdApplication']);
+        $delete('flz_recruitment_applications', 'id', $ids['createdApplication']);
     }
     if ($ids['application'] !== null) {
-        $delete('rec_status_log', 'application_id', $ids['application']);
-        $delete('rec_bq_assignments', 'application_id', $ids['application']);
-        $delete('rec_interviews', 'application_id', $ids['application']);
-        $delete('rec_applications', 'id', $ids['application']);
+        $delete('flz_recruitment_status_log', 'application_id', $ids['application']);
+        $delete('flz_recruitment_bq_assignments', 'application_id', $ids['application']);
+        $delete('flz_recruitment_interviews', 'application_id', $ids['application']);
+        $delete('flz_recruitment_applications', 'id', $ids['application']);
     }
     if ($ids['question'] !== null) {
-        $delete('rec_bubbles', 'question_id', $ids['question']);
-        $delete('rec_questions', 'id', $ids['question']);
+        $delete('flz_recruitment_bubbles', 'question_id', $ids['question']);
+        $delete('flz_recruitment_questions', 'id', $ids['question']);
     }
     if ($ids['template'] !== null) {
-        $delete('rec_templates', 'id', $ids['template']);
+        $delete('flz_recruitment_templates', 'id', $ids['template']);
     }
     if ($ids['person'] !== null) {
-        $delete('rec_people', 'id', $ids['person']);
+        $delete('flz_recruitment_people', 'id', $ids['person']);
     }
     if ($ids['createdPerson'] !== null) {
-        $delete('rec_people', 'id', $ids['createdPerson']);
+        $delete('flz_recruitment_people', 'id', $ids['createdPerson']);
     }
     if ($ids['job'] !== null) {
-        $delete('rec_jobs', 'id', $ids['job']);
+        $delete('flz_recruitment_jobs', 'id', $ids['job']);
     }
     if ($ids['basisQualificationRun'] !== null) {
-        $delete('rec_bq_runs', 'id', $ids['basisQualificationRun']);
+        $delete('flz_recruitment_bq_runs', 'id', $ids['basisQualificationRun']);
     }
     if ($ids['mailbox'] !== null) {
-        $delete('rec_mailboxes', 'id', $ids['mailbox']);
+        $delete('flz_recruitment_mailboxes', 'id', $ids['mailbox']);
     }
 }

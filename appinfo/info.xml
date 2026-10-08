@@ -1,32 +1,32 @@
 <?xml version="1.0"?>
 <info xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:noNamespaceSchemaLocation="https://apps.nextcloud.com/schema/apps/info.xsd">
-    <id>adrecruitment</id>
-    <name>AD Recruitment</name>
+    <id>flzrecruitment</id>
+    <name>Filzmann Recruitment</name>
     <summary>Strukturierte Bewerbungs- und Interviewprozesse.</summary>
     <description>Verwaltet Stellen, Bewerbungen, Interviews und die berechtigte Vertragsvorbereitung in Nextcloud.</description>
     <version>0.11.0-rc.20</version>
     <licence>agpl</licence>
-    <author>Simon</author>
-    <namespace>Recruitment</namespace>
+    <author>Filzmann Software</author>
+    <namespace>FlzRecruitment</namespace>
     <category>organization</category>
-    <website>https://github.com/Filzmann/ad-suite</website>
-    <bugs>https://github.com/Filzmann/nextcloud-recruitment/issues</bugs>
-    <repository type="git">https://github.com/Filzmann/nextcloud-recruitment</repository>
+    <website>https://github.com/Filzmann/flz-full-suite</website>
+    <bugs>https://github.com/Filzmann/nextcloud-flzrecruitment/issues</bugs>
+    <repository type="git">https://github.com/Filzmann/nextcloud-flzrecruitment</repository>
     <dependencies>
         <php min-version="8.3"/>
         <nextcloud min-version="33" max-version="34"/>
     </dependencies>
     <background-jobs>
-        <job>OCA\Recruitment\BackgroundJob\DeliverStatusMailJob</job>
-        <job>OCA\Recruitment\BackgroundJob\CandidatePoolMaintenanceJob</job>
+        <job>OCA\FlzRecruitment\BackgroundJob\DeliverStatusMailJob</job>
+        <job>OCA\FlzRecruitment\BackgroundJob\CandidatePoolMaintenanceJob</job>
     </background-jobs>
     <commands>
-        <command>OCA\Recruitment\Command\SeedDemoCommand</command>
-        <command>OCA\Recruitment\Command\SeedInboxCommand</command>
+        <command>OCA\FlzRecruitment\Command\SeedDemoCommand</command>
+        <command>OCA\FlzRecruitment\Command\SeedInboxCommand</command>
     </commands>
     <settings>
-        <admin>OCA\Recruitment\Settings\Admin</admin>
-        <admin-section>OCA\Recruitment\Settings\AdminSection</admin-section>
+        <admin>OCA\FlzRecruitment\Settings\Admin</admin>
+        <admin-section>OCA\FlzRecruitment\Settings\AdminSection</admin-section>
     </settings>
 </info>

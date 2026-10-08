@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace OCA\Recruitment\Service;
+namespace OCA\FlzRecruitment\Service;
 
-use OCA\Recruitment\Exception\AccessDeniedException;
-use OCA\Recruitment\Organization\OrganizationSnapshot;
-use OCA\Recruitment\Organization\OrganizationSnapshotService;
+use OCA\FlzRecruitment\Exception\AccessDeniedException;
+use OCA\FlzRecruitment\Organization\OrganizationSnapshot;
+use OCA\FlzRecruitment\Organization\OrganizationSnapshotService;
 use OCP\IGroupManager;
 use OCP\IUser;
 use OCP\IUserSession;

@@ -18,8 +18,8 @@ TestRunner::test('system configuration lives in the native Nextcloud admin secti
     foreach ([$info, $admin, $section, $template, $main, $navigation] as $source) {
         assertTrue($source !== false, 'Eine Admin-Vertragsdatei fehlt.');
     }
-    assertTrue(str_contains($info, '<admin>OCA\Recruitment\Settings\Admin</admin>'));
-    assertTrue(str_contains($info, '<admin-section>OCA\Recruitment\Settings\AdminSection</admin-section>'));
+    assertTrue(str_contains($info, '<admin>OCA\FlzRecruitment\Settings\Admin</admin>'));
+    assertTrue(str_contains($info, '<admin-section>OCA\FlzRecruitment\Settings\AdminSection</admin-section>'));
     assertTrue(str_contains($admin, "new TemplateResponse(Application::APP_ID, 'admin'"));
     assertTrue(str_contains($section, 'implements IIconSection'));
     assertTrue(str_contains($section, 'return Application::APP_ID;'));

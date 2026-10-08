@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace OCA\Recruitment\Service;
+namespace OCA\FlzRecruitment\Service;
 
 use DateTimeImmutable;
-use OCA\Recruitment\Exception\ValidationException;
+use OCA\FlzRecruitment\Exception\ValidationException;
 
 /** Validiert und projiziert ausschließlich die für die Vertragsvorbereitung freigegebenen Stammdaten. */
 final class HiringMasterDataService {

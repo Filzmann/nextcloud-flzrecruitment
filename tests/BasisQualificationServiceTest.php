@@ -3,10 +3,10 @@
 declare(strict_types=1);
 
 namespace {
-    use OCA\Recruitment\Contract\BasisQualificationStore;
-    use OCA\Recruitment\Exception\ConflictException;
-    use OCA\Recruitment\Exception\ValidationException;
-    use OCA\Recruitment\Service\BasisQualificationService;
+    use OCA\FlzRecruitment\Contract\BasisQualificationStore;
+    use OCA\FlzRecruitment\Exception\ConflictException;
+    use OCA\FlzRecruitment\Exception\ValidationException;
+    use OCA\FlzRecruitment\Service\BasisQualificationService;
     use RecruitmentTests\TestRunner;
 
     use function RecruitmentTests\assertSame;

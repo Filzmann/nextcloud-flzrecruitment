@@ -21,5 +21,5 @@
         return `tel:${normalized}`
     }
 
-    root.ADRecruitmentContactLinks = { emailHref, emailLinkAttributes, phoneHref }
+    root.FlzRecruitmentContactLinks = { emailHref, emailLinkAttributes, phoneHref }
 })(window)

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Recruitment\Contract;
+namespace OCA\FlzRecruitment\Contract;
 
 /** Liest ausschließlich Text aus einem bereits validierten PDF-Original. */
 interface PdfTextExtractor {

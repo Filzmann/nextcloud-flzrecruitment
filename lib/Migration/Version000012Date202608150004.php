@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace OCA\Recruitment\Migration;
+namespace OCA\FlzRecruitment\Migration;
 
 use Closure;
-use OCA\Recruitment\BackgroundJob\CandidatePoolMaintenanceJob;
+use OCA\FlzRecruitment\BackgroundJob\CandidatePoolMaintenanceJob;
 use OCP\BackgroundJob\IJobList;
 use OCP\DB\ISchemaWrapper;
 use OCP\DB\Types;
@@ -18,8 +18,8 @@ final class Version000012Date202608150004 extends SimpleMigrationStep {
 
     public function changeSchema(IOutput $output, Closure $schemaClosure, array $options): ?ISchemaWrapper {
         $schema = $schemaClosure();
-        if (!$schema->hasTable('rec_pool_entries')) {
-            $table = $schema->createTable('rec_pool_entries');
+        if (!$schema->hasTable('flz_recruitment_pool_entries')) {
+            $table = $schema->createTable('flz_recruitment_pool_entries');
             $table->addColumn('id', Types::BIGINT, ['autoincrement' => true, 'notnull' => true]);
             $table->addColumn('person_id', Types::BIGINT, ['notnull' => true]);
             $table->addColumn('source_application_id', Types::BIGINT, ['notnull' => true]);
@@ -35,13 +35,13 @@ final class Version000012Date202608150004 extends SimpleMigrationStep {
             $table->addColumn('created_at', Types::DATETIME_IMMUTABLE, ['notnull' => true]);
             $table->addColumn('updated_at', Types::DATETIME_IMMUTABLE, ['notnull' => true]);
             $table->setPrimaryKey(['id']);
-            $table->addUniqueIndex(['source_application_id'], 'rec_pool_source_app');
-            $table->addIndex(['status', 'expires_at'], 'rec_pool_status_expiry');
-            $table->addForeignKeyConstraint($schema->getTable('rec_people'), ['person_id'], ['id'], ['onDelete' => 'RESTRICT'], 'rec_pool_person_fk');
-            $table->addForeignKeyConstraint($schema->getTable('rec_applications'), ['source_application_id'], ['id'], ['onDelete' => 'RESTRICT'], 'rec_pool_app_fk');
+            $table->addUniqueIndex(['source_application_id'], 'flz_recruitment_pool_source_app');
+            $table->addIndex(['status', 'expires_at'], 'flz_recruitment_pool_status_expiry');
+            $table->addForeignKeyConstraint($schema->getTable('flz_recruitment_people'), ['person_id'], ['id'], ['onDelete' => 'RESTRICT'], 'flz_recruitment_pool_person_fk');
+            $table->addForeignKeyConstraint($schema->getTable('flz_recruitment_applications'), ['source_application_id'], ['id'], ['onDelete' => 'RESTRICT'], 'flz_recruitment_pool_app_fk');
         }
-        if (!$schema->hasTable('rec_pool_consents')) {
-            $table = $schema->createTable('rec_pool_consents');
+        if (!$schema->hasTable('flz_recruitment_pool_consents')) {
+            $table = $schema->createTable('flz_recruitment_pool_consents');
             $table->addColumn('id', Types::BIGINT, ['autoincrement' => true, 'notnull' => true]);
             $table->addColumn('entry_id', Types::BIGINT, ['notnull' => true]);
             $table->addColumn('action', Types::STRING, ['length' => 24, 'notnull' => true]);
@@ -52,11 +52,11 @@ final class Version000012Date202608150004 extends SimpleMigrationStep {
             $table->addColumn('occurred_at', Types::DATETIME_IMMUTABLE, ['notnull' => true]);
             $table->addColumn('valid_until', Types::DATETIME_IMMUTABLE, ['notnull' => false]);
             $table->setPrimaryKey(['id']);
-            $table->addIndex(['entry_id', 'occurred_at'], 'rec_pool_consent_history');
-            $table->addForeignKeyConstraint($schema->getTable('rec_pool_entries'), ['entry_id'], ['id'], ['onDelete' => 'CASCADE'], 'rec_pool_consent_entry_fk');
+            $table->addIndex(['entry_id', 'occurred_at'], 'flz_recruitment_pool_consent_history');
+            $table->addForeignKeyConstraint($schema->getTable('flz_recruitment_pool_entries'), ['entry_id'], ['id'], ['onDelete' => 'CASCADE'], 'flz_recruitment_pool_consent_entry_fk');
         }
-        if (!$schema->hasTable('rec_pool_matches')) {
-            $table = $schema->createTable('rec_pool_matches');
+        if (!$schema->hasTable('flz_recruitment_pool_matches')) {
+            $table = $schema->createTable('flz_recruitment_pool_matches');
             $table->addColumn('id', Types::BIGINT, ['autoincrement' => true, 'notnull' => true]);
             $table->addColumn('entry_id', Types::BIGINT, ['notnull' => true]);
             $table->addColumn('job_id', Types::BIGINT, ['notnull' => true]);
@@ -67,10 +67,10 @@ final class Version000012Date202608150004 extends SimpleMigrationStep {
             $table->addColumn('created_at', Types::DATETIME_IMMUTABLE, ['notnull' => true]);
             $table->addColumn('updated_at', Types::DATETIME_IMMUTABLE, ['notnull' => true]);
             $table->setPrimaryKey(['id']);
-            $table->addUniqueIndex(['entry_id', 'job_id'], 'rec_pool_entry_job');
-            $table->addIndex(['state', 'created_at'], 'rec_pool_match_state');
-            $table->addForeignKeyConstraint($schema->getTable('rec_pool_entries'), ['entry_id'], ['id'], ['onDelete' => 'CASCADE'], 'rec_pool_match_entry_fk');
-            $table->addForeignKeyConstraint($schema->getTable('rec_jobs'), ['job_id'], ['id'], ['onDelete' => 'CASCADE'], 'rec_pool_match_job_fk');
+            $table->addUniqueIndex(['entry_id', 'job_id'], 'flz_recruitment_pool_entry_job');
+            $table->addIndex(['state', 'created_at'], 'flz_recruitment_pool_match_state');
+            $table->addForeignKeyConstraint($schema->getTable('flz_recruitment_pool_entries'), ['entry_id'], ['id'], ['onDelete' => 'CASCADE'], 'flz_recruitment_pool_match_entry_fk');
+            $table->addForeignKeyConstraint($schema->getTable('flz_recruitment_jobs'), ['job_id'], ['id'], ['onDelete' => 'CASCADE'], 'flz_recruitment_pool_match_job_fk');
         }
         return $schema;
     }

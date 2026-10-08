@@ -58,7 +58,7 @@ function loadApi({
 
     assert.equal(requests.length, 1)
     assert.deepEqual(result, { ok: true })
-    assert.equal(requests[0].url, '/apps/adrecruitment/api/bootstrap')
+    assert.equal(requests[0].url, '/apps/flzrecruitment/api/bootstrap')
     assert.equal(requests[0].options.method, 'GET')
     assert.equal(requests[0].options.credentials, 'same-origin')
     assert.equal(requests[0].options.body, null)
@@ -77,7 +77,7 @@ function loadApi({
     const cases = [
         [() => api.application(7), '/api/applications/7', 'GET', null],
         [() => api.template(8), '/api/templates/8', 'GET', null],
-        [() => api.jobResponsibilityUsers('assistance', ['ad-Stab-HR', 'ad-AS-GF'], 'edi'), '/api/job-responsibility-users?professionCategory=assistance&query=edi&groupIds%5B%5D=ad-Stab-HR&groupIds%5B%5D=ad-AS-GF', 'GET', null],
+        [() => api.jobResponsibilityUsers('assistance', ['flz-Stab-HR', 'flz-AS-GF'], 'edi'), '/api/job-responsibility-users?professionCategory=assistance&query=edi&groupIds%5B%5D=flz-Stab-HR&groupIds%5B%5D=flz-AS-GF', 'GET', null],
         [() => api.createJob({ title: 'Entwicklung' }), '/api/jobs', 'POST', { title: 'Entwicklung' }],
         [() => api.createBasisQualificationRun({ startsOn: '2026-09-07', endsOn: '2026-09-18' }), '/api/basis-qualifications', 'POST', { startsOn: '2026-09-07', endsOn: '2026-09-18' }],
         [() => api.basisQualificationAssignments(7), '/api/applications/7/basis-qualifications', 'GET', null],
@@ -126,7 +126,7 @@ function loadApi({
         const index = requests.length
         await invoke()
         const request = requests[index]
-        assert.equal(request.url, '/apps/adrecruitment' + path)
+        assert.equal(request.url, '/apps/flzrecruitment' + path)
         assert.equal(request.options.method, method)
         assert.equal(request.options.credentials, 'same-origin')
         assert.equal(request.options.body, body === null ? null : JSON.stringify(body))
@@ -142,7 +142,7 @@ function loadApi({
 
 {
     const { api, requests } = loadApi({ authToken: 'token' })
-    assert.equal(api.documentUrl(31), '/apps/adrecruitment/api/attachments/31/document')
+    assert.equal(api.documentUrl(31), '/apps/flzrecruitment/api/attachments/31/document')
     assert.equal(requests.length, 0, 'Generating an inline document URL must not start a request itself')
 }
 

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Recruitment\Organization;
+namespace OCA\FlzRecruitment\Organization;
 
 use InvalidArgumentException;
 use OCA\LocalBase\PublicApi\V1\OrganizationSnapshot as ProviderSnapshot;
@@ -93,7 +93,7 @@ class OrganizationSnapshotService {
 
     private function providerFailure(\Throwable $error): OrganizationSnapshot {
         $this->logger->warning('Recruitment organization snapshot unavailable', [
-            'app' => 'adrecruitment',
+            'app' => 'flzrecruitment',
             'provider' => self::PROVIDER_APP_ID,
             'exception' => $error,
         ]);

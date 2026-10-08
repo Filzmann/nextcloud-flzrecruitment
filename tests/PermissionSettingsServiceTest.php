@@ -11,17 +11,17 @@ namespace OCP {
     }
 }
 
-namespace OCA\Recruitment\AppInfo {
+namespace OCA\FlzRecruitment\AppInfo {
     if (!class_exists(Application::class, false)) {
-        final class Application { public const APP_ID = 'adrecruitment'; }
+        final class Application { public const APP_ID = 'flzrecruitment'; }
     }
 }
 
 namespace {
-    use OCA\Recruitment\Exception\ConflictException;
-    use OCA\Recruitment\Exception\ValidationException;
-    use OCA\Recruitment\Service\RecruitmentPermissionPolicy;
-    use OCA\Recruitment\Service\RecruitmentPermissionSettingsService;
+    use OCA\FlzRecruitment\Exception\ConflictException;
+    use OCA\FlzRecruitment\Exception\ValidationException;
+    use OCA\FlzRecruitment\Service\RecruitmentPermissionPolicy;
+    use OCA\FlzRecruitment\Service\RecruitmentPermissionSettingsService;
     use RecruitmentTests\TestRunner;
 
     use function RecruitmentTests\assertSame;
@@ -47,7 +47,7 @@ namespace {
     TestRunner::test('permission settings default deny and persist bounded granular representatives', static function () use ($config, $users, $groups): void {
         $service = new RecruitmentPermissionSettingsService($config, $users, $groups);
         $defaults = $service->settings();
-        assertSame('adrecruitment-first-guides', $defaults['firstGuideGroupId']);
+        assertSame('flzrecruitment-first-guides', $defaults['firstGuideGroupId']);
         assertSame([], $defaults['representatives']);
         assertSame(0, $defaults['revision']);
 

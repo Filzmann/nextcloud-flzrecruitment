@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace OCA\Recruitment\Service;
+namespace OCA\FlzRecruitment\Service;
 
-use OCA\Recruitment\Contract\OutboundMailTransport;
+use OCA\FlzRecruitment\Contract\OutboundMailTransport;
 use OCP\Mail\IMailer;
 
 final class NextcloudOutboundMailTransport implements OutboundMailTransport {

@@ -46,11 +46,11 @@ namespace Psr\Log {
     }
 }
 
-namespace OCA\Recruitment\AppInfo {
-    final class Application { public const APP_ID = 'adrecruitment'; }
+namespace OCA\FlzRecruitment\AppInfo {
+    final class Application { public const APP_ID = 'flzrecruitment'; }
 }
 
-namespace OCA\Recruitment\Service {
+namespace OCA\FlzRecruitment\Service {
     final class RecruitmentPermissionPolicy {
         public const DELEGATABLE_CAPABILITIES = ['view', 'interview'];
     }
@@ -80,18 +80,18 @@ namespace OCA\Recruitment\Service {
         public function require(string $capability, ?array $application = null): void {
             $this->required[] = $capability;
             if (!in_array($capability, $this->allowed, true)) {
-                throw new \OCA\Recruitment\Exception\AccessDeniedException('Keine Berechtigung.');
+                throw new \OCA\FlzRecruitment\Exception\AccessDeniedException('Keine Berechtigung.');
             }
         }
         public function requireAnyAccess(): void {
             $this->required[] = 'any';
-            if ($this->allowed === []) throw new \OCA\Recruitment\Exception\AccessDeniedException('Keine Berechtigung.');
+            if ($this->allowed === []) throw new \OCA\FlzRecruitment\Exception\AccessDeniedException('Keine Berechtigung.');
         }
         public function requireSomewhere(string $capability): void { $this->require($capability); }
         public function canSomewhere(string $capability): bool { return in_array($capability, $this->allowed, true); }
         public function requireManageUnassignedInbox(): void {
             $this->required[] = 'manage_unassigned_inbox';
-            if (!$this->manageInbox) throw new \OCA\Recruitment\Exception\AccessDeniedException('Keine Berechtigung.');
+            if (!$this->manageInbox) throw new \OCA\FlzRecruitment\Exception\AccessDeniedException('Keine Berechtigung.');
         }
         public function capabilities(): array {
             return [
@@ -186,7 +186,7 @@ namespace OCA\Recruitment\Service {
         public array $calls = [];
         public function allGroups(): array {
             $this->calls[] = ['allGroups', []];
-            return [['id' => 'ad-Stab-HR', 'label' => 'Stabsstelle HR', 'professionCategories' => ['assistance']]];
+            return [['id' => 'flz-Stab-HR', 'label' => 'Stabsstelle HR', 'professionCategories' => ['assistance']]];
         }
         public function validate(string $professionCategory, array $groupIds, array $userIds): void {
             $this->calls[] = ['validate', [$professionCategory, $groupIds, $userIds]];
@@ -277,13 +277,13 @@ namespace OCA\Recruitment\Service {
 }
 
 namespace {
-    use OCA\Recruitment\Controller\ApiController;
-    use OCA\Recruitment\Service\RecruitmentAccessService;
-    use OCA\Recruitment\Service\RecruitmentUseCaseService;
-    use OCA\Recruitment\Service\MailInboxService;
-    use OCA\Recruitment\Service\DocumentReviewService;
-    use OCA\Recruitment\Service\DocumentFieldLinkService;
-    use OCA\Recruitment\Service\JobResponsibilityService;
+    use OCA\FlzRecruitment\Controller\ApiController;
+    use OCA\FlzRecruitment\Service\RecruitmentAccessService;
+    use OCA\FlzRecruitment\Service\RecruitmentUseCaseService;
+    use OCA\FlzRecruitment\Service\MailInboxService;
+    use OCA\FlzRecruitment\Service\DocumentReviewService;
+    use OCA\FlzRecruitment\Service\DocumentFieldLinkService;
+    use OCA\FlzRecruitment\Service\JobResponsibilityService;
     use OCP\AppFramework\Http;
 
     $assert = static function (bool $condition, string $message): void {
@@ -297,8 +297,8 @@ namespace {
     $documentReview = new DocumentReviewService();
     $documentFieldLinks = new DocumentFieldLinkService();
     $jobResponsibilities = new JobResponsibilityService();
-    $resumeExtraction = new \OCA\Recruitment\Service\ResumeExtractionSettingsService();
-    $candidatePoolSettings = new \OCA\Recruitment\Service\CandidatePoolSettingsService();
+    $resumeExtraction = new \OCA\FlzRecruitment\Service\ResumeExtractionSettingsService();
+    $candidatePoolSettings = new \OCA\FlzRecruitment\Service\CandidatePoolSettingsService();
     $logger = new class implements \Psr\Log\LoggerInterface {
         public array $errors = [];
         public function error(string $message, array $context = []): void { $this->errors[] = [$message, $context]; }
@@ -342,10 +342,10 @@ namespace {
     $assert($response->getData()['capabilities']['view'] === true, 'Capabilities are not forwarded.');
     $assert($access->required === ['any'], 'Authorized bootstrap skips its access gate.');
     $assert($response->getData()['basisQualificationRuns'][0]['label'] === 'BQ 09/26', 'BQ runs are not forwarded for HR.');
-    $assert($response->getData()['jobResponsibilityGroups'][0]['id'] === 'ad-Stab-HR', 'Relevant job groups are not forwarded for catalog managers.');
-    $response = $controller->jobResponsibilityUsers('assistance', ['ad-Stab-HR'], 'edi');
+    $assert($response->getData()['jobResponsibilityGroups'][0]['id'] === 'flz-Stab-HR', 'Relevant job groups are not forwarded for catalog managers.');
+    $response = $controller->jobResponsibilityUsers('assistance', ['flz-Stab-HR'], 'edi');
     $assert($response->getData()['users'][0]['uid'] === 'editor-user', 'Scoped job user search is not forwarded.');
-    $assert(end($jobResponsibilities->calls) === ['searchUsers', ['assistance', ['ad-Stab-HR'], 'edi']], 'Job user search loses its profession or group scope.');
+    $assert(end($jobResponsibilities->calls) === ['searchUsers', ['assistance', ['flz-Stab-HR'], 'edi']], 'Job user search loses its profession or group scope.');
 
     $access->required = [];
     $response = $controller->inbox();
@@ -747,10 +747,10 @@ namespace {
     $access->isAdmin = false;
 
     foreach ([
-        [new \OCA\Recruitment\Exception\AccessDeniedException('Verboten.'), Http::STATUS_FORBIDDEN],
-        [new \OCA\Recruitment\Exception\NotFoundException('Nicht gefunden.'), Http::STATUS_NOT_FOUND],
-        [new \OCA\Recruitment\Exception\ConflictException('Konflikt.'), Http::STATUS_CONFLICT],
-        [new \OCA\Recruitment\Exception\ValidationException('Ungültig.'), Http::STATUS_UNPROCESSABLE_ENTITY],
+        [new \OCA\FlzRecruitment\Exception\AccessDeniedException('Verboten.'), Http::STATUS_FORBIDDEN],
+        [new \OCA\FlzRecruitment\Exception\NotFoundException('Nicht gefunden.'), Http::STATUS_NOT_FOUND],
+        [new \OCA\FlzRecruitment\Exception\ConflictException('Konflikt.'), Http::STATUS_CONFLICT],
+        [new \OCA\FlzRecruitment\Exception\ValidationException('Ungültig.'), Http::STATUS_UNPROCESSABLE_ENTITY],
     ] as [$error, $statusCode]) {
         $useCases->failure = $error;
         $response = $controller->bootstrap();
@@ -762,8 +762,8 @@ namespace {
     $response = $controller->bootstrap();
     $assert($response->getStatus() === Http::STATUS_INTERNAL_SERVER_ERROR, 'Unexpected failures receive the wrong status.');
     $assert($response->getData() === ['message' => 'Die Anfrage konnte technisch nicht verarbeitet werden.'], 'Internal details leak to the response.');
-    $assert($logger->errors[0][0] === 'AD-Recruitment-Anfrage fehlgeschlagen.', 'Unexpected failures are not logged safely.');
+    $assert($logger->errors[0][0] === 'Filzmann-Recruitment-Anfrage fehlgeschlagen.', 'Unexpected failures are not logged safely.');
     $assert($logger->errors[0][1] === ['exceptionClass' => RuntimeException::class], 'The log contains more than the exception class.');
 
-    echo "AD Recruitment API controller execution tests passed\n";
+    echo "Filzmann Recruitment API controller execution tests passed\n";
 }

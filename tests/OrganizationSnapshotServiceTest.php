@@ -42,8 +42,8 @@ namespace Psr\Log {
 
 namespace {
     use OCA\LocalBase\PublicApi\V1\OrganizationSnapshot as ProviderSnapshot;
-    use OCA\Recruitment\Organization\OrganizationSnapshot;
-    use OCA\Recruitment\Organization\OrganizationSnapshotService;
+    use OCA\FlzRecruitment\Organization\OrganizationSnapshot;
+    use OCA\FlzRecruitment\Organization\OrganizationSnapshotService;
     use OCP\App\IAppManager;
     use Psr\Log\LoggerInterface;
     use RecruitmentTests\TestRunner;

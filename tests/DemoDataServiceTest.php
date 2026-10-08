@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Recruitment\Service {
+namespace OCA\FlzRecruitment\Service {
     final class RecruitmentUseCaseService {
         public array $jobs = [];
         public array $people = [];
@@ -120,8 +120,8 @@ namespace OCA\Recruitment\Service {
 }
 
 namespace {
-    use OCA\Recruitment\Service\RecruitmentDemoDataService;
-    use OCA\Recruitment\Service\RecruitmentUseCaseService;
+    use OCA\FlzRecruitment\Service\RecruitmentDemoDataService;
+    use OCA\FlzRecruitment\Service\RecruitmentUseCaseService;
     use RecruitmentTests\TestRunner;
 
     use function RecruitmentTests\assertSame;

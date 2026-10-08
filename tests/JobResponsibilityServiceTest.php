@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace OCA\LocalBase\AppInfo { final class Application { public const APP_ID = 'localbase'; } }
 
 namespace {
-    use OCA\Recruitment\Exception\ValidationException;
-    use OCA\Recruitment\Organization\OrganizationSnapshot;
-    use OCA\Recruitment\Organization\OrganizationSnapshotService;
-    use OCA\Recruitment\Service\JobResponsibilityService;
+    use OCA\FlzRecruitment\Exception\ValidationException;
+    use OCA\FlzRecruitment\Organization\OrganizationSnapshot;
+    use OCA\FlzRecruitment\Organization\OrganizationSnapshotService;
+    use OCA\FlzRecruitment\Service\JobResponsibilityService;
     use OCP\IGroup;
     use OCP\IGroupManager;
     use OCP\IUser;
@@ -54,26 +54,26 @@ namespace {
         $bea = new ResponsibilityUser('bea', 'Bea Muster');
         $service = new JobResponsibilityService(
             new ResponsibilityOrganizationService(OrganizationSnapshot::valid('1.0', 4, 'test-checksum', [
-                'staff_hr' => ['groupId' => 'ad-Stab-HR', 'label' => 'Personalreferat'],
-                'eb' => ['groupId' => 'ad-EB', 'label' => 'Einsatzbegleitung'],
-                'payroll' => ['groupId' => 'ad-Lohn', 'label' => 'Lohn'],
+                'staff_hr' => ['groupId' => 'flz-Stab-HR', 'label' => 'Personalreferat'],
+                'eb' => ['groupId' => 'flz-EB', 'label' => 'Einsatzbegleitung'],
+                'payroll' => ['groupId' => 'flz-Lohn', 'label' => 'Lohn'],
             ], [])),
             new ResponsibilityGroups([
-                'ad-Stab-HR' => new ResponsibilityGroup([$alex]),
-                'ad-EB' => new ResponsibilityGroup([$bea]),
-                'ad-Lohn' => new ResponsibilityGroup([new ResponsibilityUser('lohn', 'Lohn')]),
+                'flz-Stab-HR' => new ResponsibilityGroup([$alex]),
+                'flz-EB' => new ResponsibilityGroup([$bea]),
+                'flz-Lohn' => new ResponsibilityGroup([new ResponsibilityUser('lohn', 'Lohn')]),
             ]),
         );
 
         $groups = $service->groups('assistance');
-        assertSame(true, in_array('ad-Stab-HR', array_column($groups, 'id'), true));
-        assertSame(true, in_array('ad-EB', array_column($groups, 'id'), true));
-        assertSame(false, in_array('ad-Lohn', array_column($groups, 'id'), true));
-        assertSame([['uid' => 'alex', 'displayName' => 'Alex Beispiel']], $service->searchUsers('assistance', ['ad-Stab-HR'], 'Ale'));
+        assertSame(true, in_array('flz-Stab-HR', array_column($groups, 'id'), true));
+        assertSame(true, in_array('flz-EB', array_column($groups, 'id'), true));
+        assertSame(false, in_array('flz-Lohn', array_column($groups, 'id'), true));
+        assertSame([['uid' => 'alex', 'displayName' => 'Alex Beispiel']], $service->searchUsers('assistance', ['flz-Stab-HR'], 'Ale'));
 
-        $service->validate('assistance', ['ad-Stab-HR'], ['alex']);
-        assertThrows(static fn () => $service->validate('assistance', ['ad-Stab-HR'], ['bea']), ValidationException::class);
-        assertThrows(static fn () => $service->validate('assistance', ['ad-Lohn'], []), ValidationException::class);
-        assertThrows(static fn () => $service->searchUsers('assistance', ['ad-Stab-HR'], 'a'), ValidationException::class);
+        $service->validate('assistance', ['flz-Stab-HR'], ['alex']);
+        assertThrows(static fn () => $service->validate('assistance', ['flz-Stab-HR'], ['bea']), ValidationException::class);
+        assertThrows(static fn () => $service->validate('assistance', ['flz-Lohn'], []), ValidationException::class);
+        assertThrows(static fn () => $service->searchUsers('assistance', ['flz-Stab-HR'], 'a'), ValidationException::class);
     });
 }

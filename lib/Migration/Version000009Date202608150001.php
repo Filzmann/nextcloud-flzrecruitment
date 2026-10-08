@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Recruitment\Migration;
+namespace OCA\FlzRecruitment\Migration;
 
 use Closure;
 use OCP\DB\ISchemaWrapper;
@@ -16,8 +16,8 @@ final class Version000009Date202608150001 extends SimpleMigrationStep {
         /** @var ISchemaWrapper $schema */
         $schema = $schemaClosure();
 
-        if (!$schema->hasTable('rec_mail_templates')) {
-            $table = $schema->createTable('rec_mail_templates');
+        if (!$schema->hasTable('flz_recruitment_mail_templates')) {
+            $table = $schema->createTable('flz_recruitment_mail_templates');
             $table->addColumn('id', Types::BIGINT, ['autoincrement' => true, 'notnull' => true]);
             $table->addColumn('name', Types::STRING, ['length' => 255, 'notnull' => true]);
             $table->addColumn('active', Types::BOOLEAN, ['notnull' => true, 'default' => true]);
@@ -27,11 +27,11 @@ final class Version000009Date202608150001 extends SimpleMigrationStep {
             $table->addColumn('created_at', Types::DATETIME_IMMUTABLE, ['notnull' => true]);
             $table->addColumn('updated_at', Types::DATETIME_IMMUTABLE, ['notnull' => true]);
             $table->setPrimaryKey(['id']);
-            $table->addUniqueIndex(['name'], 'rec_mail_tpl_name');
+            $table->addUniqueIndex(['name'], 'flz_recruitment_mail_tpl_name');
         }
 
-        if (!$schema->hasTable('rec_mail_template_revisions')) {
-            $table = $schema->createTable('rec_mail_template_revisions');
+        if (!$schema->hasTable('flz_recruitment_mail_template_revisions')) {
+            $table = $schema->createTable('flz_recruitment_mail_template_revisions');
             $table->addColumn('id', Types::BIGINT, ['autoincrement' => true, 'notnull' => true]);
             $table->addColumn('template_id', Types::BIGINT, ['notnull' => true]);
             $table->addColumn('revision', Types::INTEGER, ['notnull' => true]);
@@ -40,12 +40,12 @@ final class Version000009Date202608150001 extends SimpleMigrationStep {
             $table->addColumn('actor_uid', Types::STRING, ['length' => 64, 'notnull' => true]);
             $table->addColumn('created_at', Types::DATETIME_IMMUTABLE, ['notnull' => true]);
             $table->setPrimaryKey(['id']);
-            $table->addUniqueIndex(['template_id', 'revision'], 'rec_mail_tpl_revision');
-            $table->addForeignKeyConstraint($schema->getTable('rec_mail_templates'), ['template_id'], ['id'], ['onDelete' => 'CASCADE'], 'rec_mail_rev_tpl_fk');
+            $table->addUniqueIndex(['template_id', 'revision'], 'flz_recruitment_mail_tpl_revision');
+            $table->addForeignKeyConstraint($schema->getTable('flz_recruitment_mail_templates'), ['template_id'], ['id'], ['onDelete' => 'CASCADE'], 'flz_recruitment_mail_rev_tpl_fk');
         }
 
-        if (!$schema->hasTable('rec_mail_text_blocks')) {
-            $table = $schema->createTable('rec_mail_text_blocks');
+        if (!$schema->hasTable('flz_recruitment_mail_text_blocks')) {
+            $table = $schema->createTable('flz_recruitment_mail_text_blocks');
             $table->addColumn('id', Types::BIGINT, ['autoincrement' => true, 'notnull' => true]);
             $table->addColumn('label', Types::STRING, ['length' => 255, 'notnull' => true]);
             $table->addColumn('insert_text', Types::TEXT, ['notnull' => true]);
@@ -55,11 +55,11 @@ final class Version000009Date202608150001 extends SimpleMigrationStep {
             $table->addColumn('created_at', Types::DATETIME_IMMUTABLE, ['notnull' => true]);
             $table->addColumn('updated_at', Types::DATETIME_IMMUTABLE, ['notnull' => true]);
             $table->setPrimaryKey(['id']);
-            $table->addUniqueIndex(['label'], 'rec_mail_block_label');
+            $table->addUniqueIndex(['label'], 'flz_recruitment_mail_block_label');
         }
 
-        if (!$schema->hasTable('rec_status_mail_rules')) {
-            $table = $schema->createTable('rec_status_mail_rules');
+        if (!$schema->hasTable('flz_recruitment_status_mail_rules')) {
+            $table = $schema->createTable('flz_recruitment_status_mail_rules');
             $table->addColumn('id', Types::BIGINT, ['autoincrement' => true, 'notnull' => true]);
             $table->addColumn('from_status', Types::STRING, ['length' => 64, 'notnull' => true]);
             $table->addColumn('to_status', Types::STRING, ['length' => 64, 'notnull' => true]);
@@ -71,12 +71,12 @@ final class Version000009Date202608150001 extends SimpleMigrationStep {
             $table->addColumn('created_at', Types::DATETIME_IMMUTABLE, ['notnull' => true]);
             $table->addColumn('updated_at', Types::DATETIME_IMMUTABLE, ['notnull' => true]);
             $table->setPrimaryKey(['id']);
-            $table->addUniqueIndex(['from_status', 'to_status'], 'rec_mail_rule_edge');
-            $table->addForeignKeyConstraint($schema->getTable('rec_mail_templates'), ['template_id'], ['id'], ['onDelete' => 'RESTRICT'], 'rec_mail_rule_tpl_fk');
+            $table->addUniqueIndex(['from_status', 'to_status'], 'flz_recruitment_mail_rule_edge');
+            $table->addForeignKeyConstraint($schema->getTable('flz_recruitment_mail_templates'), ['template_id'], ['id'], ['onDelete' => 'RESTRICT'], 'flz_recruitment_mail_rule_tpl_fk');
         }
 
-        if (!$schema->hasTable('rec_mail_drafts')) {
-            $table = $schema->createTable('rec_mail_drafts');
+        if (!$schema->hasTable('flz_recruitment_mail_drafts')) {
+            $table = $schema->createTable('flz_recruitment_mail_drafts');
             $table->addColumn('id', Types::BIGINT, ['autoincrement' => true, 'notnull' => true]);
             $table->addColumn('application_id', Types::BIGINT, ['notnull' => true]);
             $table->addColumn('from_status', Types::STRING, ['length' => 64, 'notnull' => true]);
@@ -100,14 +100,14 @@ final class Version000009Date202608150001 extends SimpleMigrationStep {
             $table->addColumn('created_at', Types::DATETIME_IMMUTABLE, ['notnull' => true]);
             $table->addColumn('updated_at', Types::DATETIME_IMMUTABLE, ['notnull' => true]);
             $table->setPrimaryKey(['id']);
-            $table->addUniqueIndex(['application_id', 'client_key'], 'rec_mail_draft_request');
-            $table->addIndex(['application_id', 'created_at'], 'rec_mail_draft_history');
-            $table->addForeignKeyConstraint($schema->getTable('rec_applications'), ['application_id'], ['id'], ['onDelete' => 'CASCADE'], 'rec_mail_draft_app_fk');
-            $table->addForeignKeyConstraint($schema->getTable('rec_mail_templates'), ['template_id'], ['id'], ['onDelete' => 'RESTRICT'], 'rec_mail_draft_tpl_fk');
+            $table->addUniqueIndex(['application_id', 'client_key'], 'flz_recruitment_mail_draft_request');
+            $table->addIndex(['application_id', 'created_at'], 'flz_recruitment_mail_draft_history');
+            $table->addForeignKeyConstraint($schema->getTable('flz_recruitment_applications'), ['application_id'], ['id'], ['onDelete' => 'CASCADE'], 'flz_recruitment_mail_draft_app_fk');
+            $table->addForeignKeyConstraint($schema->getTable('flz_recruitment_mail_templates'), ['template_id'], ['id'], ['onDelete' => 'RESTRICT'], 'flz_recruitment_mail_draft_tpl_fk');
         }
 
-        if (!$schema->hasTable('rec_mail_outbox')) {
-            $table = $schema->createTable('rec_mail_outbox');
+        if (!$schema->hasTable('flz_recruitment_mail_outbox')) {
+            $table = $schema->createTable('flz_recruitment_mail_outbox');
             $table->addColumn('id', Types::BIGINT, ['autoincrement' => true, 'notnull' => true]);
             $table->addColumn('draft_id', Types::BIGINT, ['notnull' => true]);
             $table->addColumn('job_key', Types::STRING, ['length' => 64, 'notnull' => true]);
@@ -119,10 +119,10 @@ final class Version000009Date202608150001 extends SimpleMigrationStep {
             $table->addColumn('updated_at', Types::DATETIME_IMMUTABLE, ['notnull' => true]);
             $table->addColumn('sent_at', Types::DATETIME_IMMUTABLE, ['notnull' => false]);
             $table->setPrimaryKey(['id']);
-            $table->addUniqueIndex(['draft_id'], 'rec_mail_outbox_draft');
-            $table->addUniqueIndex(['job_key'], 'rec_mail_outbox_job');
-            $table->addIndex(['state', 'scheduled_at'], 'rec_mail_outbox_due');
-            $table->addForeignKeyConstraint($schema->getTable('rec_mail_drafts'), ['draft_id'], ['id'], ['onDelete' => 'CASCADE'], 'rec_mail_outbox_draft_fk');
+            $table->addUniqueIndex(['draft_id'], 'flz_recruitment_mail_outbox_draft');
+            $table->addUniqueIndex(['job_key'], 'flz_recruitment_mail_outbox_job');
+            $table->addIndex(['state', 'scheduled_at'], 'flz_recruitment_mail_outbox_due');
+            $table->addForeignKeyConstraint($schema->getTable('flz_recruitment_mail_drafts'), ['draft_id'], ['id'], ['onDelete' => 'CASCADE'], 'flz_recruitment_mail_outbox_draft_fk');
         }
 
         return $schema;

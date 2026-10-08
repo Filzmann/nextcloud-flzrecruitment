@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-use OCA\Recruitment\Contract\CandidatePoolStore;
-use OCA\Recruitment\Exception\ValidationException;
-use OCA\Recruitment\Service\CandidatePoolService;
+use OCA\FlzRecruitment\Contract\CandidatePoolStore;
+use OCA\FlzRecruitment\Exception\ValidationException;
+use OCA\FlzRecruitment\Service\CandidatePoolService;
 use RecruitmentTests\TestRunner;
 
 use function RecruitmentTests\assertSame;

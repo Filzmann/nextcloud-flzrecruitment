@@ -90,7 +90,7 @@
 
 - Systemweite Grundkonfiguration für Mail-Testmodus, Bewerberpool,
   Lebenslaufextraktion und Erstbegleitungsgruppe in einen eigenen nativen
-  Nextcloud-Adminabschnitt „AD Recruitment“ verschoben.
+  Nextcloud-Adminabschnitt „Filzmann Recruitment“ verschoben.
 - Den operativen Recruitment-Einstellungsbereich auf die durch das
   Personalreferat pflegbaren Interviewfragen, Mailvorlagen und delegierten
   Berechtigungen reduziert; die bestehenden serverseitigen Admin-Grenzen
@@ -202,7 +202,7 @@
 
 ## 0.11.0-rc.3
 
-- Stellenanlage auf Berufsgruppe, fachlich passende AD-Organisationsgruppen
+- Stellenanlage auf Berufsgruppe, fachlich passende FLZ-Organisationsgruppen
   und eine darin begrenzte Nextcloud-Benutzersuche vereinfacht.
 - Verantwortliche Personen serverseitig auf Mitglieder der ausgewählten,
   für die Berufsgruppe zulässigen Gruppen beschränkt.
@@ -270,7 +270,7 @@
 - PDF-Anhänge vor jeder Mutation auf Typ, Signatur, Anzahl und Größe geprüft und unter ausschließlich serverseitig erzeugten Hashpfaden in Nextcloud-AppData gespeichert.
 - Unzugeordneten Eingang auf Personalreferat, Nextcloud-Administration und globale Vertretungen mit `edit_applications` begrenzt; bereichs- oder fallgebundene Vertretungen erhalten erst nach Zuordnung ihren jeweiligen Bewerbungsscope.
 - CSRF-geschützte Zuordnungs- und Ignorieraktionen sowie scoped lesbare Eingangsnachrichten in der Bewerbungsakte ergänzt.
-- Wiederholbaren, zugangsdatenfreien `adrecruitment:inbox:seed`-Befehl mit zwei synthetischen Mails und PDFs ergänzt.
+- Wiederholbaren, zugangsdatenfreien `flzrecruitment:inbox:seed`-Befehl mit zwei synthetischen Mails und PDFs ergänzt.
 - Reale Mailbox-Anbindung, Hintergrundabruf, PDF-Abruf/Vorschau und Aufbewahrungsautomatik bleiben getrennte Folgepakete.
 
 ## 0.6.1
@@ -290,7 +290,7 @@
 
 ## 0.5.0
 
-- Wiederholbaren `adrecruitment:demo:seed`-Befehl mit synthetischer Assistenz-Stelle, E-Mail-Bewerbungen, BQ-Fall, Vertragsstammdaten und Interviewvorlage ergänzt.
+- Wiederholbaren `flzrecruitment:demo:seed`-Befehl mit synthetischer Assistenz-Stelle, E-Mail-Bewerbungen, BQ-Fall, Vertragsstammdaten und Interviewvorlage ergänzt.
 - Anlageformulare über tastaturbedienbare Dialog-Overlays erreichbar gemacht; manuelle Bewerber*innen- und Bewerbungsanlage als Ausnahme zum späteren E-Mail-Eingang gekennzeichnet.
 - Ersten Bewerbungsarbeitsplatz mit gleichwertiger Tabellen- und Kartenansicht sowie Suche, Stellen- und Statusfiltern ergänzt.
 - Technische Eingangskanäle in der Oberfläche fachlich verständlich als E-Mail-Eingang, manuelle Ausnahme, Empfehlung oder sonstiger Kanal bezeichnet.
@@ -313,11 +313,11 @@
 
 ## 0.2.3
 
-- AD Recruitment in den versionierten AD-Produktkatalog aufgenommen.
+- Filzmann Recruitment in den versionierten FLZ-Produktkatalog aufgenommen.
 - Katalogisierte Standalone-Navigation und gemeinsamen OrgSuite-Menühost ergänzt.
-- Aufnahme in das vollständige AD-Suite-Archiv und ein eigenes Produktpaket vorbereitet.
+- Aufnahme in das vollständige Filzmann Nextcloud Plugins-Archiv und ein eigenes Produktpaket vorbereitet.
 
 ## 0.2.2
 
-- App-ID konsistent auf `adrecruitment` umgestellt, ohne PHP-Namespace oder Tabellenpräfix zu verändern.
+- App-ID konsistent auf `flzrecruitment` umgestellt, ohne PHP-Namespace oder Tabellenpräfix zu verändern.
 - Ersten Stellen-, Personen-, Bewerbungs- und Interviewprozess abgesichert.

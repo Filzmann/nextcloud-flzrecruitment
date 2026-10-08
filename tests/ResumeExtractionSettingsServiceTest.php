@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace OCA\Recruitment\AppInfo {
+namespace OCA\FlzRecruitment\AppInfo {
     if (!class_exists(Application::class, false)) {
-        final class Application { public const APP_ID = 'adrecruitment'; }
+        final class Application { public const APP_ID = 'flzrecruitment'; }
     }
 }
 
 namespace {
-    use OCA\Recruitment\Exception\ConflictException;
-    use OCA\Recruitment\Exception\ValidationException;
-    use OCA\Recruitment\Service\ResumeExtractionSettingsService;
+    use OCA\FlzRecruitment\Exception\ConflictException;
+    use OCA\FlzRecruitment\Exception\ValidationException;
+    use OCA\FlzRecruitment\Service\ResumeExtractionSettingsService;
     use RecruitmentTests\TestRunner;
 
     use function RecruitmentTests\assertSame;
@@ -23,7 +23,7 @@ namespace {
             public function getValueString(string $appId, string $key, string $default = ''): string { return $this->values[$appId][$key] ?? $default; }
             public function setValueString(string $appId, string $key, string $value): void { $this->values[$appId][$key] = $value; }
         };
-        $pdfText = new class implements \OCA\Recruitment\Contract\PdfTextExtractor {
+        $pdfText = new class implements \OCA\FlzRecruitment\Contract\PdfTextExtractor {
             public function available(): bool { return true; }
             public function engineLabel(): string { return 'Test-PDF-Extraktor'; }
             public function extract(string $pdfContent): string { return ''; }
@@ -48,7 +48,7 @@ namespace {
             public function getValueString(string $appId, string $key, string $default = ''): string { return $this->values[$appId][$key] ?? $default; }
             public function setValueString(string $appId, string $key, string $value): void { $this->values[$appId][$key] = $value; }
         };
-        $service = new ResumeExtractionSettingsService($config, new class implements \OCA\Recruitment\Contract\PdfTextExtractor {
+        $service = new ResumeExtractionSettingsService($config, new class implements \OCA\FlzRecruitment\Contract\PdfTextExtractor {
             public function available(): bool { return false; }
             public function engineLabel(): string { return 'Nicht verfügbar'; }
             public function extract(string $pdfContent): string { return ''; }

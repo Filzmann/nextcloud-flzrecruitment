@@ -63,7 +63,7 @@ jobs:
           PHP_COVERAGE_COMMAND="$GITHUB_WORKSPACE/localbase/tests/coverage/vendor/bin/phpcov" \
           PHP_COVERAGE_OUTPUT_DIR="$RUNNER_TEMP/php-coverage" \
           php tests/run.php
-          php "$GITHUB_WORKSPACE/localbase/tests/coverage/merge-clover.php" adrecruitment "$RUNNER_TEMP/php-coverage" 43.78
+          php "$GITHUB_WORKSPACE/localbase/tests/coverage/merge-clover.php" flzrecruitment "$RUNNER_TEMP/php-coverage" 43.78
 
   javascript:
     name: JavaScript
@@ -113,5 +113,5 @@ jobs:
     needs: [php, javascript]
     uses: Filzmann/br-nextcloud-apps/.github/workflows/deploy-staging.yml@main
     with:
-      app-id: adrecruitment
+      app-id: flzrecruitment
     secrets: inherit

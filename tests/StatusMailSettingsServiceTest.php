@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace OCA\Recruitment\AppInfo {
+namespace OCA\FlzRecruitment\AppInfo {
     if (!class_exists(Application::class, false)) {
         final class Application {
-            public const APP_ID = 'adrecruitment';
+            public const APP_ID = 'flzrecruitment';
         }
     }
 }
 
 namespace {
-    use OCA\Recruitment\Exception\ConflictException;
-    use OCA\Recruitment\Exception\ValidationException;
-    use OCA\Recruitment\Service\StatusMailSettingsService;
+    use OCA\FlzRecruitment\Exception\ConflictException;
+    use OCA\FlzRecruitment\Exception\ValidationException;
+    use OCA\FlzRecruitment\Service\StatusMailSettingsService;
     use RecruitmentTests\TestRunner;
 
     use function RecruitmentTests\assertSame;

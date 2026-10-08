@@ -12,13 +12,13 @@
 
     function create({ name = 'body', html = '' } = {}) {
         const wrapper = root.document.createElement('div')
-        wrapper.className = 'adrecruitment-rte'
+        wrapper.className = 'flzrecruitment-rte'
         const toolbar = root.document.createElement('div')
-        toolbar.className = 'adrecruitment-rte__toolbar'
+        toolbar.className = 'flzrecruitment-rte__toolbar'
         toolbar.setAttribute('role', 'toolbar')
         toolbar.setAttribute('aria-label', 'Text formatieren')
         const editable = root.document.createElement('div')
-        editable.className = 'adrecruitment-rte__content'
+        editable.className = 'flzrecruitment-rte__content'
         editable.contentEditable = 'true'
         editable.innerHTML = html
         editable.setAttribute('role', 'textbox')
@@ -33,7 +33,7 @@
         for (const [command, label, text] of controls) {
             const control = root.document.createElement('button')
             control.type = 'button'
-            control.className = 'adrecruitment-rte__button'
+            control.className = 'flzrecruitment-rte__button'
             control.textContent = text
             control.setAttribute('aria-label', label)
             control.addEventListener('click', (event) => {

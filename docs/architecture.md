@@ -1,10 +1,10 @@
-# Architektur des ersten AD-Recruitment-Durchstichs
+# Architektur des ersten Filzmann-Recruitment-Durchstichs
 
 ## Technische Identität
 
 Die Nextcloud-App-ID, Route, Asset-ID und DDEV-Mount verwenden
-`adrecruitment`. Der bestehende PHP-Namespace `OCA\Recruitment` und die
-app-eigenen Tabellen mit Präfix `rec_` bleiben bewusst stabil. Dadurch kann
+`flzrecruitment`. Der bestehende PHP-Namespace `OCA\FlzRecruitment` und die
+app-eigenen Tabellen mit Präfix `flz_recruitment_` bleiben bewusst stabil. Dadurch kann
 eine bereits angelegte lokale Installation unter der neuen App-ID dieselben
 Fachdaten idempotent weiterverwenden, ohne Tabellen zu kopieren oder
 umzubenennen.
@@ -132,7 +132,7 @@ Entscheiden sowie automatische Folgen und externe Offenlegung sind
 ausgeschlossen. Gleiches gilt für das getrennte, ausschließlich manuell
 gepflegte Stammdatum `m/w/d` für Assistenz-Bewerber*innen. Es bleibt intern,
 wird Assistenznehmer*innen nicht offengelegt und verbleibt bis zu einer
-später gesondert modellierten Übergabe kanonisch in AD Recruitment.
+später gesondert modellierten Übergabe kanonisch in Filzmann Recruitment.
 
 Die Datenschutzbeauftragten verantworten davon getrennt die Retention-Policy,
 begründete Holds und die Historie temporärer Adminfreigaben. IKT verantwortet
@@ -189,7 +189,7 @@ Bewerbungsscope serverseitig.
 
 ## Vertragsstammdaten
 
-Die app-eigene Tabelle `rec_hiring_data` hält eine explizite Feldliste für
+Die app-eigene Tabelle `flz_recruitment_hiring_data` hält eine explizite Feldliste für
 Personenstammdaten sowie die erst ab `approved_for_hire` durch LoBu
 bearbeitbaren Bank-, Krankenkassen-, Steuer- und Sozialversicherungsdaten.
 Unbekannte JSON-Felder,
@@ -198,7 +198,7 @@ sind optimistisch versioniert; das Berechtigungsaudit enthält nur Aktion,
 Akteur, Scope und Feldnamen, niemals die sensiblen Feldwerte.
 
 Vertragsdauer, Entgeltgruppe, ausgeschriebene und Vollzeit-Wochenstunden,
-Urlaub sowie Arbeitsort liegen kanonisch an `rec_jobs`. Der
+Urlaub sowie Arbeitsort liegen kanonisch an `flz_recruitment_jobs`. Der
 `HiringMasterDataService` erzeugt daraus die LoBu-Projektion und leitet
 KAPOVAZ für Assistenz beziehungsweise Festgehalt für andere Berufsgruppen ab.
 Gehalt und Währung sind kein aktiver Vertragseingang. Familienstand wird für
@@ -210,7 +210,7 @@ löschen.
 
 Die erste Migration erstellt ausschließlich app-eigene Tabellen. Bei einer
 frischen Installation legt sie diese neu an; bei der Umbenennung von
-`recruitment` auf `adrecruitment` erkennt sie die bestehenden `rec_`-Tabellen
+`recruitment` auf `flzrecruitment` erkennt sie die bestehenden `flz_recruitment_`-Tabellen
 und übernimmt sie ohne Transformation. Die Migration ist additiv und
 wiederholbar, weil jede Tabelle vor der Anlage geprüft wird.
 Die zweite additive Migration ergänzt Bereich und Erstbegleitungsfreigabe an
@@ -257,7 +257,7 @@ inhaltlich transformiert. Eine neue Tabelle hält PDF-Fundstelle,
 Zielbewerbung, Zielfeld, ausgewählten Text, angewandten und resultierenden
 Wert, normierte Rechtecke, Akteur und Client-Schlüssel. Fremdschlüssel sichern
 Anhang und Bewerbung; der eindeutige Client-Schlüssel pro Anhang verhindert
-doppelte Requestausführung. Bereits in `rec_hiring_data` vorhandene
+doppelte Requestausführung. Bereits in `flz_recruitment_hiring_data` vorhandene
 Geburtsdaten bleiben unverändert und werden nicht dupliziert. Die Migration
 ist additiv und wiederaufnehmbar; nach Datennutzung bleiben Spalten und
 Nachweistabelle auch bei einem Code-Rollback bestehen.

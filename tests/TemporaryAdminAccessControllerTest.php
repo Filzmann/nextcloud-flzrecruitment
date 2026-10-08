@@ -3,12 +3,12 @@
 declare(strict_types=1);
 
 namespace OCP { interface IRequest {} }
-namespace OCA\Recruitment\AppInfo { final class Application { public const APP_ID='adrecruitment'; } }
+namespace OCA\FlzRecruitment\AppInfo { final class Application { public const APP_ID='flzrecruitment'; } }
 namespace OCP\AppFramework { class Controller { public function __construct(string $appId,\OCP\IRequest $request){} } final class Http { public const STATUS_BAD_REQUEST=400;public const STATUS_FORBIDDEN=403;public const STATUS_INTERNAL_SERVER_ERROR=500; } }
 namespace OCP\AppFramework\Http { final class JSONResponse { public function __construct(private array $data=[],private int $status=200){}public function getData():array{return $this->data;}public function getStatus():int{return $this->status;} } }
 namespace OCP\AppFramework\Http\Attribute { #[\Attribute(\Attribute::TARGET_METHOD)] final class NoCSRFRequired {} #[\Attribute(\Attribute::TARGET_METHOD)] final class NoAdminRequired {} }
 namespace Psr\Log { interface LoggerInterface { public function error(string $message,array $context=[]):void; } }
-namespace OCA\Recruitment\Service {
+namespace OCA\FlzRecruitment\Service {
     final class TemporaryAdminAccessService {
         public string $mode='allowed'; public int $mutations=0;
         public function state():array { if($this->mode==='denied')throw new TemporaryAdminAccessDeniedException();return ['maxDurationMinutes'=>1440,'history'=>[]]; }
@@ -18,8 +18,8 @@ namespace OCA\Recruitment\Service {
     final class TemporaryAdminAccessDeniedException extends \RuntimeException {}
 }
 namespace {
-    use OCA\Recruitment\Controller\TemporaryAdminAccessController;
-    use OCA\Recruitment\Service\TemporaryAdminAccessService;
+    use OCA\FlzRecruitment\Controller\TemporaryAdminAccessController;
+    use OCA\FlzRecruitment\Service\TemporaryAdminAccessService;
     use OCP\AppFramework\Http;
 
     $service=new TemporaryAdminAccessService();
@@ -37,5 +37,5 @@ namespace {
     if($controller->status()->getStatus()!==Http::STATUS_FORBIDDEN)throw new RuntimeException('Nicht-Admin kann den Freigabestatus lesen.');
     $service->mode='failed';
     if($controller->activate('admin-target',60)->getStatus()!==Http::STATUS_INTERNAL_SERVER_ERROR||$logger->errors===[])throw new RuntimeException('Persistenzfehler wird nicht sicher diagnostiziert.');
-    echo "AD Recruitment temporary admin access controller tests passed\n";
+    echo "Filzmann Recruitment temporary admin access controller tests passed\n";
 }

@@ -16,26 +16,26 @@ TestRunner::test('app shell exposes accessible tabs, status and error regions', 
 
     assertTrue(str_contains($template, 'role="status"'));
     assertTrue(str_contains($template, 'role="alert"'));
-    assertTrue(str_contains($template, 'aria-label="AD-Recruitment-Bereiche"'));
+    assertTrue(str_contains($template, 'aria-label="Filzmann-Recruitment-Bereiche"'));
     assertTrue(
-        str_contains($template, 'data-orgsuite data-suite="ad" data-current-app="adrecruitment"'),
+        str_contains($template, 'data-orgsuite data-suite="flz" data-current-app="flzrecruitment"'),
         'The optional OrgSuite menu host is missing',
     );
     assertTrue(!str_contains($template, "addScript('orgsuite'") && !str_contains($template, "addStyle('orgsuite'"));
     assertTrue(
-        preg_match('/\.adrecruitment-app\s*\{[^}]*width:\s*100%/s', $css) === 1,
+        preg_match('/\.flzrecruitment-app\s*\{[^}]*width:\s*100%/s', $css) === 1,
         'The app root does not use the full available width',
     );
     assertTrue(str_contains($css, 'overflow-y: auto'));
     assertTrue(str_contains($css, ':focus-visible'));
-    assertTrue(str_contains($template, "addScript('adrecruitment', 'modules/dialog-overlay');"), 'Dialog controller is not loaded before the app UI');
-    assertTrue(str_contains($template, "addScript('adrecruitment', 'modules/application-workbench');"), 'Application workbench model is not loaded before the app UI');
-    assertTrue(str_contains($template, "addScript('adrecruitment', 'modules/settings-navigation');"), 'Settings navigation model is not loaded before the app UI');
-    assertTrue(str_contains($template, "addScript('adrecruitment', 'modules/contact-links');"), 'Safe contact links are not loaded before the app UI');
-    assertTrue(str_contains($css, '.adrecruitment-overlay'), 'Creation overlays have no bounded layout');
-    assertTrue(str_contains($css, '.adrecruitment-overlay::backdrop'), 'Creation overlays have no modal backdrop');
+    assertTrue(str_contains($template, "addScript('flzrecruitment', 'modules/dialog-overlay');"), 'Dialog controller is not loaded before the app UI');
+    assertTrue(str_contains($template, "addScript('flzrecruitment', 'modules/application-workbench');"), 'Application workbench model is not loaded before the app UI');
+    assertTrue(str_contains($template, "addScript('flzrecruitment', 'modules/settings-navigation');"), 'Settings navigation model is not loaded before the app UI');
+    assertTrue(str_contains($template, "addScript('flzrecruitment', 'modules/contact-links');"), 'Safe contact links are not loaded before the app UI');
+    assertTrue(str_contains($css, '.flzrecruitment-overlay'), 'Creation overlays have no bounded layout');
+    assertTrue(str_contains($css, '.flzrecruitment-overlay::backdrop'), 'Creation overlays have no modal backdrop');
     assertTrue(
-        preg_match('/\.adrecruitment-overlay:not\(\[open\]\)\s*\{[^}]*display:\s*none/s', $css) === 1,
+        preg_match('/\.flzrecruitment-overlay:not\(\[open\]\)\s*\{[^}]*display:\s*none/s', $css) === 1,
         'Closed creation overlays are not protected from conflicting Nextcloud dialog styles',
     );
     assertTrue(str_contains($main, "createFormOverlay('Neue Stelle'"), 'New jobs are not opened through an overlay button');
@@ -58,7 +58,7 @@ TestRunner::test('app shell exposes accessible tabs, status and error regions', 
     assertTrue(str_contains($main, "field('Eingang von'"), 'Application workbench has no inclusive received-from filter');
     assertTrue(str_contains($main, "field('Eingang bis'"), 'Application workbench has no inclusive received-to filter');
     assertTrue(str_contains($main, "field('Sortierung'"), 'Application workbench has no sorting control');
-    assertTrue(str_contains($css, '.adrecruitment-board'), 'Application cards have no responsive board layout');
+    assertTrue(str_contains($css, '.flzrecruitment-board'), 'Application cards have no responsive board layout');
     assertTrue(str_contains($main, "field('Wunschstunden von (ca.)'"), 'Application workflow has no lower approximate desired-hours field');
     assertTrue(str_contains($main, "field('Wunschstunden bis (ca., optional)'"), 'Application workflow has no optional upper desired-hours field');
     assertTrue(str_contains($main, 'desiredHoursLabel('), 'Application views do not format single values and ranges consistently');
@@ -77,7 +77,7 @@ TestRunner::test('app shell exposes accessible tabs, status and error regions', 
     assertTrue(str_contains($main, "['settings', 'Einstellungen']"), 'Occasional administration is not bundled in one settings tab');
     assertTrue(str_contains($main, "'aria-label': 'Einstellungsbereiche'"), 'The settings menu has no accessible label');
     assertTrue(str_contains($main, 'RecruitmentSettingsNavigation'), 'Settings visibility is not derived from one capability-bound navigation model');
-    assertTrue(str_contains($css, '.adrecruitment-settings-tab[aria-selected="true"]'), 'The active settings section has no visible state');
+    assertTrue(str_contains($css, '.flzrecruitment-settings-tab[aria-selected="true"]'), 'The active settings section has no visible state');
     assertTrue(str_contains($main, "['basis-qualifications', 'Basisqualifikationen']"), 'HR has no capability-bound BQ area');
     assertTrue(str_contains($main, 'bis die eigenständige BQ-Planer-App angebunden ist'), 'The temporary local BQ administration is not explained.');
     assertTrue(str_contains($main, 'api.createBasisQualificationRun'), 'BQ runs cannot be created from the UI');
@@ -139,5 +139,5 @@ TestRunner::test('contract data stays compact until editing and uses content-siz
     $main = file_get_contents(dirname(__DIR__) . '/js/main.js');
     assertTrue($main !== false && str_contains($main, "button('Vertragsdaten bearbeiten'"), 'Contract area is not read-first.');
     assertTrue(str_contains($main, "salutation: [") && str_contains($main, "title: ["), 'Salutation and title are not selections.');
-    assertTrue(str_contains($main, "maxlength") && str_contains($main, 'adrecruitment-compact-form'), 'Contract controls have no content-oriented sizing.');
+    assertTrue(str_contains($main, "maxlength") && str_contains($main, 'flzrecruitment-compact-form'), 'Contract controls have no content-oriented sizing.');
 });

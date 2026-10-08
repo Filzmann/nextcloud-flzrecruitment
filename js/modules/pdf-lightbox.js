@@ -35,7 +35,7 @@
 
     function assetUrl(path) {
         if (!root.OC?.linkTo) throw new Error('Die lokale PDF.js-Adresse konnte nicht erzeugt werden.')
-        return root.OC.linkTo('adrecruitment', `js/vendor/pdfjs/${path}`)
+        return root.OC.linkTo('flzrecruitment', `js/vendor/pdfjs/${path}`)
     }
 
     async function pdfModule() {
@@ -66,7 +66,7 @@
             throw new Error('Die PDF-Lightbox ist in dieser Umgebung nicht verfügbar.')
         }
         const dialog = node(document, 'dialog', {
-            className: 'adrecruitment-pdf-lightbox',
+            className: 'flzrecruitment-pdf-lightbox',
             'aria-label': `PDF-Ansicht: ${title}`,
         })
         const heading = node(document, 'h2', { text: title })
@@ -75,18 +75,18 @@
         const zoomIn = node(document, 'button', { type: 'button', text: 'Vergrößern', 'aria-label': 'PDF vergrößern' })
         const takeSelection = node(document, 'button', { type: 'button', text: 'Textauswahl übernehmen' })
         const markArea = node(document, 'button', { type: 'button', text: 'Bereich markieren', 'aria-pressed': 'false' })
-        const status = node(document, 'p', { className: 'adrecruitment-pdf-status', text: 'PDF wird geladen …', role: 'status' })
-        const pages = node(document, 'div', { className: 'adrecruitment-pdf-pages', tabindex: '0' })
-        const toolbar = node(document, 'div', { className: 'adrecruitment-pdf-toolbar', role: 'toolbar', 'aria-label': 'PDF-Werkzeuge' }, [
+        const status = node(document, 'p', { className: 'flzrecruitment-pdf-status', text: 'PDF wird geladen …', role: 'status' })
+        const pages = node(document, 'div', { className: 'flzrecruitment-pdf-pages', tabindex: '0' })
+        const toolbar = node(document, 'div', { className: 'flzrecruitment-pdf-toolbar', role: 'toolbar', 'aria-label': 'PDF-Werkzeuge' }, [
             zoomOut, zoomIn, takeSelection, markArea, status, closeButton,
         ])
-        const viewerColumn = node(document, 'section', { className: 'adrecruitment-pdf-viewer-column', 'aria-label': 'PDF-Seiten' }, [toolbar, pages])
+        const viewerColumn = node(document, 'section', { className: 'flzrecruitment-pdf-viewer-column', 'aria-label': 'PDF-Seiten' }, [toolbar, pages])
         const layoutChildren = [viewerColumn]
         if (sidePanel) {
-            sidePanel.classList.add('adrecruitment-pdf-side-panel')
+            sidePanel.classList.add('flzrecruitment-pdf-side-panel')
             layoutChildren.push(sidePanel)
         }
-        dialog.append(heading, node(document, 'div', { className: 'adrecruitment-pdf-lightbox-layout' }, layoutChildren))
+        dialog.append(heading, node(document, 'div', { className: 'flzrecruitment-pdf-lightbox-layout' }, layoutChildren))
         const returnFocus = document.activeElement
         document.body.append(dialog)
 
@@ -154,11 +154,11 @@
         let drag = null
         pages.addEventListener('pointerdown', (event) => {
             if (!marking) return
-            const page = event.target.closest?.('.adrecruitment-pdf-page')
+            const page = event.target.closest?.('.flzrecruitment-pdf-page')
             if (!page) return
             event.preventDefault()
             const bounds = page.getBoundingClientRect()
-            const marker = node(document, 'span', { className: 'adrecruitment-pdf-active-mark', 'aria-hidden': 'true' })
+            const marker = node(document, 'span', { className: 'flzrecruitment-pdf-active-mark', 'aria-hidden': 'true' })
             page.append(marker)
             drag = { page, bounds, marker, startX: event.clientX, startY: event.clientY }
             page.setPointerCapture?.(event.pointerId)
@@ -199,7 +199,7 @@
                 const page = await pdf.getPage(pageNumber)
                 const viewport = page.getViewport({ scale })
                 const pageElement = node(document, 'section', {
-                    className: 'adrecruitment-pdf-page',
+                    className: 'flzrecruitment-pdf-page',
                     dataset: { pageNumber: String(pageNumber) },
                     'aria-label': `PDF-Seite ${pageNumber}`,
                     tabindex: '0',
@@ -213,7 +213,7 @@
                 canvas.height = Math.floor(viewport.height * outputScale)
                 canvas.style.width = `${viewport.width}px`
                 canvas.style.height = `${viewport.height}px`
-                const textLayerElement = node(document, 'div', { className: 'adrecruitment-pdf-text-layer' })
+                const textLayerElement = node(document, 'div', { className: 'flzrecruitment-pdf-text-layer' })
                 pageElement.append(canvas, textLayerElement)
                 pages.append(pageElement)
                 await page.render({
@@ -265,7 +265,7 @@
 
     function closestPage(node) {
         const element = node?.nodeType === 1 ? node : node?.parentElement
-        return element?.closest?.('.adrecruitment-pdf-page') || null
+        return element?.closest?.('.flzrecruitment-pdf-page') || null
     }
 
     function positionMarker(drag, clientX, clientY) {
@@ -282,7 +282,7 @@
         for (const link of links) {
             for (const rectangle of link.rectangles || []) {
                 const marker = node(document, 'span', {
-                    className: 'adrecruitment-pdf-stored-mark',
+                    className: 'flzrecruitment-pdf-stored-mark',
                     title: `${targetLabel(link.targetField)}: ${link.appliedValue}`,
                     'aria-hidden': 'true',
                 })

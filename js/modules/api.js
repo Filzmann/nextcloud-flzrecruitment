@@ -22,7 +22,7 @@
             headers['X-Requested-With'] = 'XMLHttpRequest'
         }
 
-        const response = await fetch(root.OC.generateUrl('/apps/adrecruitment' + path), {
+        const response = await fetch(root.OC.generateUrl('/apps/flzrecruitment' + path), {
             method,
             headers,
             credentials: 'same-origin',
@@ -96,7 +96,7 @@
         assignInboxMessage: (id, applicationId, version, acceptedSuggestions = {}) => request(`/api/inbox/${id}/assign`, 'POST', { applicationId, version, acceptedSuggestions }),
         createApplicationFromInbox: (id, data) => request(`/api/inbox/${id}/application`, 'POST', data),
         ignoreInboxMessage: (id, version) => request(`/api/inbox/${id}/ignore`, 'POST', { version }),
-        documentUrl: (attachmentId) => root.OC.generateUrl(`/apps/adrecruitment/api/attachments/${attachmentId}/document`),
+        documentUrl: (attachmentId) => root.OC.generateUrl(`/apps/flzrecruitment/api/attachments/${attachmentId}/document`),
         attachmentComments: (attachmentId) => request(`/api/attachments/${attachmentId}/comments`),
         createDocumentComment: (attachmentId, data) => request(`/api/attachments/${attachmentId}/comments`, 'POST', data),
         attachmentFieldContext: (attachmentId, targetField) => request(`/api/attachments/${attachmentId}/field-context/${encodeURIComponent(targetField)}`),

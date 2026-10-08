@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use OCA\Recruitment\Service\ApplicationStatusService;
-use OCA\Recruitment\Service\DefaultStatusMailTemplateCatalog;
+use OCA\FlzRecruitment\Service\ApplicationStatusService;
+use OCA\FlzRecruitment\Service\DefaultStatusMailTemplateCatalog;
 use RecruitmentTests\TestRunner;
 
 use function RecruitmentTests\assertSame;

@@ -12,15 +12,15 @@ TestRunner::test('release metadata supports standalone and full-suite packaging'
     $readme = file_get_contents($root . '/README.md');
 
     assertTrue($info !== false && $readme !== false, 'Release contract sources are missing');
-    foreach (['<website>https://github.com/Filzmann/ad-suite</website>',
-        '<bugs>https://github.com/Filzmann/nextcloud-recruitment/issues</bugs>',
-        '<repository type="git">https://github.com/Filzmann/nextcloud-recruitment</repository>'] as $metadata) {
+    foreach (['<website>https://github.com/Filzmann/flz-full-suite</website>',
+        '<bugs>https://github.com/Filzmann/nextcloud-flzrecruitment/issues</bugs>',
+        '<repository type="git">https://github.com/Filzmann/nextcloud-flzrecruitment</repository>'] as $metadata) {
         assertTrue(str_contains($info, $metadata), "Release metadata is missing: {$metadata}");
     }
     assertTrue(is_file($root . '/LICENSE'), 'AGPL license file is missing');
     assertTrue(is_file($root . '/CHANGELOG.md'), 'Changelog is missing');
     assertTrue(str_contains($readme, 'eigenständig installierbar'), 'Standalone capability is undocumented');
-    assertTrue(str_contains($readme, 'AD-Suite'), 'Suite membership is undocumented');
+    assertTrue(str_contains($readme, 'Filzmann Nextcloud Plugins'), 'Suite membership is undocumented');
 });
 
 TestRunner::test('deliverable production sources contain no invalid placeholder domain', static function (): void {

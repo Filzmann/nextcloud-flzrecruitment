@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace OCA\Recruitment\Settings;
+namespace OCA\FlzRecruitment\Settings;
 
-use OCA\Recruitment\AppInfo\Application;
+use OCA\FlzRecruitment\AppInfo\Application;
 use OCP\IURLGenerator;
 use OCP\Settings\IIconSection;
 
@@ -21,7 +21,7 @@ final class AdminSection implements IIconSection {
     }
 
     public function getName(): string {
-        return 'AD Recruitment';
+        return 'Filzmann Recruitment';
     }
 
     public function getPriority(): int {

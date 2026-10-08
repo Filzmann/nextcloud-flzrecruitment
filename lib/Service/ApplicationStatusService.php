@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace OCA\Recruitment\Service;
+namespace OCA\FlzRecruitment\Service;
 
-use OCA\Recruitment\Contract\ApplicationStatusStore;
-use OCA\Recruitment\Exception\ValidationException;
+use OCA\FlzRecruitment\Contract\ApplicationStatusStore;
+use OCA\FlzRecruitment\Exception\ValidationException;
 
 /**
  * Einzige fachliche Instanz für zulässige Bewerbungsstatus-Übergänge.

@@ -1,13 +1,13 @@
-# AD Recruitment
+# Filzmann Recruitment
 
 ## Staging-Kompatibilität
 
 - Nextcloud 33 bis 34
 - PHP 8.3 oder neuer innerhalb des von Nextcloud 33 bis 34 unterstützten Bereichs
-- Laufzeitbasis: `localbase`; `orgsuite` ist ab zwei AD-Fachprodukten optional aktiv
-- App-ID und Installationsordner: `adrecruitment`
+- Laufzeitbasis: `localbase`; `orgsuite` ist ab zwei FLZ-Fachprodukten optional aktiv
+- App-ID und Installationsordner: `flzrecruitment`
 
-`adrecruitment` ist eine eigenständige Nextcloud-App für einen strukturierten,
+`flzrecruitment` ist eine eigenständige Nextcloud-App für einen strukturierten,
 nachvollziehbaren Bewerbungsprozess. Der vorhandene vertikale Ausschnitt
 umfasst Stellen, Personen, Bewerbungen, versionierte Interviewvorlagen und
 -instanzen, kontrollierte Bewerbungsstatus, Vertragsstammdaten,
@@ -25,7 +25,7 @@ gruppierte Karten angezeigt, können alternativ als Tabelle geöffnet und nach
 Text, Stelle sowie Status gefiltert werden. Neue Datensätze werden über
 kontextbezogene Buttons in Dialog-Overlays angelegt.
 Die Stellenanlage zeigt nach Wahl der Berufsgruppe nur fachlich passende
-AD-Organisationsgruppen. Verantwortliche Personen werden per Suche
+FLZ-Organisationsgruppen. Verantwortliche Personen werden per Suche
 ausschließlich unter den Mitgliedern der ausgewählten Gruppen angeboten.
 Für Assistenz-Stellen gilt die Basisqualifikation automatisch und immer; für
 andere Berufsgruppen wird sie nicht angeboten.
@@ -36,7 +36,7 @@ sowie Berechtigungen liegen
 capability-abhängig gemeinsam unter `Einstellungen` und sind dort über eine
 tastaturbedienbare Unter-Navigation erreichbar.
 Systemweite Grundkonfigurationen liegen getrennt unter
-`Nextcloud-Einstellungen → Verwaltung → AD Recruitment`: Mail-Testmodus,
+`Nextcloud-Einstellungen → Verwaltung → Filzmann Recruitment`: Mail-Testmodus,
 Lebenslaufextraktion sowie die strukturelle Erstbegleitungsgruppe. Dieser
 Abschnitt ist ausschließlich für Nextcloud-Admins sichtbar.
 
@@ -107,15 +107,15 @@ Finanzen zugeordnet. Lohn-Mitarbeitende müssen durch die Administration
 bewusst in die neue LocalBase-Lohn-Gruppe übernommen werden; Mitgliedschaften
 werden wegen der sensiblen Vertragsstammdaten nicht automatisch kopiert.
 
-Die App bleibt eigenständig installierbar. Ab zwei aktivierten AD-Fachprodukten
-ersetzt OrgSuite den einzelnen Nextcloud-Einstieg durch das gemeinsame AD-Menü.
-AD Recruitment ist Bestandteil des vollständigen AD-Suite-Pakets und wird
+Die App bleibt eigenständig installierbar. Ab zwei aktivierten FLZ-Fachprodukten
+ersetzt OrgSuite den einzelnen Nextcloud-Einstieg durch das gemeinsame FLZ-Menü.
+Filzmann Recruitment ist Bestandteil des vollständigen Filzmann Nextcloud Plugins-Pakets und wird
 zusätzlich als eigenes Produktpaket mit LocalBase und OrgSuite gebaut.
 
 ## Lokale Entwicklung
 
 In einer Nextcloud-Installation liegt der Einstieg unter
-`/index.php/apps/adrecruitment/`. Lokale Mount- und DDEV-Details werden nur im
+`/index.php/apps/flzrecruitment/`. Lokale Mount- und DDEV-Details werden nur im
 internen Parent-Workspace gepflegt und sind kein Produktionsvertrag.
 
 Schnelle Prüfungen:
@@ -129,7 +129,7 @@ Ein ausschließlich synthetischer, wiederholbarer Demo-Datensatz kann in einer
 bewusst gewählten lokalen Demo- oder Abnahmeumgebung installiert werden:
 
 ```bash
-php occ adrecruitment:demo:seed
+php occ flzrecruitment:demo:seed
 ```
 
 Die erste Demo-Stelle ist eine BQ-pflichtige Assistenz-Stelle. Der Seed legt
@@ -158,7 +158,7 @@ Für den Posteingangs-Durchstich stehen zwei neutrale Originalmails mit je
 einem synthetischen PDF bereit:
 
 ```bash
-php occ adrecruitment:inbox:seed
+php occ flzrecruitment:inbox:seed
 ```
 
 Der Befehl verwendet keine Zugangsdaten und ist idempotent. Originaltexte und
