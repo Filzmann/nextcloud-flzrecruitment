@@ -3,12 +3,10 @@
 declare(strict_types=1);
 
 namespace {
-    require_once __DIR__ . '/bootstrap.php';
-
-    use OCA\Recruitment\Contract\BasisQualificationStore;
-    use OCA\Recruitment\Exception\ConflictException;
-    use OCA\Recruitment\Exception\ValidationException;
-    use OCA\Recruitment\Service\BasisQualificationService;
+    use OCA\FlzRecruitment\Contract\BasisQualificationStore;
+    use OCA\FlzRecruitment\Exception\ConflictException;
+    use OCA\FlzRecruitment\Exception\ValidationException;
+    use OCA\FlzRecruitment\Service\BasisQualificationService;
     use RecruitmentTests\TestRunner;
 
     use function RecruitmentTests\assertSame;
@@ -26,12 +24,14 @@ namespace {
         ];
         public array $runs = [];
         public array $assignments = [];
+        public int $jobRequirementWrites = 0;
 
         public function basisQualificationContext(int $applicationId): array {
             return ['application' => $this->applications[$applicationId], 'job' => $this->jobs[$this->applications[$applicationId]['jobId']]];
         }
         public function basisQualificationJob(int $jobId): array { return $this->jobs[$jobId]; }
         public function setJobBasisQualificationRequired(int $jobId, bool $required, int $expectedVersion, string $actorUid): array {
+            $this->jobRequirementWrites++;
             if ($this->jobs[$jobId]['version'] !== $expectedVersion) throw new ConflictException('stale');
             $this->jobs[$jobId]['basisQualificationRequired'] = $required;
             $this->jobs[$jobId]['version']++;
@@ -111,17 +111,23 @@ namespace {
         assertSame('screening', $store->applications[3]['status']);
     });
 
-    TestRunner::test('HR can mark an existing job as requiring basis qualification with optimistic locking', static function (): void {
+    TestRunner::test('BQ requirement follows the job profession and cannot be toggled', static function (): void {
         $store = new MemoryBasisQualificationStore();
         $service = new BasisQualificationService();
+        $store->jobs[10]['professionCategory'] = 'assistance';
+        $store->jobs[11]['professionCategory'] = 'nursing';
 
-        $updated = $service->setJobRequirement($store, 11, true, 1, 'hr-user');
+        $updated = $service->setJobRequirement($store, 10, true, 2, 'hr-user');
         assertSame(true, $updated['basisQualificationRequired']);
-        assertSame(2, $updated['version']);
         assertThrows(
-            static fn () => $service->setJobRequirement($store, 11, false, 1, 'hr-user'),
-            ConflictException::class,
+            static fn () => $service->setJobRequirement($store, 10, false, 2, 'hr-user'),
+            ValidationException::class,
         );
+        assertThrows(
+            static fn () => $service->setJobRequirement($store, 11, true, 1, 'hr-user'),
+            ValidationException::class,
+        );
+        assertSame(0, $store->jobRequirementWrites);
     });
 
     TestRunner::test('simple BQ result is versioned without automatically changing application status', static function (): void {

@@ -3,16 +3,16 @@
 declare(strict_types=1);
 
 namespace OCA\LocalBase\AppInfo { final class Application { public const APP_ID = 'localbase'; } }
-namespace OCA\Recruitment\AppInfo { final class Application { public const APP_ID = 'adrecruitment'; } }
+namespace OCA\FlzRecruitment\AppInfo { final class Application { public const APP_ID = 'flzrecruitment'; } }
+namespace OCA\FlzRecruitment\Service { interface TemporaryAdminAccessChecker { public function hasActiveGrant(string $uid): bool; } }
 
 namespace {
-    require_once __DIR__ . '/bootstrap.php';
-
-    use OCA\LocalBase\Organization\AdOrganizationSettingsService;
-    use OCA\LocalBase\Organization\AdOrganizationSnapshotService;
-    use OCA\Recruitment\Exception\AccessDeniedException;
-    use OCA\Recruitment\Service\RecruitmentAccessService;
-    use OCA\Recruitment\Service\RecruitmentPermissionSettingsService;
+    use OCA\FlzRecruitment\Exception\AccessDeniedException;
+    use OCA\FlzRecruitment\Organization\OrganizationSnapshot;
+    use OCA\FlzRecruitment\Organization\OrganizationSnapshotService;
+    use OCA\FlzRecruitment\Service\RecruitmentAccessService;
+    use OCA\FlzRecruitment\Service\RecruitmentPermissionSettingsService;
+    use OCA\FlzRecruitment\Service\TemporaryAdminAccessChecker;
     use OCP\IAppConfig;
     use OCP\IGroup;
     use OCP\IGroupManager;
@@ -40,53 +40,70 @@ namespace {
     }
     final class TestUsers implements IUserManager { public function userExists(string $uid): bool { return true; } }
 
-    $dependencies = static function (string $uid, array $members = [], array $admins = []): RecruitmentAccessService {
+    final class FixedOrganizationSnapshotService extends OrganizationSnapshotService {
+        public function __construct(private OrganizationSnapshot $fixedSnapshot) {}
+        public function snapshot(): OrganizationSnapshot { return $this->fixedSnapshot; }
+    }
+
+    $organization = static fn(): OrganizationSnapshot => OrganizationSnapshot::valid('1.0', 4, 'test-checksum', [
+        'staff_hr' => ['groupId' => 'flz-Stab-HR', 'label' => 'Personalreferat'],
+        'finance' => ['groupId' => 'flz-Finanzen', 'label' => 'Finanzen'],
+        'payroll' => ['groupId' => 'flz-Lohn', 'label' => 'Lohn'],
+        'eb' => ['groupId' => 'flz-EB', 'label' => 'Einsatzbegleitung'],
+    ], [
+        'west' => ['groupId' => 'flz-Bereich-West', 'label' => 'West'],
+    ]);
+
+    $dependencies = static function (string $uid, array $members = [], array $admins = [], bool $activeGrant = false) use ($organization): RecruitmentAccessService {
         $config = new TestConfig();
-        $organizationSettings = new AdOrganizationSettingsService($config);
-        $organizationSettings->save($organizationSettings->definition()->toArray());
         $groups = new TestGroups($members, $admins);
         return new RecruitmentAccessService(
             new TestSession(new TestUser($uid)),
             $groups,
-            new AdOrganizationSnapshotService($organizationSettings),
+            new FixedOrganizationSnapshotService($organization()),
             new RecruitmentPermissionSettingsService($config, new TestUsers(), $groups),
+            new class($activeGrant) implements TemporaryAdminAccessChecker { public function __construct(private bool $active) {} public function hasActiveGrant(string $uid): bool { return $this->active; } },
         );
     };
 
-    TestRunner::test('anonymous and finance users are denied server-side', static function () use ($dependencies): void {
+    TestRunner::test('anonymous and finance users are denied server-side', static function () use ($dependencies, $organization): void {
         $config = new TestConfig();
-        $organizationSettings = new AdOrganizationSettingsService($config);
-        $organizationSettings->save($organizationSettings->definition()->toArray());
         $groups = new TestGroups([]);
-        $anonymous = new RecruitmentAccessService(new TestSession(null), $groups, new AdOrganizationSnapshotService($organizationSettings), new RecruitmentPermissionSettingsService($config, new TestUsers(), $groups));
+        $anonymous = new RecruitmentAccessService(new TestSession(null), $groups, new FixedOrganizationSnapshotService($organization()), new RecruitmentPermissionSettingsService($config, new TestUsers(), $groups), new class implements TemporaryAdminAccessChecker { public function hasActiveGrant(string $uid): bool { return false; } });
         assertThrows(static fn () => $anonymous->requireAnyAccess(), AccessDeniedException::class);
 
-        $finance = $dependencies('finance-user', ['ad-Finanzen' => ['finance-user']]);
+        $finance = $dependencies('finance-user', ['flz-Finanzen' => ['finance-user']]);
         assertSame(false, $finance->can(RecruitmentAccessService::VIEW));
     });
 
     TestRunner::test('HR receives full access and payroll only released hiring data', static function () use ($dependencies): void {
-        $hr = $dependencies('hr-user', ['ad-Stab-HR' => ['hr-user']]);
+        $hr = $dependencies('hr-user', ['flz-Stab-HR' => ['hr-user']]);
         assertTrue($hr->can(RecruitmentAccessService::MANAGE_DELEGATIONS));
+        assertTrue($hr->can(RecruitmentAccessService::OVERRIDE_STATUS_TRANSITIONS));
         assertTrue($hr->can(RecruitmentAccessService::INTERVIEW, ['id' => 1, 'status' => 'screening', 'areaKey' => '', 'firstGuideAccess' => false]));
 
-        $payroll = $dependencies('payroll-user', ['ad-Lohn' => ['payroll-user']]);
+        $payroll = $dependencies('payroll-user', ['flz-Lohn' => ['payroll-user']]);
         $approved = ['id' => 2, 'status' => 'approved_for_hire', 'areaKey' => 'west', 'firstGuideAccess' => true];
         assertTrue($payroll->can(RecruitmentAccessService::VIEW_HIRING_DATA, $approved));
+        assertTrue($payroll->can(RecruitmentAccessService::EDIT_PAYROLL_DATA, $approved));
         assertSame(false, $payroll->can(RecruitmentAccessService::VIEW, $approved));
     });
 
-    TestRunner::test('Nextcloud admins retain access even with invalid organization state', static function () use ($dependencies): void {
+    TestRunner::test('Nextcloud admins require an active app-local grant', static function () use ($dependencies): void {
         $admin = $dependencies('admin-user', [], ['admin-user']);
+        assertSame(false, $admin->can(RecruitmentAccessService::MANAGE_CATALOG));
+        assertSame(false, $admin->can(RecruitmentAccessService::MANAGE_DELEGATIONS));
+        $admin = $dependencies('admin-user', [], ['admin-user'], true);
         assertTrue($admin->can(RecruitmentAccessService::MANAGE_CATALOG));
         assertTrue($admin->can(RecruitmentAccessService::MANAGE_DELEGATIONS));
+        assertTrue($admin->can(RecruitmentAccessService::OVERRIDE_STATUS_TRANSITIONS));
     });
 
     TestRunner::test('scoped overview keeps ordered workbench statuses', static function () use ($dependencies): void {
         $guide = $dependencies('guide-user', [
-            'ad-EB' => ['guide-user'],
-            'ad-Bereich-West' => ['guide-user'],
-            'adrecruitment-first-guides' => ['guide-user'],
+            'flz-EB' => ['guide-user'],
+            'flz-Bereich-West' => ['guide-user'],
+            'flzrecruitment-first-guides' => ['guide-user'],
         ]);
         $overview = $guide->filterOverview([
             'jobs' => [['id' => 4]],

@@ -2,13 +2,13 @@
 
 ## Zielbild
 
-AD Recruitment bildet den vollständigen Bewerbungsprozess innerhalb der
-AD-Suite ab. Das fachliche Vorbild ist die arbeitsorientierte Bedienung eines
+Filzmann Recruitment bildet den vollständigen Bewerbungsprozess innerhalb der
+Filzmann Nextcloud Plugins ab. Das fachliche Vorbild ist die arbeitsorientierte Bedienung eines
 Bewerbermanagements wie in Odoo: Neue Vorgänge landen in einem gemeinsamen
 Eingang, werden einer Person und einer Stelle zugeordnet und anschließend als
 Karten oder Tabelle durch einen konfigurierbaren Prozess geführt.
 
-Die Ähnlichkeit zu Odoo beschreibt den Prozess und die Bedienlogik. AD
+Die Ähnlichkeit zu Odoo beschreibt den Prozess und die Bedienlogik. FLZ
 Recruitment bleibt eine eigenständige Nextcloud-App mit eigener Datenhaltung,
 eigenen Berechtigungen und ohne technische Abhängigkeit von Odoo.
 
@@ -27,7 +27,10 @@ eigenen Berechtigungen und ohne technische Abhängigkeit von Odoo.
   Fragebögen, Notizen und Verlauf gehören zur Bewerbung.
 - Eine **Stelle** beziehungsweise Ausschreibung bündelt Bezeichnung,
   Zuständigkeiten, Bürobereich, Eingangskanäle und optional einen eigenen
-  Prozess.
+  Prozess. Nach Auswahl der Berufsgruppe stehen nur fachlich passende Gruppen
+  aus dem kanonischen FLZ-Organisationsmodell bereit. Verantwortliche Personen
+  werden in den ausgewählten Gruppen über die native Nextcloud-Benutzersuche
+  gefunden; frei eingegebene Gruppen- oder Benutzerkennungen sind unzulässig.
 - Ein **Prozessstatus** ist eine administrativ konfigurierte Phase mit
   stabiler technischer ID, sichtbarem Namen, Reihenfolge, zulässigen
   Übergängen und fachlicher Kategorie.
@@ -106,12 +109,58 @@ Die Detailansicht umfasst mindestens:
 - bei BQ-Zuordnung beziehungsweise Einstellungsfreigabe die getrennten
   Vertragsstammdaten.
 
+Fachlich verantwortlich sind Personalreferent*innen. Von ihnen ausdrücklich
+benannte Vertretungen bearbeiten ausschließlich ihre fest zugewiesenen
+Bereiche und Fähigkeiten. Für jede Ansicht und Aktion gilt durchgehend das
+Least-to-know-Prinzip; eine allgemeine Sichtbarkeit der Recruiting-App oder
+eine technische Administrationsrolle erteilt keinen fachlichen Zugriff.
+
+Eine Fünf-Sterne-Bewertung bleibt eine ausschließlich manuell eingetragene
+Auswahlhilfe für berechtigte Personalreferent*innen und ihre fest
+bereichsgebundenen Vertretungen. Sie wird weder berechnet noch für
+automatische Sortierung, Filterung, Ranking, Profiling, Empfehlung oder
+Entscheidung verwendet, löst keine automatische Folge aus und wird nicht
+extern offengelegt. Die abschließende Auswahl trifft immer ein Mensch.
+
+Das getrennte Stammdatum `m/w/d` bleibt für Assistenz-Bewerber*innen erhalten,
+weil es später die selbstbestimmte Personalauswahl unterstützen kann. Es wird
+ausschließlich manuell durch Personalreferat oder fest bereichsgebundene
+Vertretungen gepflegt, niemals abgeleitet, bewertet oder für automatische
+Entscheidungen genutzt und nur intern nach Least-to-know angezeigt.
+Assistenznehmer*innen erhalten in diesem Recruitingprozess keine Information
+daraus. Eine spätere Übergabe an einen noch zu modellierenden Folgeprozess
+wird hier nur als Systemgrenze benannt; Filzmann Recruitment bleibt bis dahin die
+kanonische Quelle.
+
+Eine optionale respektvolle Wunschanrede ist fachlich und technisch von
+`m/w/d` getrennt. Sie wird weder abgeleitet noch bewertet. Das Feld wird erst
+aktiviert, nachdem eine gegebenenfalls erforderliche Beteiligung des
+Betriebsrats außerhalb des Systems abgeschlossen ist; in den Bewerberpool
+wird es nur mit ausdrücklicher Pool-Einwilligung übernommen.
+
 Erkennbare Stammdaten aus Nachrichtentexten und Anhängen werden als
 Feldvorschläge dargestellt. Jeder Vorschlag zeigt seine Quelle und wird vor
 der Übernahme durch eine berechtigte Person bestätigt oder korrigiert. Die
 Extraktion überschreibt niemals still vorhandene Daten und schreibt keine
 unsicheren Werte automatisch in besonders sensible Felder wie Bank,
 Krankenkasse, Steuer- oder Sozialversicherungsdaten.
+
+Textbasierte PDF-Lebensläufe werden beim Import ausschließlich lokal
+ausgelesen und ohne KI nach konservativen Stichworten für Standardfelder
+durchsucht. Bildbasierte PDFs bleiben bis zu einer getrennten OCR-Entscheidung
+uninterpretiert. Nextcloud-Administrationen sehen das aktive lokale Verfahren
+und sein Laufzeitwerkzeug in den Einstellungen. Ein späteres, lokal auf dem
+Server installiertes Modell ist dort bereits als noch nicht angebundene und
+nicht aktivierbare Alternative sichtbar; eine Übertragung an externe
+KI-Dienste findet nicht statt.
+
+Mit der bestätigten Zuordnung werden Anrede, Titel, private E-Mail,
+Telefonnummer, geplanter Eintritt und Ort in bislang leere Vertragsfelder
+vorbelegt. Vorhandene Werte bleiben unverändert. Der Vertragsbereich ist im
+Normalzustand eine kompakte Leseansicht; Eingabefelder erscheinen erst nach
+einer expliziten Bearbeitungsaktion. Anrede, Titel, Versicherungsart und
+Steuerklasse verwenden kontrollierte Auswahllisten, übrige Felder zu ihrem
+Inhalt passende Typen und Längen.
 
 Die gewünschte Wochenarbeitszeit gehört zum Bewerbungswunsch und ist keine
 Vertragszusage. Sie darf als Einzelwert oder Bereich angegeben werden; für
@@ -123,6 +172,11 @@ Beschriftete Formularfelder gelten dabei als nachvollziehbare
 Mailbody-Vorschläge. In freien Nachrichtentexten darf genau eine eindeutig
 erkennbare E-Mail-Adresse vorgeschlagen werden. Mehrere unterschiedliche
 Adressen bleiben mehrdeutig; die Anwendung wählt keine davon still aus.
+Fehlt ein beschrifteter Name, dürfen eine explizite Selbstvorstellung, eine
+übliche Grußsignatur, der Absender-Anzeigename oder eine eindeutig aus Vor-
+und Nachnamen aufgebaute Absenderadresse in dieser Reihenfolge als
+quellmarkierter Vorschlag dienen. Rollenadressen, Ziffern und unklare
+Einzelbegriffe bleiben ohne Vorschlag.
 
 ### 4. Steuerung in Karten- und Tabellenansicht
 
@@ -141,29 +195,47 @@ Beide Sichten verwenden dieselben serverseitigen Filter, Berechtigungen und
 Änderungen konkurrierender Bearbeiter*innen dürfen sich nicht still
 überschreiben.
 
+Der Kurzfragebogen ist ein regulär überspringbarer Prozessschritt. Die
+angebotenen Folgestati erlauben deshalb auch den direkten Wechsel von der
+Vorprüfung beziehungsweise einem noch offenen Kurzfragebogen zu Telefon,
+Vorstellung, Entscheidung oder Ablehnung. Personalreferat und
+Nextcloud-Administration dürfen ausschließlich über das Status-Dropdown nach
+einer ausdrücklichen Sicherheitsabfrage weitere Prozesssprünge ausführen. Die
+dafür erforderliche Fähigkeit ist nicht delegierbar, wird serverseitig erneut
+geprüft und der Ausnahmeweg gesondert auditiert. Drag-and-drop bleibt auf
+reguläre Kanten beschränkt. Unbekannte und identische Stati, eine Einstellung
+ohne vorherige Einstellungsfreigabe sowie eine Einstellungsfreigabe trotz
+ungeeignetem oder offenem BQ-Ergebnis bleiben auch als Ausnahme verboten.
+
 Eine Karte darf nur in einen vom Server für genau diese Bewerbung gelieferten
 Zielstatus verschoben werden. Manipulierte Karten- oder Spaltenkennungen
 erteilen keine Rechte. Für die Einstellungsfreigabe ist auch im
 Kartenarbeitsplatz ein gültiger Bürobereich erforderlich.
 
+`Zurückgezogen` ist kein laufender Arbeitsvorrat und erhält deshalb keine
+Kartenspalte. Der Abschluss erfolgt über eine deutlich als destruktiv
+erkennbare rote Aktion mit Bestätigungsabfrage; der Statuswechsel selbst
+bleibt serverseitig kontrolliert und auditiert.
+
 ### Vertragsbereich und Tarifgrundlage
 
 Der Vertragsbereich ist von der Bewerbungsakte fachlich getrennt. Bankdaten,
-Steuer-ID, Krankenkasse, Sozialversicherungsnummer und verbindliche
-Vertragsbedingungen werden ausschließlich dort verarbeitet. Familienstand
-gehört weder zum Bewerbungsprozess noch zur aktiven Vertragsdatenerfassung.
+Steuer-ID, Krankenkasse und Sozialversicherungsnummer werden erst ab
+`approved_for_hire` für LoBu sichtbar und ausschließlich dort bearbeitet.
+Personalreferat und BQ sehen diese Felder vorher nicht. Familienstand gehört
+weder zum Bewerbungsprozess noch zur aktiven Vertragsdatenerfassung.
 
-Die Beschäftigungsform bietet zunächst `geringfügig`,
-`sozialversicherungspflichtig`, `studentisch` und `sonstige`. Vertragsdauer
-(`unbefristet` oder `befristet mit Sachgrund`) und Arbeitszeitmodell (`feste
-Arbeitszeit` oder für Assistenz `KAPOVAZ`) bleiben getrennte Merkmale.
+Die Stelle ist die kanonische Quelle für Vertragsdauer, Entgeltgruppe,
+ausgeschriebene Wochenstunden, tarifliche Vollzeitstunden, Urlaub und
+Arbeitsort. Berlin ist der Standardarbeitsort. Das Arbeitszeitmodell wird
+serverseitig abgeleitet: Assistenz verwendet `KAPOVAZ`, alle anderen
+Berufsgruppen `Festgehalt`. Ein individuelles Gehalts- oder Währungsfeld wird
+nicht geführt.
 
 Fachliche Tarifgrundlage ist der bereitgestellte „Haustarifvertrag inkl.
 Änderungen zum 1. Oktober 2023“ mit den enthaltenen Änderungen beziehungsweise
-Tabellen bis 2024/2025. Entgeltgruppe und Tarifstufe werden getrennt erfasst.
-Da die bereitgestellte Fassung eine mögliche spätere Kündigung zulässt, werden
-zeitabhängige Tabellenwerte, Urlaub oder weitere Ansprüche nicht ohne
-bestätigte aktuelle Tarifversion automatisch berechnet.
+Tabellen bis 2024/2025. Die Ausschreibung referenziert die daraus fachlich
+bestätigten Werte; die Bewerbungsakte kopiert oder überschreibt sie nicht.
 
 ### 5. Konfigurierbare Bewerbungsstati
 
@@ -220,10 +292,10 @@ eingegangen markiert; abgelaufene oder widerrufene Links sind wirkungslos.
 
 ### 7. Basisqualifikation für Assistenz-Bewerber*innen
 
-Die Basisqualifikation ist ausschließlich für Bewerbungen auf entsprechend
-gekennzeichnete Assistenz-Stellen zulässig. Für andere Berufsgruppen darf
-dieser Prozessschritt weder angeboten noch über einen direkten Request
-gesetzt werden.
+Die Basisqualifikation ist für jede Assistenz-Stelle verpflichtend und wird
+allein aus deren Berufsgruppe abgeleitet. Sie ist nicht separat ein- oder
+abschaltbar. Für andere Berufsgruppen darf dieser Prozessschritt weder
+angeboten noch über einen direkten Request gesetzt werden.
 
 1. Eine Personalreferent*in merkt eine grundsätzlich geeignete Bewerbung für
    einen konkreten BQ-Durchlauf vor.
@@ -259,9 +331,9 @@ erst am hinterlegten BQ-Beginn zu aktivieren. Diese Terminregel darf den
 Zugriff nicht vor dem Start erteilen und muss Verschiebungen, Abbruch und
 manuelle Korrekturen nachvollziehbar behandeln.
 
-Bis zu einem eigenen BQ-Modul verwaltet AD Recruitment Durchlauf,
+Bis zur Anbindung der eigenständigen BQ-Planer-App verwaltet Filzmann Recruitment Durchlauf,
 Teilnahmezustand und freigegebenes Bewertungsergebnis selbst. Ein späteres
-Modul kann Terminplanung, Durchführung und ausführlichere Bewertung
+BQ-Planer-Modul kann Terminplanung, Durchführung und ausführlichere Bewertung
 übernehmen. Die optionale Integration verwendet einen kleinen versionierten
 Capability-/Event-Vertrag und niemals direkte Zugriffe auf Tabellen,
 Controller oder Assets des anderen Moduls. Ohne dieses Modul bleibt der
@@ -280,6 +352,10 @@ manuelle BQ-Prozess vollständig nutzbar.
 - Eine Entscheidung führt über einen zulässigen Statusübergang. Absage,
   Rückzug, BQ-Zuordnung, BQ-Ergebnis und Einstellungsfreigabe bleiben mit
   Zeitpunkt und ausführender Person nachvollziehbar.
+- Scoring, algorithmisches Ranking, Profiling und automatische
+  Bewerbungsentscheidungen sind ausgeschlossen. Manuelle Bewertungen und
+  Validierungen unterstützen berechtigte Personen, ersetzen ihre Entscheidung
+  aber nicht.
 
 ### 9. Kommunikation
 
@@ -288,6 +364,26 @@ der Bewerbungsakte. Ausgehende Nachrichten können aus versionierten Vorlagen
 erstellt, vor Versand bearbeitet und erst nach erfolgreichem Versand als
 gesendet markiert werden. Antworten sollen über technische Kennungen wieder
 derselben Bewerbung zugeordnet werden können.
+
+Für zulässige Statusübergänge kann das Personalreferat die Entwurfserzeugung
+je Kante ein- oder ausschalten und eine Standardplanung wählen. Der
+Statuswechsel sendet nie unbeaufsichtigt. Vor der Freigabe bleiben Zieladresse,
+Betreff und Text bearbeitbar; die ursprüngliche Personenadresse wird bei einer
+Korrektur weiterhin angezeigt und gespeichert. Neben sofortiger und frei
+terminierter Zustellung kann gesammelt der kommende Montag um 09:00 Uhr
+gewählt werden. Ein zentraler administrativer Testmodus leitet alle derzeit
+ausgehenden Recruitment-Mails serverseitig an eine Standard-Testadresse um.
+
+Für jeden fachlich zulässigen Statusübergang steht eine vorbereitete Regel
+bereit. Die zugehörige Regel ist zunächst deaktiviert und wird durch
+Personalreferent*innen bewusst je Übergang eingeschaltet. Eine Vorlage kann
+mehreren Kanten zugeordnet werden; alle Übergänge nach `withdrawn` verwenden
+standardmäßig dieselbe Rückzugsvorlage. Vorlagen sind
+versioniert und unterstützen einen kleinen bereinigten HTML-Wortschatz für
+Absätze, Fett, Kursiv, Listen und sichere Links. Vor der Versandfreigabe bleibt
+der erzeugte Entwurf mit demselben Editor änderbar; zu jeder HTML-Mail wird
+eine Klartextalternative erzeugt. Aufgelöste Bewerberwerte werden im HTML
+escaped und können keine eigene Formatierung oder Links einschleusen.
 
 Mailabruf und Versand müssen wiederholbar sein: Ein erneuter Hintergrundlauf
 erzeugt weder doppelte Nachrichten noch einen doppelten Versand. Nicht
@@ -301,11 +397,11 @@ Bürobereich zugeordnet. Dadurch werden die zuständigen Erstbegleitungen
 ermittelt. Die Freigabe aktiviert deren lesenden Zugriff; das Ende erfolgt
 vorerst manuell.
 
-Lohn erhält bei Assistenz-Bewerbungen ab der Zuordnung zu einem BQ-Durchlauf,
-bei anderen Berufsgruppen spätestens ab der Einstellungsfreigabe lesenden
-Zugriff auf alle für die Vertragsvorbereitung vorgesehenen Stammdaten,
-insbesondere Adresse, Geburtsdaten, Bankverbindung, Krankenkasse, Steuer- und
-Sozialversicherungsdaten sowie Vertragsparameter. Lohn erhält dadurch keinen
+LoBu erhält für alle Berufsgruppen erst ab der Einstellungsfreigabe lesenden
+und für LoBu-only Felder schreibenden Zugriff auf die für die
+Vertragserstellung vorgesehene Projektion. Vertragsdauer, Arbeitszeitmodell,
+Entgeltgruppe, Stunden, Urlaub und Arbeitsort werden aus der Stelle abgeleitet.
+LoBu erhält dadurch keinen
 Zugriff auf Interviews, BQ-Bewertungen, Bewerbungsunterlagen oder interne
 Anmerkungen.
 
@@ -313,11 +409,142 @@ Anmerkungen.
 
 Abgelehnte, zurückgezogene und eingestellte Bewerbungen werden nicht durch
 eine bloße Statusänderung gelöscht. Statusabschluss, operative
-Archivierung, gesetzliche Aufbewahrung und endgültige Löschung sind getrennte
-Vorgänge. Die Teilnahme an einer Basisqualifikation ist keine Einwilligung in
-eine verlängerte Aufbewahrung. Fristen, Rechtsgrundlagen, Ausnahmen, Sperren
-und Nachweise müssen vor der automatischen Löschung verbindlich festgelegt
-werden.
+Archivierung und endgültige Löschung sind getrennte Vorgänge. Reguläre
+Bewerbungsakten einschließlich ihrer Unterlagen und ein- sowie ausgehenden
+Kommunikation werden spätestens sechs Monate nach dem fachlichen Abschluss
+des Bewerbungsverfahrens gelöscht, sofern keine gesonderte Einwilligung oder
+aktive rechtliche beziehungsweise datenschutzrechtliche Sperre entgegensteht.
+Sechs Monate sind zugleich der administrativ konfigurierbare Standardwert.
+Mitglieder der Nextcloud-Gruppe
+`Datenschutzbeauftragte` dürfen die Frist verkürzen oder verlängern; eine
+Änderung gilt anhand des ursprünglichen Abschlusszeitpunkts auch für bereits
+vorhandene Akten.
+Zur Einstellung freigegebene Akten dürfen ab der Freigabe höchstens sechs
+Monate für einen selektiven manuellen Export oder die erforderliche
+Weiterbearbeitung vorgehalten und schon vorher manuell gelöscht werden. Ohne
+aktive Sperre erfolgt danach die automatische Löschung. Der spätere
+Vertragsvorbereitungs- und Stammdatenprozess ist eine eigene, noch zu
+modellierende Verarbeitung und wird nicht durch eine pauschale Übernahme der
+Bewerbungsakte vorweggenommen.
+Eine gesonderte Pool-Einwilligung verlängert diese Frist nicht, sondern
+begründet die nachfolgend getrennt beschriebene Poolverarbeitung. Technische
+Policyversion und Wirksamkeitszeitpunkt, Löschreihenfolge, Sperren,
+Nebenläufigkeit, Wiederholungsverhalten, Fehlernachweise und
+Backup-/Restore-Neuplanung aus dem ursprünglichen Trigger müssen vor der
+automatischen Ausführung verbindlich umgesetzt und abgenommen werden. Bis
+dahin behauptet Filzmann Recruitment keine ausführende Retention-Funktion.
+Retentionwerte dürfen ausschließlich `Datenschutzbeauftragte` konfigurieren;
+Policyversionen und Wirksamkeitszeitpunkte werden 24 Monate auditierbar
+gehalten und mindestens jährlich durch diese Gruppe überprüft. Nach einem
+Restore werden alle Fristen aus dem jeweiligen ursprünglichen Trigger neu
+bewertet und abgelaufene ungesperrte Daten erneut zur Löschung eingeplant.
+Die spätere Ausführung erfolgt automatisch ohne manuelle Einzelfreigabe.
+
+### Datenschutzgerechte Rückstellung im Bewerberpool
+
+Eine Rückstellung ist für aktuell nicht angenommene Bewerber*innen sowie für
+Initiativbewerber*innen ohne aktuell passende Ausschreibung vorgesehen. Sie
+betrifft in erster Linie andere Berufsgruppen als Assistenz. Die Teilnahme,
+Zuordnung oder Bewertung in einer Basisqualifikation ist weder Voraussetzung
+noch Auswahlmerkmal und verlängert keine Poolfrist. Die Rückstellung ist von
+der ursprünglichen Bewerbung und von jeder BQ-Verarbeitung getrennt,
+freiwillig, versioniert nachweisbar und jederzeit widerrufbar.
+
+Der Pool hält Personbezug, Ausgangsbewerbung, Berufsgruppe, gewünschten
+Stundenkorridor, gewählte Bereiche und die für eine spätere Bewerbung
+relevanten Bewerbungsunterlagen vor. Unterlagen bleiben Teil der Poolakte,
+werden aber nicht automatisch als Matchingmerkmale ausgewertet.
+Interviewantworten, Freitextnotizen und BQ-Daten werden nicht in die
+Poolverarbeitung übernommen.
+
+Die Einwilligungs- und Aufbewahrungsdauer verwendet zwölf Monate ab Erteilung
+oder ausdrücklicher Erneuerung als administrativ konfigurierbaren Standardwert.
+Mitglieder der Gruppe `Datenschutzbeauftragte` dürfen diese Frist verkürzen
+oder verlängern; Änderungen werden auch für vorhandene Poolakten aus ihrem
+ursprünglichen Einwilligungs- oder Erneuerungszeitpunkt neu berechnet. Eine
+rückwirkende Verlängerung ersetzt keine erforderliche passende Einwilligung
+und hebt einen Widerruf nicht auf. Ein Widerruf beendet Matching, Kontakt und
+aktive Poolnutzung sofort und löscht das gesamte Poolprofil, die
+Poolunterlagen und jeden personenbezogenen Einwilligungsnachweis. Mit
+Fristablauf beginnt eine zehn Tage lange Übergangsfrist, in der das Profil
+vollständig inaktiv ist und ausschließlich eine Erneuerung der Einwilligung
+zulässig bleibt. Ohne Erneuerung werden nach zehn Tagen ebenfalls Profil,
+Unterlagen und personenbezogener Einwilligungsnachweis vollständig gelöscht.
+Genau eine datensparsame Erinnerung darf vierzehn Tage vor Ablauf versandt
+werden; sie enthält keine Stellen-, Bewerbungs- oder sonstigen Akteninhalte.
+
+Für neu veröffentlichte, passende Ausschreibungen darf eine Nachricht nur
+auf ausdrückliche Nachfrage beim Veröffentlichen oder durch einen manuellen
+Auslöser einer berechtigten Person vorbereitet werden. Regelvorschläge dürfen
+nur transparente Merkmale wie Berufsgruppe, Stundenkorridor und Region
+verwenden. Personalreferent*innen oder ihre fest bereichsgebundenen
+Vertretungen prüfen und bestätigen jede Kontaktaufnahme und lösen den Versand
+manuell aus. Der minimale Kontaktverlauf enthält nur Stellenreferenz,
+Zeitpunkt und manuellen Auslöser und wird mit der Poolakte gelöscht. Weder
+Poolaufnahme noch Kontakt, neue Bewerbung, Zu- oder Absage erfolgen
+automatisch; BQ-Daten sind hierfür irrelevant. Die Funktion ist initial
+deaktiviert und setzt zur Aktivierung einen freigegebenen, versionierten
+Datenschutzhinweis voraus.
+
+Eine spätere Bewerbung ist stets eine neue, eigenständige Bewerbung mit
+eigenem Fristbeginn. Alte Poolfelder und -unterlagen dürfen erst nach
+ausdrücklicher Bestätigung der Bewerberperson als bearbeitbare Vorlage
+übernommen werden. Die Übernahme reaktiviert weder die frühere Bewerbung noch
+die Pool-Einwilligung.
+
+### Beteiligung der Schwerbehindertenvertretung
+
+Die freiwillige Selbstauskunft beschränkt sich auf die Angabe
+`schwerbehindert oder gleichgestellt`. GdB-Zahl, Diagnosen und medizinische
+Details werden nicht als strukturierte Bewerbungsdaten erhoben; aus
+Unterlagen werden solche Angaben weder per OCR noch durch andere Extraktion
+übernommen, bewertet oder für Scoring verwendet.
+
+Eine positive Angabe löst die Beteiligung der Schwerbehindertenvertretung
+aus. Die Einstellungsentscheidung bleibt bis zur dokumentierten Beteiligung
+gesperrt. Lehnt die Bewerberperson die Beteiligung ausdrücklich ab, wird dies
+nachweisbar festgehalten; die Ablehnung kann bis zur Einstellungsentscheidung
+widerrufen werden und die Beteiligung beginnt dann unverzüglich.
+
+Die app-spezifische native Nextcloud-Gruppe
+`schwerbehindertenvertretung` erhält zunächst nur eine datensparsame
+Benachrichtigung mit Fallreferenz. Nach Anmeldung sieht sie ausschließlich die
+entscheidungsrelevanten Teile der konkreten Bewerbung und kann ihre
+Beteiligung dokumentieren; allgemeine Personalreferatsnotizen, Pooldaten,
+Stammdatenbearbeitung und andere Bewerbungen bleiben ausgeschlossen. Existenz
+oder begründetes Nichtbestehen einer SBV werden durch Personalreferent*innen
+mit festem Scope gepflegt, auditiert, jährlich und bei Organisationsänderung
+überprüft. Ein fehlender oder ungeklärter Status sperrt die Entscheidung.
+
+Für den Betriebsrat werden vorerst weder Gruppe, Dokumente, Fristen noch ein
+Workflow in Filzmann Recruitment angelegt. Die Beteiligung erfolgt vollständig
+außerhalb des Systems.
+
+### Manuelle Betroffenenrechte
+
+Auskunft, Berichtigung, Löschung und Einschränkung beginnen mit einer
+Identitätsprüfung außerhalb der App. Nach erfolgreicher Prüfung übermittelt
+Personalreferat dem Datenschutz-Center ausschließlich eine stabile
+Bewerber-ID; Name oder E-Mail-Adresse dienen dort nicht als Suchschlüssel.
+Die Datenschutzbeauftragten lassen die app-eigene Subject-Projektion als
+Vorschau zusammenstellen, prüfen sie manuell und übermitteln das Ergebnis über
+einen verifizierten externen Kanal. Ein automatischer Versand findet nicht
+statt.
+
+Berichtigungen werden durch zuständige Personalreferent*innen oder ihre fest
+bereichsgebundenen Vertretungen ausgeführt und von den
+Datenschutzbeauftragten im Vorgang bestätigt. Löschwünsche werden umgesetzt,
+soweit keine vorrangige rechtliche Aufbewahrung oder aktive Sperre besteht.
+Solange eine Sperre gilt, wird die Akte technisch auf den konkret benannten
+Rechtszweck beschränkt; Auswahl, Poolnutzung, Kommunikation und Export bleiben
+gesperrt. Nur Mitglieder von `Datenschutzbeauftragte` dürfen eine solche
+Sperre begründet und auditiert aufheben.
+
+Der Rechtevorgang mit stabiler Bewerber-ID, Zeitpunkten und Ergebnis wird
+sechs Monate nach Abschluss gelöscht. Ein manueller Export protokolliert für
+sechs Monate nur Empfänger, Umfang und Zeitpunkt, nicht den exportierten
+Inhalt. Diese Protokolle ermöglichen erforderliche Folgeinformationen bei
+späterer Berichtigung oder Löschung.
 
 ## Administration
 
@@ -332,7 +559,9 @@ Der Adminbereich bündelt mindestens:
 - Felder und Extraktionszuordnungen für Stammdaten,
 - granulare Fähigkeiten und Vertretungsscope,
 - Erstbegleitungsgruppe und später deren automatische Endregeln,
-- Aufbewahrungs-, Archivierungs- und Löschregeln sowie
+- Aufbewahrungs-, Archivierungs- und Löschregeln; fachliche
+  Datenschutzkonfiguration ist dabei ausschließlich der Nextcloud-Gruppe
+  `Datenschutzbeauftragte` vorbehalten,
 - Fehler-/Quarantäneübersicht der Hintergrundverarbeitung.
 
 Geheimnisse von Postfächern oder Providern werden niemals in der
@@ -342,11 +571,18 @@ Hintergrundjobmechanismen verwendet.
 
 ## Berechtigungs- und Nachvollziehbarkeitsgrundsatz
 
-Personalreferent*innen besitzen Vollzugriff. Vertretungen erhalten
-konfigurierbare Fähigkeiten mit globalem, bereichsbezogenem oder
-bewerbungsbezogenem Scope. Erstbegleitungen und Lohn besitzen die in
+Personalreferent*innen besitzen Vollzugriff. Vertretungen erhalten nur die
+ausdrücklich freigegebenen Fähigkeiten in ihren fest zugewiesenen Bereichen.
+Erstbegleitungen und Lohn besitzen die in
 `AGENTS.md` eng begrenzten Leserechte. Jede Listen-, Detail-, Such-, Export-,
 Mail-, Dokument- und Statusoperation prüft diese Rechte serverseitig.
+
+Native Nextcloud-Administration erteilt keinen fachlichen Vollzugriff. Nur
+Mitglieder der nativen Gruppe `Datenschutzbeauftragte` lesen in der
+Recruitment-Fachoberfläche die app-lokale Freigabehistorie und erteilen oder
+widerrufen höchstens 24 Stunden gültige Freigaben für aktuelle native
+Administrationskonten. Technische Systemeinstellungen bleiben davon getrennt
+im Nextcloud-Adminbereich.
 
 Statuswechsel, Zuordnungen, Stammdatenübernahmen, Fragebogenfreigaben,
 Versand, Berechtigungsänderungen und Einstellungsfreigaben werden mit Akteur,
@@ -366,6 +602,14 @@ Lohnfreigabe. Ein erster Bewerbungsarbeitsplatz bietet Tabelle, nach Status
 gruppierte Karten und grundlegende Filter. Anlageformulare öffnen über
 Buttons in Dialog-Overlays; Bewerber*innen und Bewerbungen sind dort
 ausdrücklich als manuelle Ausnahme gekennzeichnet.
+Interviewfragen und -vorlagen, Mailvorlagen, Bewerberpool-Grundkonfiguration
+sowie die Verwaltung von Vertretungsrechten sind als gelegentliche
+PersRef-Pflegeaufgaben unter einem
+capability-gebundenen Einstellungsmenü zusammengefasst und belegen keine
+eigenen Haupttabs mehr. Ausschließlich systemweite Grundkonfigurationen für
+Mail-Testmodus, Datenextraktion und strukturelle
+Erstbegleitungsgruppe liegen im nativen, nur für Nextcloud-Admins sichtbaren
+Adminabschnitt `Filzmann Recruitment`.
 
 Ebenfalls umgesetzt ist ein erster privater Posteingang für bereits
 normalisierte Nachrichten: Websiteformular und freie Mail werden mit
@@ -373,9 +617,16 @@ unverändertem Mailtext, quellmarkierten Feldvorschlägen und bis zu fünf
 validierten PDF-Originalen duplikatfrei importiert. Personalreferat und global
 vertretende Bearbeitungskräfte können diese Nachrichten bestehenden
 Bewerbungen zuordnen, die Zuordnung korrigieren oder Nicht-Bewerbungen
-schließen. Jede Zustandsänderung ist versioniert und auditiert. Nach der
+schließen. Für neue oder unklare Nachrichten können sie außerdem nach Auswahl
+einer aktiven Stelle Person und Bewerbung kontrolliert neu anlegen. Erkannte
+Personendaten sind dabei korrigierbare Vorbelegungen; weitere Werte werden nur
+einzeln bestätigt übernommen. Neuanlage, Feldvorbelegung, Zuordnung und Audit
+sind atomar. Jede Zustandsänderung ist versioniert und auditiert. Nach der
 Zuordnung folgen Mailtext und Anhangsmetadaten dem serverseitigen
 Bewerbungsscope.
+Textbasierte PDFs werden innerhalb der Importgrenze lokal in Text überführt
+und zusammen mit Mailtext beziehungsweise bereits normalisiertem Adaptertext
+nach quellmarkierten Standardfeldern durchsucht.
 
 Validierte PDF-Anhänge öffnen innerhalb desselben Scopes in einer großen
 Lightbox. Vor der Ausgabe wird der Inhalt gegen den beim Import gespeicherten
@@ -390,9 +641,9 @@ Lesen folgt der Akte; zum Verknüpfen sind `manage_documents` und das passende
 Feldrecht erforderlich.
 
 Noch nicht vorhanden sind insbesondere konfigurierbare Prozessstati,
-realer Postfachabruf und Mailversand, die vollständige nutzerverwaltete
-Dokumentenakte, Bestätigung einzelner Extraktionsvorschläge,
-öffentliche Kurzfragebogenlinks, BQ-Verschiebungen und die optionale
+realer Postfachabruf, Antwortzuordnung und eine vollständige
+Kommunikationschronik, die vollständige nutzerverwaltete
+Dokumentenakte, öffentliche Kurzfragebogenlinks, BQ-Verschiebungen und die optionale
 BQ-Modulanbindung. Diese Punkte sind keine verworfenen Ideen,
 sondern Bestandteil des verbindlichen Zielbilds und werden in `ROADMAP.md`
 als getrennt abnehmbare Arbeitspakete geführt.

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Recruitment\Exception;
+namespace OCA\FlzRecruitment\Exception;
 
 final class ValidationException extends \InvalidArgumentException {
 }

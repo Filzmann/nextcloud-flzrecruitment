@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace OCA\Recruitment\Service;
+namespace OCA\FlzRecruitment\Service;
 
 use DateTimeImmutable;
-use OCA\Recruitment\Contract\BasisQualificationStore;
-use OCA\Recruitment\Exception\ValidationException;
+use OCA\FlzRecruitment\Contract\BasisQualificationStore;
+use OCA\FlzRecruitment\Exception\ValidationException;
 
 /** Fachlogik für lokale BQ-Durchläufe, Zuordnungen und einfache Ergebnisse. */
 final class BasisQualificationService {
@@ -21,13 +21,12 @@ final class BasisQualificationService {
         int $expectedVersion,
         string $actorUid,
     ): array {
-        $store->basisQualificationJob($jobId);
-        return $store->setJobBasisQualificationRequired(
-            $jobId,
-            $required,
-            $expectedVersion,
-            trim($actorUid),
-        );
+        $job = $store->basisQualificationJob($jobId);
+        $derivedRequirement = ($job['professionCategory'] ?? '') === 'assistance';
+        if ($required !== $derivedRequirement) {
+            throw new ValidationException('Die BQ-Pflicht ergibt sich aus der Berufsgruppe und kann nicht separat geändert werden.');
+        }
+        return $job;
     }
 
     public function createRun(

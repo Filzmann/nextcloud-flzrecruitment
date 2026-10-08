@@ -2,17 +2,23 @@
 
 declare(strict_types=1);
 
-namespace OCA\Recruitment\Service;
+namespace OCA\FlzRecruitment\Service;
 
 use DateTimeImmutable;
-use OCA\Recruitment\Contract\RecruitmentStore;
-use OCA\Recruitment\Exception\NotFoundException;
-use OCA\Recruitment\Exception\ValidationException;
+use OCA\FlzRecruitment\Contract\RecruitmentStore;
+use OCA\FlzRecruitment\Exception\NotFoundException;
+use OCA\FlzRecruitment\Exception\ValidationException;
 
 /**
  * Anwendungsfälle für Stellen, Personen und Bewerbungen.
  */
 final class RecruitmentService {
+    private DesiredWeeklyHoursService $desiredWeeklyHours;
+
+    public function __construct(?DesiredWeeklyHoursService $desiredWeeklyHours = null) {
+        $this->desiredWeeklyHours = $desiredWeeklyHours ?? new DesiredWeeklyHoursService();
+    }
+
     /**
      * @param list<string> $responsibleUsers
      * @param list<string> $responsibleGroups
@@ -27,6 +33,12 @@ final class RecruitmentService {
         string $assignmentKey,
         bool $basisQualificationRequired = false,
         string $professionCategory = '',
+        string $contractTerm = '',
+        string $payGrade = '',
+        ?float $advertisedWeeklyHours = null,
+        ?float $fullTimeWeeklyHours = null,
+        ?float $vacationDays = null,
+        string $workLocation = 'Berlin',
     ): int {
         $internalTitle = trim($internalTitle);
         if ($internalTitle === '') {
@@ -43,6 +55,11 @@ final class RecruitmentService {
         if ($basisQualificationRequired && $professionCategory !== 'assistance') {
             throw new ValidationException('Eine Basisqualifikation ist nur für Assistenz-Stellen zulässig.');
         }
+        $basisQualificationRequired = $professionCategory === 'assistance';
+        if ($contractTerm !== '' && !in_array($contractTerm, ['permanent', 'fixed_term_reason'], true)) throw new ValidationException('Die Vertragsdauer der Stelle ist ungültig.');
+        if ($payGrade !== '' && !in_array($payGrade, ['3', '5', '8', '9a', '9b', '10', '11', '12', '13'], true)) throw new ValidationException('Die Entgeltgruppe der Stelle ist ungültig.');
+        foreach ([$advertisedWeeklyHours, $fullTimeWeeklyHours] as $hours) if ($hours !== null && (!is_finite($hours) || $hours <= 0 || $hours > 80)) throw new ValidationException('Die Wochenstunden der Stelle sind ungültig.');
+        if ($vacationDays !== null && (!is_finite($vacationDays) || $vacationDays < 0 || $vacationDays > 366)) throw new ValidationException('Der Urlaubsanspruch der Stelle ist ungültig.');
 
         return $store->createJob([
             'internalTitle' => $internalTitle,
@@ -53,6 +70,10 @@ final class RecruitmentService {
             'assignmentKey' => trim($assignmentKey),
             'basisQualificationRequired' => $basisQualificationRequired,
             'professionCategory' => $professionCategory,
+            'contractTerm' => $contractTerm, 'payGrade' => $payGrade,
+            'advertisedWeeklyHours' => $advertisedWeeklyHours, 'fullTimeWeeklyHours' => $fullTimeWeeklyHours,
+            'vacationDays' => $vacationDays, 'workLocation' => trim($workLocation) ?: 'Berlin',
+            'workingTimeModel' => $professionCategory === 'assistance' ? 'kapovaz' : 'fixed',
         ]);
     }
 
@@ -63,6 +84,11 @@ final class RecruitmentService {
         string $email,
         string $phone,
     ): int {
+        return $store->createPerson($this->personData($givenName, $familyName, $email, $phone));
+    }
+
+    /** @return array{givenName:string,familyName:string,email:string,phone:string} */
+    public function personData(string $givenName, string $familyName, string $email, string $phone): array {
         $givenName = trim($givenName);
         $familyName = trim($familyName);
         $email = trim($email);
@@ -73,12 +99,12 @@ final class RecruitmentService {
             throw new ValidationException('Die E-Mail-Adresse ist ungültig.');
         }
 
-        return $store->createPerson([
+        return [
             'givenName' => $givenName,
             'familyName' => $familyName,
             'email' => $email,
             'phone' => trim($phone),
-        ]);
+        ];
     }
 
     public function createApplication(
@@ -97,43 +123,39 @@ final class RecruitmentService {
         if (!$store->jobExists($jobId)) {
             throw new NotFoundException('Die Stelle wurde nicht gefunden.');
         }
+        $application = $this->applicationData($jobId, $source, $receivedOn, $assigneeUid, $desiredWeeklyHours, $desiredWeeklyHoursMax);
+        return $store->createApplication(['personId' => $personId] + $application);
+    }
+
+    /** @return array<string,mixed> */
+    public function applicationData(
+        int $jobId,
+        string $source,
+        string $receivedOn,
+        string $assigneeUid,
+        ?float $desiredWeeklyHours = null,
+        ?float $desiredWeeklyHoursMax = null,
+    ): array {
         if (!in_array($source, ['manual', 'email_import', 'referral', 'other'], true)) {
             throw new ValidationException('Der Eingangskanal ist ungültig.');
         }
-        if ($desiredWeeklyHours !== null
-            && (!is_finite($desiredWeeklyHours) || $desiredWeeklyHours <= 0 || $desiredWeeklyHours > 80)) {
-            throw new ValidationException('Die gewünschten Wochenstunden müssen größer als 0 und höchstens 80 sein.');
-        }
-        if ($desiredWeeklyHoursMax !== null
-            && (!is_finite($desiredWeeklyHoursMax) || $desiredWeeklyHoursMax <= 0 || $desiredWeeklyHoursMax > 80)) {
-            throw new ValidationException('Die Obergrenze der gewünschten Wochenstunden muss größer als 0 und höchstens 80 sein.');
-        }
-        if ($desiredWeeklyHours === null && $desiredWeeklyHoursMax !== null) {
-            throw new ValidationException('Für einen Wunschstundenbereich ist ein Von-Wert erforderlich.');
-        }
-        if ($desiredWeeklyHours !== null && $desiredWeeklyHoursMax !== null) {
-            if ($desiredWeeklyHoursMax < $desiredWeeklyHours) {
-                throw new ValidationException('Die Obergrenze der Wunschstunden darf nicht unter dem Von-Wert liegen.');
-            }
-            if ($desiredWeeklyHoursMax === $desiredWeeklyHours) {
-                $desiredWeeklyHoursMax = null;
-            }
-        }
+        $desiredHours = $this->desiredWeeklyHours->normalize($desiredWeeklyHours, $desiredWeeklyHoursMax);
+        $desiredWeeklyHours = $desiredHours['desiredWeeklyHours'];
+        $desiredWeeklyHoursMax = $desiredHours['desiredWeeklyHoursMax'];
 
         $date = DateTimeImmutable::createFromFormat('!Y-m-d', $receivedOn);
         if ($date === false || $date->format('Y-m-d') !== $receivedOn) {
             throw new ValidationException('Das Eingangsdatum ist ungültig.');
         }
 
-        return $store->createApplication([
-            'personId' => $personId,
+        return [
             'jobId' => $jobId,
             'source' => $source,
             'receivedOn' => $receivedOn,
             'assigneeUid' => trim($assigneeUid),
             'desiredWeeklyHours' => $desiredWeeklyHours,
             'desiredWeeklyHoursMax' => $desiredWeeklyHoursMax,
-        ]);
+        ];
     }
 
     /** @return array<string,list<array<string,mixed>>> */

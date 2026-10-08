@@ -1,0 +1,109 @@
+{
+    "bomFormat": "CycloneDX",
+    "specVersion": "1.6",
+    "version": 1,
+    "metadata": {
+        "properties": [
+            {
+                "name": "filzmann:inventory-owner",
+                "value": "flzrecruitment"
+            }
+        ]
+    },
+    "components": [
+        {
+            "type": "library",
+            "bom-ref": "pkg:npm/pdfjs-dist@6.2.108",
+            "supplier": {
+                "name": "Mozilla"
+            },
+            "name": "pdfjs-dist",
+            "version": "6.2.108",
+            "scope": "required",
+            "hashes": [
+                {
+                    "alg": "SHA-512",
+                    "content": "63115bf9241ca1d376ae75fd4e7ddd1d896a7dbecd8e5cf37ce34fa4977e00aa0ab548c475ebd37db0b4edde5371ccf338aeb6eb56ae4643ff33c3811ecf6f15"
+                }
+            ],
+            "licenses": [
+                {
+                    "license": {
+                        "id": "Apache-2.0"
+                    }
+                }
+            ],
+            "purl": "pkg:npm/pdfjs-dist@6.2.108",
+            "externalReferences": [
+                {
+                    "type": "distribution",
+                    "url": "https://registry.npmjs.org/pdfjs-dist/-/pdfjs-dist-6.2.108.tgz"
+                },
+                {
+                    "type": "vcs",
+                    "url": "https://github.com/mozilla/pdf.js/tree/v6.2.108"
+                }
+            ],
+            "properties": [
+                {
+                    "name": "filzmann:npm-integrity",
+                    "value": "sha512-YxFb+SQcodN2rnX9Tn3dHYlqfb7NjlzzfONPpJd+AKoKtUjEdevTfbC07d5TcczzOK6261auRkP/M8OBHs9vFQ=="
+                },
+                {
+                    "name": "filzmann:bundled-root",
+                    "value": "js/vendor/pdfjs"
+                },
+                {
+                    "name": "filzmann:bundled-tree-sha256",
+                    "value": "1cc5509c014455bf3888eeb413f44e99d2b7a724d0cce8c852b4758e7229a56b"
+                },
+                {
+                    "name": "filzmann:bundled-file-count",
+                    "value": "202"
+                },
+                {
+                    "name": "filzmann:runtime-scope",
+                    "value": "app-local-browser"
+                },
+                {
+                    "name": "filzmann:dependency-scan",
+                    "value": "osv-by-purl"
+                },
+                {
+                    "name": "filzmann:sast-treatment",
+                    "value": "pinned-third-party-source"
+                },
+                {
+                    "name": "filzmann:license-path",
+                    "value": "js/vendor/pdfjs/LICENSE"
+                }
+            ],
+            "components": [
+                {
+                    "type": "file",
+                    "bom-ref": "file:js/vendor/pdfjs/pdf.min.mjs",
+                    "name": "js/vendor/pdfjs/pdf.min.mjs",
+                    "scope": "required",
+                    "hashes": [
+                        {
+                            "alg": "SHA-256",
+                            "content": "e0be3863c23c8af2305b16548febd58e7f8874a460253317d7771cddbc1c0f6d"
+                        }
+                    ]
+                },
+                {
+                    "type": "file",
+                    "bom-ref": "file:js/vendor/pdfjs/pdf.worker.min.mjs",
+                    "name": "js/vendor/pdfjs/pdf.worker.min.mjs",
+                    "scope": "required",
+                    "hashes": [
+                        {
+                            "alg": "SHA-256",
+                            "content": "0613f41490dd6aaceed7a93fbbd38c85e6d6aa60474b6588c6e7709cfbe18cb3"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

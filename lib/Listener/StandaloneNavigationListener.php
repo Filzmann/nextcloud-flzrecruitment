@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Recruitment\Listener;
+namespace OCA\FlzRecruitment\Listener;
 
 use OCA\LocalBase\Service\StandaloneAppNavigationService;
 use OCP\EventDispatcher\Event;
@@ -19,6 +19,6 @@ final class StandaloneNavigationListener implements IEventListener {
             return;
         }
 
-        $this->navigation->addCatalogProductWhenStandalone('adrecruitment', 'Recruitment', 'app.svg');
+        $this->navigation->addCatalogProductWhenStandalone('flzrecruitment', 'Recruitment', 'app.svg');
     }
 }

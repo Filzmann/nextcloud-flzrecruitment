@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Recruitment\Service {
+namespace OCA\FlzRecruitment\Service {
     final class RecruitmentUseCaseService {
         public array $jobs = [];
         public array $people = [];
@@ -14,6 +14,7 @@ namespace OCA\Recruitment\Service {
         public array $bubbles = [];
         public array $hiring = [];
         public array $createdJobs = [];
+        private int $nextQuestionId = 1;
 
         public function overview(): array {
             return [
@@ -76,7 +77,10 @@ namespace OCA\Recruitment\Service {
         }
 
         public function saveHiringData(int $applicationId, array $data, int $version, string $actorUid): array {
-            return $this->hiring[$applicationId] = ['data' => $data, 'version' => $version + 1];
+            return $this->hiring[$applicationId] = [
+                'data' => array_replace($this->hiring[$applicationId]['data'] ?? [], $data),
+                'version' => $version + 1,
+            ];
         }
 
         public function createTemplate(string $name, string $type, string $description, string $audience): int {
@@ -87,8 +91,8 @@ namespace OCA\Recruitment\Service {
 
         public function templateDetail(int $id): array { return $this->templates[$id]; }
         public function createQuestion(int $templateId, string $prompt, string $hint, string $type, bool $required, int $sortOrder, array $options, string $visibility): int {
-            $id = count($this->templates[$templateId]['questions']) + 1;
-            $this->templates[$templateId]['questions'][] = ['id' => $id, 'prompt' => $prompt, 'type' => $type, 'bubbles' => []];
+            $id = $this->nextQuestionId++;
+            $this->templates[$templateId]['questions'][] = compact('id', 'prompt', 'hint', 'type', 'required', 'sortOrder', 'options', 'visibility') + ['bubbles' => []];
             return $id;
         }
         public function createBubble(int $questionId, string $label, string $insertText, int $sortOrder, bool $active): int {
@@ -116,10 +120,8 @@ namespace OCA\Recruitment\Service {
 }
 
 namespace {
-    require_once __DIR__ . '/bootstrap.php';
-
-    use OCA\Recruitment\Service\RecruitmentDemoDataService;
-    use OCA\Recruitment\Service\RecruitmentUseCaseService;
+    use OCA\FlzRecruitment\Service\RecruitmentDemoDataService;
+    use OCA\FlzRecruitment\Service\RecruitmentUseCaseService;
     use RecruitmentTests\TestRunner;
 
     use function RecruitmentTests\assertSame;
@@ -141,10 +143,56 @@ namespace {
         assertSame(25.0, $useCases->applications[1]['desiredWeeklyHoursMax']);
         assertSame(1, count($useCases->runs));
         assertSame(1, count($useCases->assignments));
-        assertSame(1, count($useCases->templates));
-        assertSame(1, count($useCases->bubbles));
+        assertSame(2, count($useCases->templates));
+        assertSame(['phone', 'live'], array_column($useCases->templates, 'type'));
+        assertSame(10, count($useCases->templates[1]['questions']));
+        assertSame(13, count($useCases->templates[2]['questions']));
+        assertSame('Wie sind Sie auf uns aufmerksam geworden?', $useCases->templates[1]['questions'][0]['prompt']);
+        assertSame('Wie würden Sie mit Konflikten mit einer assistierten Person umgehen?', $useCases->templates[2]['questions'][6]['prompt']);
+        assertTrue(!in_array('Geburtsdatum', array_column($useCases->templates[1]['questions'], 'prompt'), true));
+        assertSame(69, count($useCases->bubbles));
+        foreach ($useCases->templates as $template) {
+            foreach ($template['questions'] as $question) {
+                assertSame(3, count($question['bubbles']));
+                assertSame(
+                    3,
+                    count(array_unique(array_column($question['bubbles'], 'label'))),
+                );
+            }
+        }
+        $demoQuestions = array_merge(
+            $useCases->templates[1]['questions'],
+            $useCases->templates[2]['questions'],
+        );
+        assertSame(23, count(array_unique(array_map(
+            static fn (array $question): string => implode('|', array_column($question['bubbles'], 'insertText')),
+            $demoQuestions,
+        ))));
+        $sourceQuestion = $demoQuestions[0];
+        assertTrue(in_array('Stellenportal', array_column($sourceQuestion['bubbles'], 'label'), true));
+        assertTrue(in_array('Empfehlung', array_column($sourceQuestion['bubbles'], 'label'), true));
+        $foodQuestion = array_values(array_filter(
+            $demoQuestions,
+            static fn (array $question): bool => str_contains($question['prompt'], 'Ernährungsgewohnheiten'),
+        ))[0];
+        assertTrue(in_array('Vegan – kein Fleisch', array_column($foodQuestion['bubbles'], 'label'), true));
+        assertTrue(str_contains(
+            implode(' ', array_column($foodQuestion['bubbles'], 'insertText')),
+            'Die assistierte Person entscheidet selbst, was sie essen möchte.',
+        ));
+        assertTrue(!in_array(
+            'Zu diesem Punkt ist im weiteren Gespräch eine vertiefende Nachfrage vorgesehen.',
+            array_merge(...array_map(static fn (array $question): array => array_column($question['bubbles'], 'insertText'), $demoQuestions)),
+            true,
+        ));
         assertSame(1, count($useCases->interviews));
-        assertSame(1, count($useCases->hiring));
+        assertSame(4, count($useCases->hiring));
+        assertSame('ari.beispiel@demo.invalid', $useCases->hiring[1]['data']['privateEmail']);
+        assertSame('+49 30 5550101', $useCases->hiring[1]['data']['privatePhone']);
+        assertSame('Berlin', $useCases->hiring[1]['data']['city']);
+        assertSame('neutral', $useCases->hiring[1]['data']['salutation']);
+        assertSame('2026-09-15', $useCases->hiring[1]['data']['plannedStartDate']);
+        assertSame('dr', $useCases->hiring[2]['data']['title']);
         assertSame(4, $first['applications']);
 
         $useCases->jobs[99] = ['id' => 99, 'internalTitle' => 'Fremde Stelle', 'assignmentKey' => 'foreign-job', 'basisQualificationRequired' => false];
@@ -156,12 +204,17 @@ namespace {
         assertSame(4, count($useCases->applications));
         assertSame(1, count($useCases->runs));
         assertSame(1, count($useCases->assignments));
-        assertSame(2, count($useCases->templates));
-        assertSame(1, count($useCases->bubbles));
+        assertSame(3, count($useCases->templates));
+        assertSame(23, array_sum(array_map(
+            static fn(array $template): int => count($template['questions']),
+            array_filter($useCases->templates, static fn(array $template): bool => str_ends_with((string)$template['name'], '(Demo)')),
+        )));
+        assertSame(69, count($useCases->bubbles));
         assertSame(1, count($useCases->interviews));
-        assertSame(1, count($useCases->hiring));
+        assertSame(4, count($useCases->hiring));
+        assertSame(1, $useCases->hiring[1]['version']);
         assertSame(4, $second['applications']);
         assertSame(2, $second['jobs']);
-        assertSame(1, $second['templates']);
+        assertSame(2, $second['templates']);
     });
 }

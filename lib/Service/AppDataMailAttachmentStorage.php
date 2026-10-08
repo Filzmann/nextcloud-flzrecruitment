@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace OCA\Recruitment\Service;
+namespace OCA\FlzRecruitment\Service;
 
-use OCA\Recruitment\Contract\MailAttachmentStorage;
+use OCA\FlzRecruitment\Contract\MailAttachmentStorage;
 use OCP\Files\IAppData;
-use OCA\Recruitment\Exception\NotFoundException;
+use OCA\FlzRecruitment\Exception\NotFoundException;
 use OCP\Files\NotFoundException as FilesNotFoundException;
 use OCP\Files\SimpleFS\ISimpleFolder;
 

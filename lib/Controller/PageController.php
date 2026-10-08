@@ -2,11 +2,12 @@
 
 declare(strict_types=1);
 
-namespace OCA\Recruitment\Controller;
+namespace OCA\FlzRecruitment\Controller;
 
-use OCA\Recruitment\AppInfo\Application;
-use OCA\Recruitment\Exception\AccessDeniedException;
-use OCA\Recruitment\Service\RecruitmentAccessService;
+use OCA\FlzRecruitment\AppInfo\Application;
+use OCA\FlzRecruitment\Exception\AccessDeniedException;
+use OCA\FlzRecruitment\Service\RecruitmentAccessService;
+use OCA\FlzRecruitment\Service\TemporaryAdminAccessService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -18,6 +19,7 @@ final class PageController extends Controller {
     public function __construct(
         IRequest $request,
         private RecruitmentAccessService $access,
+        private TemporaryAdminAccessService $temporaryAdminAccess,
     ) {
         parent::__construct(Application::APP_ID, $request);
     }
@@ -25,11 +27,22 @@ final class PageController extends Controller {
     #[NoAdminRequired]
     #[NoCSRFRequired]
     public function index(): TemplateResponse {
+        $canManageAdminAccess = $this->temporaryAdminAccess->canManage();
+        $showMissingAdminGrant = $this->temporaryAdminAccess->currentAdminNeedsGrant();
+        $hasRecruitmentAccess = true;
         try {
             $this->access->requireAnyAccess();
-            return new TemplateResponse(Application::APP_ID, 'index');
         } catch (AccessDeniedException) {
-            return new TemplateResponse('core', '403', [], 'guest', Http::STATUS_FORBIDDEN);
+            $hasRecruitmentAccess = false;
+            if (!$canManageAdminAccess && !$showMissingAdminGrant) {
+                return new TemplateResponse('core', '403', [], 'guest', Http::STATUS_FORBIDDEN);
+            }
         }
+        return new TemplateResponse(Application::APP_ID, 'index', [
+            'canManageAdminAccess' => $canManageAdminAccess,
+            'showMissingAdminGrant' => $showMissingAdminGrant,
+            'showAdminAccessLink' => $canManageAdminAccess && $showMissingAdminGrant,
+            'hasRecruitmentAccess' => $hasRecruitmentAccess,
+        ]);
     }
 }

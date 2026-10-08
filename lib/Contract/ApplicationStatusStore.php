@@ -2,11 +2,14 @@
 
 declare(strict_types=1);
 
-namespace OCA\Recruitment\Contract;
+namespace OCA\FlzRecruitment\Contract;
 
 interface ApplicationStatusStore {
     /** @return array<string,mixed> */
     public function findApplication(int $id): array;
+
+    /** @return array<string,mixed>|null */
+    public function statusMailPreparation(int $id, string $fromStatus, string $toStatus): ?array;
 
     /** @return array<string,mixed> */
     public function transitionStatus(
@@ -17,5 +20,7 @@ interface ApplicationStatusStore {
         string $actorUid,
         ?string $areaKey,
         bool $enableFirstGuideAccess,
+        ?array $mailDraft = null,
+        bool $override = false,
     ): array;
 }

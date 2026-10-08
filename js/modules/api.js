@@ -22,7 +22,7 @@
             headers['X-Requested-With'] = 'XMLHttpRequest'
         }
 
-        const response = await fetch(root.OC.generateUrl('/apps/adrecruitment' + path), {
+        const response = await fetch(root.OC.generateUrl('/apps/flzrecruitment' + path), {
             method,
             headers,
             credentials: 'same-origin',
@@ -37,13 +37,22 @@
         return payload
     }
 
+    function requestKey(prefix) {
+        const value = root.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`
+        return `${prefix}:${value}`.slice(0, 64)
+    }
+
     root.RecruitmentApi = {
         bootstrap: () => request('/api/bootstrap'),
         application: (id) => request(`/api/applications/${id}`),
         template: (id) => request(`/api/templates/${id}`),
         createJob: (data) => request('/api/jobs', 'POST', data),
+        jobResponsibilityUsers: (professionCategory, groupIds, query) => {
+            const params = new URLSearchParams({ professionCategory, query })
+            for (const groupId of groupIds) params.append('groupIds[]', groupId)
+            return request(`/api/job-responsibility-users?${params.toString()}`)
+        },
         createBasisQualificationRun: (data) => request('/api/basis-qualifications', 'POST', data),
-        setJobBasisQualificationRequired: (jobId, required, version) => request(`/api/jobs/${jobId}/basis-qualification`, 'PUT', { required, version }),
         basisQualificationAssignments: (applicationId) => request(`/api/applications/${applicationId}/basis-qualifications`),
         assignBasisQualification: (applicationId, runId, version) => request(`/api/applications/${applicationId}/basis-qualification`, 'POST', { runId, version }),
         recordBasisQualificationResult: (assignmentId, result, note, version) => request(`/api/basis-qualification-assignments/${assignmentId}/result`, 'PUT', { result, note, version }),
@@ -56,18 +65,38 @@
         createInterview: (applicationId, templateId) => request(`/api/applications/${applicationId}/interviews`, 'POST', { templateId }),
         saveDraft: (id, answers, version) => request(`/api/interviews/${id}/draft`, 'PUT', { answers, version }),
         completeInterview: (id, answers, version) => request(`/api/interviews/${id}/complete`, 'POST', { answers, version }),
-        transitionStatus: (id, status, version, areaKey = '') => request(`/api/applications/${id}/status`, 'POST', { status, version, areaKey }),
+        transitionStatus: (id, status, version, areaKey = '', override = false) => request(`/api/applications/${id}/status`, 'POST', { status, version, areaKey, override, clientKey: requestKey('status') }),
+        mailConfiguration: () => request('/api/mail/configuration'),
+        createMailTemplate: (data) => request('/api/mail/templates', 'POST', data),
+        reviseMailTemplate: (id, data) => request(`/api/mail/templates/${id}`, 'PUT', data),
+        saveStatusMailRule: (data) => request('/api/mail/rules', 'PUT', data),
+        createMailTextBlock: (data) => request('/api/mail/text-blocks', 'POST', data),
+        applicationMailDrafts: (id) => request(`/api/applications/${id}/mail-drafts`),
+        saveMailDraft: (id, data) => request(`/api/mail-drafts/${id}`, 'PUT', data),
+        approveMailDraft: (id, data) => request(`/api/mail-drafts/${id}/approve`, 'POST', { ...data, jobKey: requestKey('mail') }),
+        cancelMailDraft: (id, version) => request(`/api/mail-drafts/${id}/cancel`, 'POST', { version }),
+        saveMailSettings: (data) => request('/api/mail/settings', 'PUT', data),
         hiringData: (id) => request(`/api/applications/${id}/hiring-data`),
         saveHiringData: (id, data, version) => request(`/api/applications/${id}/hiring-data`, 'PUT', { data, version }),
+        savePayrollData: (id, data, version) => request(`/api/applications/${id}/payroll-data`, 'PUT', { data, version }),
         setFirstGuideAccess: (id, enabled, version) => request(`/api/applications/${id}/first-guide-access`, 'PUT', { enabled, version }),
         saveRepresentatives: (representatives, revision) => request('/api/permissions/representatives', 'PUT', { representatives, revision }),
         saveFirstGuideGroup: (groupId, revision) => request('/api/permissions/first-guide-group', 'PUT', { groupId, revision }),
+        requestCandidatePool: (applicationId) => request(`/api/applications/${applicationId}/candidate-pool/request`, 'POST', {}),
+        grantCandidatePoolConsent: (id, data) => request(`/api/candidate-pool/${id}/consent`, 'POST', data),
+        withdrawCandidatePoolConsent: (id) => request(`/api/candidate-pool/${id}/withdraw`, 'POST', {}),
+        saveCandidatePoolSettings: (data) => request('/api/candidate-pool/settings', 'PUT', data),
+        saveResumeExtractionSettings: (data) => request('/api/resume-extraction/settings', 'PUT', data),
+        adminFullAccess: () => request('/api/admin/full-access'),
+        activateAdminFullAccess: (targetUid, durationMinutes) => request('/api/admin/full-access', 'POST', { targetUid, durationMinutes }),
+        revokeAdminFullAccess: (targetUid) => request(`/api/admin/full-access/${encodeURIComponent(targetUid)}`, 'DELETE'),
         inbox: () => request('/api/inbox'),
         inboxMessage: (id) => request(`/api/inbox/${id}`),
         applicationMessages: (applicationId) => request(`/api/applications/${applicationId}/messages`),
-        assignInboxMessage: (id, applicationId, version) => request(`/api/inbox/${id}/assign`, 'POST', { applicationId, version }),
+        assignInboxMessage: (id, applicationId, version, acceptedSuggestions = {}) => request(`/api/inbox/${id}/assign`, 'POST', { applicationId, version, acceptedSuggestions }),
+        createApplicationFromInbox: (id, data) => request(`/api/inbox/${id}/application`, 'POST', data),
         ignoreInboxMessage: (id, version) => request(`/api/inbox/${id}/ignore`, 'POST', { version }),
-        documentUrl: (attachmentId) => root.OC.generateUrl(`/apps/adrecruitment/api/attachments/${attachmentId}/document`),
+        documentUrl: (attachmentId) => root.OC.generateUrl(`/apps/flzrecruitment/api/attachments/${attachmentId}/document`),
         attachmentComments: (attachmentId) => request(`/api/attachments/${attachmentId}/comments`),
         createDocumentComment: (attachmentId, data) => request(`/api/attachments/${attachmentId}/comments`, 'POST', data),
         attachmentFieldContext: (attachmentId, targetField) => request(`/api/attachments/${attachmentId}/field-context/${encodeURIComponent(targetField)}`),

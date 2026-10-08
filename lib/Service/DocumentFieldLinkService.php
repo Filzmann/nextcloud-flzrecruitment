@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace OCA\Recruitment\Service;
+namespace OCA\FlzRecruitment\Service;
 
 use DateTimeImmutable;
-use OCA\Recruitment\Contract\DocumentFieldLinkStore;
-use OCA\Recruitment\Exception\ConflictException;
-use OCA\Recruitment\Exception\ValidationException;
+use OCA\FlzRecruitment\Contract\DocumentFieldLinkStore;
+use OCA\FlzRecruitment\Exception\ConflictException;
+use OCA\FlzRecruitment\Exception\ValidationException;
 
 /** Verknüpft nachgewiesene PDF-Fundstellen kontrolliert mit Bewerbungsfeldern. */
 final class DocumentFieldLinkService {
@@ -18,9 +18,12 @@ final class DocumentFieldLinkService {
         'birthPlace',
         'freeComment',
     ];
-    public const GERMAN_LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2', 'native', 'not_assessed'];
+    private ApplicationFieldValueService $applicationFieldValues;
 
-    public function __construct(private DocumentFieldLinkStore $store) {}
+    public function __construct(
+        private DocumentFieldLinkStore $store,
+        ?ApplicationFieldValueService $applicationFieldValues = null,
+    ) { $this->applicationFieldValues = $applicationFieldValues ?? new ApplicationFieldValueService(); }
 
     public function requiredCapability(string $targetField): string {
         $this->assertTarget($targetField);
@@ -41,7 +44,7 @@ final class DocumentFieldLinkService {
             'targetField' => $targetField,
             'value' => (string)($field['value'] ?? ''),
             'version' => (int)($field['version'] ?? 0),
-            'germanLevels' => $targetField === 'germanLanguageLevel' ? self::GERMAN_LEVELS : [],
+            'germanLevels' => $targetField === 'germanLanguageLevel' ? ApplicationFieldValueService::GERMAN_LEVELS : [],
         ];
     }
 
@@ -161,12 +164,12 @@ final class DocumentFieldLinkService {
     }
 
     private function normalizeValue(string $targetField, string $value): string {
+        if (in_array($targetField, ApplicationFieldValueService::FIELDS, true)) {
+            return $this->applicationFieldValues->normalize($targetField, $value);
+        }
         $value = trim($value);
         $maximum = in_array($targetField, ['previousExperience', 'freeComment'], true) ? 8000 : 255;
         if ($value === '' || strlen($value) > $maximum) throw new ValidationException('Der zu übernehmende Wert ist ungültig.');
-        if ($targetField === 'germanLanguageLevel' && !in_array($value, self::GERMAN_LEVELS, true)) {
-            throw new ValidationException('Das Deutschniveau ist ungültig.');
-        }
         if ($targetField === 'birthDate') {
             $date = DateTimeImmutable::createFromFormat('!Y-m-d', $value);
             $errors = DateTimeImmutable::getLastErrors();

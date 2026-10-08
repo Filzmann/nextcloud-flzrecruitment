@@ -1,0 +1,129 @@
+<?php
+
+declare(strict_types=1);
+
+namespace OCA\FlzPermissionMatrix\PublicApi\V1 {
+    interface PermissionProvider { public function descriptor(): PermissionProviderDescriptor; public function collect(): PermissionProviderResult; }
+    final class PermissionProviderDescriptor {
+        public function __construct(public string $appId, public string $displayName, public string $version, public array $capabilities) {}
+    }
+    final class PermissionCondition {
+        private function __construct(public string $operator, public ?string $groupId = null, public array $children = []) {}
+        public static function group(string $groupId): self { return new self('group', $groupId); }
+        public static function all(array $children): self { return new self('all', null, $children); }
+        public static function nextcloudAdmin(): self { return new self('nextcloud-admin'); }
+        public static function temporaryAppAdminGrant(): self { return new self('app-admin-grant'); }
+    }
+    final class PermissionRule {
+        public function __construct(
+            public string $objectType,
+            public string $objectName,
+            public string $detail,
+            public string $permission,
+            public string $permissionLabel,
+            public string $effect,
+            public string $scope,
+            public PermissionCondition $condition,
+            public string $source,
+            public string $confidence,
+        ) {}
+    }
+    final class PermissionProviderResult {
+        public function __construct(public array $rules, public bool $complete = true, public array $warnings = []) {}
+    }
+    final class RegisterPermissionProvidersEvent {
+        public array $providers = [];
+        public function register(PermissionProvider $provider): void { $this->providers[] = $provider; }
+    }
+}
+
+namespace RecruitmentTests {
+    use OCA\FlzPermissionMatrix\PublicApi\V1\RegisterPermissionProvidersEvent;
+    use OCA\FlzRecruitment\Organization\OrganizationSnapshot;
+    use OCA\FlzRecruitment\Permission\RecruitmentPermissionProvider;
+    use OCA\FlzRecruitment\Permission\RecruitmentPermissionProviderListener;
+    use OCA\FlzRecruitment\Permission\RecruitmentPermissionSourceInterface;
+
+    $snapshot = OrganizationSnapshot::valid('1.0', 4, 'test-checksum', [
+        'staff_hr' => ['groupId' => 'flz-HR', 'label' => 'HR'],
+        'payroll' => ['groupId' => 'flz-Payroll', 'label' => 'Lohn'],
+        'eb' => ['groupId' => 'flz-EB', 'label' => 'Einsatzbegleitung'],
+    ], [
+        'north' => ['groupId' => 'flz-Area-North', 'label' => 'Nord'],
+    ]);
+
+    $source = new class($snapshot) implements RecruitmentPermissionSourceInterface {
+        public function __construct(private OrganizationSnapshot $snapshot) {}
+        public function organization(): OrganizationSnapshot { return $this->snapshot; }
+        public function permissionSettings(): array {
+            return ['firstGuideGroupId' => 'flz-first-guides', 'representatives' => []];
+        }
+    };
+    $provider = new RecruitmentPermissionProvider($source);
+    $result = $provider->collect();
+    assertSame(true, $result->complete);
+
+    $rules = static function (string $permission) use ($result): array {
+        return array_values(array_filter(
+            $result->rules,
+            static fn($rule): bool => $rule->permission === $permission,
+        ));
+    };
+    $conditions = static fn(string $permission): array => array_map(
+        static fn($rule): string => $rule->condition->operator . ':' . ($rule->condition->groupId ?? ''),
+        $rules($permission),
+    );
+
+    assertTrue(in_array('group:flz-HR', $conditions('recruitment.view_dossier'), true));
+    assertTrue(in_array('group:flz-Payroll', $conditions('recruitment.edit_payroll_data'), true));
+    assertTrue(!in_array('group:flz-HR', $conditions('recruitment.edit_payroll_data'), true));
+    $adminRule = array_values(array_filter($rules('recruitment.manage_delegations'), static fn($rule): bool => $rule->scope === 'all'))[0] ?? null;
+    assertSame('all', $adminRule?->condition->operator);
+    assertSame(['nextcloud-admin', 'app-admin-grant'], array_map(static fn($condition): string => $condition->operator, $adminRule?->condition->children ?? []));
+    $grantManagementRule = $rules('recruitment.manage_temporary_admin_access')[0] ?? null;
+    assertSame('group', $grantManagementRule?->condition->operator);
+    assertSame('Datenschutzbeauftragte', $grantManagementRule?->condition->groupId);
+    assertSame('all', $grantManagementRule?->scope);
+
+    $firstGuide = array_values(array_filter(
+        $rules('recruitment.view_dossier'),
+        static fn($rule): bool => $rule->scope === 'released-first-guide-access:area:north',
+    ))[0] ?? null;
+    assertTrue($firstGuide !== null);
+    assertSame('all', $firstGuide->condition->operator);
+    assertSame(
+        ['flz-first-guides', 'flz-EB', 'flz-Area-North'],
+        array_map(static fn($condition): ?string => $condition->groupId, $firstGuide->condition->children),
+    );
+
+    $documentRules = $rules('recruitment.manage_documents');
+    assertTrue(str_contains($documentRules[0]->detail ?? '', 'Dateiinhalte werden nicht untersucht'));
+
+    $partialSource = new class($snapshot) implements RecruitmentPermissionSourceInterface {
+        public function __construct(private OrganizationSnapshot $snapshot) {}
+        public function organization(): OrganizationSnapshot { return $this->snapshot; }
+        public function permissionSettings(): array {
+            return [
+                'firstGuideGroupId' => 'flz-first-guides',
+                'representatives' => [[
+                    'uid' => 'representative-a',
+                    'capabilities' => ['view_dossier'],
+                    'all' => true,
+                    'areaKeys' => [],
+                    'applicationIds' => [],
+                ]],
+            ];
+        }
+    };
+    $partial = (new RecruitmentPermissionProvider($partialSource))->collect();
+    assertSame(false, $partial->complete);
+    assertTrue(str_contains(implode(' ', $partial->warnings), 'UID-basierte Vertretungsfreigaben'));
+    assertTrue(!str_contains(serialize($partial->rules), 'representative-a'));
+
+    $event = new RegisterPermissionProvidersEvent();
+    (new RecruitmentPermissionProviderListener($provider))->handle($event);
+    assertSame($provider, $event->providers[0] ?? null);
+
+    $application = (string)file_get_contents(dirname(__DIR__) . '/lib/AppInfo/Application.php');
+    assertTrue(str_contains($application, 'RegisterPermissionProvidersEvent::class, RecruitmentPermissionProviderListener::class'));
+}

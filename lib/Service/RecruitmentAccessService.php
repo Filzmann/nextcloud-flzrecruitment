@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace OCA\Recruitment\Service;
+namespace OCA\FlzRecruitment\Service;
 
-use OCA\LocalBase\Organization\AdOrganizationSnapshot;
-use OCA\LocalBase\Organization\AdOrganizationSnapshotService;
-use OCA\Recruitment\Exception\AccessDeniedException;
+use OCA\FlzRecruitment\Exception\AccessDeniedException;
+use OCA\FlzRecruitment\Organization\OrganizationSnapshot;
+use OCA\FlzRecruitment\Organization\OrganizationSnapshotService;
 use OCP\IGroupManager;
 use OCP\IUser;
 use OCP\IUserSession;
@@ -18,18 +18,23 @@ final class RecruitmentAccessService {
     public const EDIT_APPLICATIONS = RecruitmentPermissionPolicy::EDIT_APPLICATIONS;
     public const INTERVIEW = RecruitmentPermissionPolicy::INTERVIEW;
     public const EDIT_HIRING_DATA = RecruitmentPermissionPolicy::EDIT_HIRING_DATA;
+    public const EDIT_PAYROLL_DATA = RecruitmentPermissionPolicy::EDIT_PAYROLL_DATA;
     public const VIEW_HIRING_DATA = RecruitmentPermissionPolicy::VIEW_HIRING_DATA;
     public const MANAGE_DOCUMENTS = RecruitmentPermissionPolicy::MANAGE_DOCUMENTS;
     public const COMMUNICATE = RecruitmentPermissionPolicy::COMMUNICATE;
     public const MANAGE_FIRST_GUIDE_ACCESS = RecruitmentPermissionPolicy::MANAGE_FIRST_GUIDE_ACCESS;
     public const MANAGE_BASIS_QUALIFICATION = RecruitmentPermissionPolicy::MANAGE_BASIS_QUALIFICATION;
+    public const MANAGE_MAIL_TEMPLATES = RecruitmentPermissionPolicy::MANAGE_MAIL_TEMPLATES;
+    public const MANAGE_CANDIDATE_POOL = RecruitmentPermissionPolicy::MANAGE_CANDIDATE_POOL;
     public const MANAGE_DELEGATIONS = RecruitmentPermissionPolicy::MANAGE_DELEGATIONS;
+    public const OVERRIDE_STATUS_TRANSITIONS = RecruitmentPermissionPolicy::OVERRIDE_STATUS_TRANSITIONS;
 
     public function __construct(
         private IUserSession $session,
         private IGroupManager $groups,
-        private AdOrganizationSnapshotService $organization,
+        private OrganizationSnapshotService $organization,
         private RecruitmentPermissionSettingsService $settings,
+        private TemporaryAdminAccessChecker $temporaryAdminAccess,
     ) {}
 
     public function currentUser(): ?IUser { return $this->session->getUser(); }
@@ -77,7 +82,11 @@ final class RecruitmentAccessService {
         foreach ([
             ...RecruitmentPermissionPolicy::DELEGATABLE_CAPABILITIES,
             self::MANAGE_BASIS_QUALIFICATION,
+            self::EDIT_PAYROLL_DATA,
+            self::MANAGE_MAIL_TEMPLATES,
+            self::MANAGE_CANDIDATE_POOL,
             self::MANAGE_DELEGATIONS,
+            self::OVERRIDE_STATUS_TRANSITIONS,
         ] as $capability) {
             $result[$capability] = $policy->canSomewhere($actor, $capability);
         }
@@ -123,7 +132,7 @@ final class RecruitmentAccessService {
         ])));
     }
 
-    public function organization(): AdOrganizationSnapshot { return $this->organization->snapshot(); }
+    public function organization(): OrganizationSnapshot { return $this->organization->snapshot(); }
     /** @return array<string, mixed> */
     public function permissionSettings(): array { return $this->settings->settings(); }
 
@@ -146,7 +155,7 @@ final class RecruitmentAccessService {
         foreach (array_values(array_unique($candidateGroups)) as $groupId) {
             if ($groupId !== '' && $this->groups->get($groupId)?->inGroup($user) === true) $groupIds[] = $groupId;
         }
-        return ['uid' => $user->getUID(), 'isAdmin' => $this->groups->isAdmin($user->getUID()), 'groupIds' => $groupIds];
+        return ['uid' => $user->getUID(), 'isAdmin' => $this->groups->isAdmin($user->getUID()) && $this->temporaryAdminAccess->hasActiveGrant($user->getUID()), 'groupIds' => $groupIds];
     }
 
     private function policy(): RecruitmentPermissionPolicy {

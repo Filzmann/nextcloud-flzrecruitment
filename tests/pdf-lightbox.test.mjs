@@ -81,8 +81,8 @@ class FakeElement {
     getBoundingClientRect() {
         const parent = this.parentElement?.getBoundingClientRect?.() || { left: 0, top: 0 }
         const number = (value, fallback = 0) => Number.parseFloat(value ?? '') || fallback
-        const width = number(this.style.width, this.classList.contains('adrecruitment-pdf-page') ? 125 : 0)
-        const height = number(this.style.height, this.classList.contains('adrecruitment-pdf-page') ? 250 : 0)
+        const width = number(this.style.width, this.classList.contains('flzrecruitment-pdf-page') ? 125 : 0)
+        const height = number(this.style.height, this.classList.contains('flzrecruitment-pdf-page') ? 250 : 0)
         const left = parent.left + number(this.style.left)
         const top = parent.top + number(this.style.top)
         return { left, top, width, height, right: left + width, bottom: top + height }
@@ -105,7 +105,7 @@ const loadOptions = []
 let destroyed = false
 window.document = fakeDocument
 window.devicePixelRatio = 1
-window.OC = { linkTo: (_app, path) => `/apps/adrecruitment/${path}` }
+window.OC = { linkTo: (_app, path) => `/apps/flzrecruitment/${path}` }
 window.getSelection = () => null
 const fakePdfjs = {
     TextLayer: class {
@@ -141,12 +141,12 @@ await handle.ready
 assert.equal(loadOptions[0].url, '/document.pdf')
 assert.equal(loadOptions[0].withCredentials, true)
 const dialogElements = all(handle.dialog)
-const page = dialogElements.find((element) => element.classList.contains('adrecruitment-pdf-page'))
-const pages = dialogElements.find((element) => element.classList.contains('adrecruitment-pdf-pages'))
+const page = dialogElements.find((element) => element.classList.contains('flzrecruitment-pdf-page'))
+const pages = dialogElements.find((element) => element.classList.contains('flzrecruitment-pdf-pages'))
 assert.ok(page)
-assert.equal(dialogElements.filter((element) => element.classList.contains('adrecruitment-pdf-stored-mark')).length, 1)
+assert.equal(dialogElements.filter((element) => element.classList.contains('flzrecruitment-pdf-stored-mark')).length, 1)
 
-const textSpan = all(page).find((element) => element.tagName === 'SPAN' && element.parentElement?.classList.contains('adrecruitment-pdf-text-layer'))
+const textSpan = all(page).find((element) => element.tagName === 'SPAN' && element.parentElement?.classList.contains('flzrecruitment-pdf-text-layer'))
 window.getSelection = () => ({
     rangeCount: 1,
     isCollapsed: false,
