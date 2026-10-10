@@ -2,8 +2,8 @@
 
 ## Staging-Kompatibilität
 
-- Nextcloud 33 bis 34
-- PHP 8.3 oder neuer innerhalb des von Nextcloud 33 bis 34 unterstützten Bereichs
+- Nextcloud 33 bis 35
+- PHP 8.3 oder neuer innerhalb des von Nextcloud 33 bis 35 unterstützten Bereichs
 - Laufzeitbasis: `localbase`; `orgsuite` ist ab zwei FLZ-Fachprodukten optional aktiv
 - App-ID und Installationsordner: `flzrecruitment`
 

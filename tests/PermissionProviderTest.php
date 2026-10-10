@@ -2,6 +2,11 @@
 
 declare(strict_types=1);
 
+namespace OCP\EventDispatcher {
+    class Event {}
+    interface IEventListener { public function handle(Event $event): void; }
+}
+
 namespace OCA\FlzPermissionMatrix\PublicApi\V1 {
     interface PermissionProvider { public function descriptor(): PermissionProviderDescriptor; public function collect(): PermissionProviderResult; }
     final class PermissionProviderDescriptor {
@@ -31,7 +36,7 @@ namespace OCA\FlzPermissionMatrix\PublicApi\V1 {
     final class PermissionProviderResult {
         public function __construct(public array $rules, public bool $complete = true, public array $warnings = []) {}
     }
-    final class RegisterPermissionProvidersEvent {
+    final class RegisterPermissionProvidersEvent extends \OCP\EventDispatcher\Event {
         public array $providers = [];
         public function register(PermissionProvider $provider): void { $this->providers[] = $provider; }
     }
@@ -121,7 +126,9 @@ namespace RecruitmentTests {
     assertTrue(!str_contains(serialize($partial->rules), 'representative-a'));
 
     $event = new RegisterPermissionProvidersEvent();
-    (new RecruitmentPermissionProviderListener($provider))->handle($event);
+    $listener = new RecruitmentPermissionProviderListener($provider);
+    assertTrue($listener instanceof \OCP\EventDispatcher\IEventListener);
+    $listener->handle($event);
     assertSame($provider, $event->providers[0] ?? null);
 
     $application = (string)file_get_contents(dirname(__DIR__) . '/lib/AppInfo/Application.php');
