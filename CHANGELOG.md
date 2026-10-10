@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Nextcloud 35.0.1 durch Fresh Install, Upgrade 34→35 sowie Provider-,
+  Berechtigungs-, Runtime-, UI-/API- und Asset-Smokes nachgewiesen und den
+  unterstützten Bereich auf die lückenlosen Hauptversionen 33 bis 35
+  erweitert. Der Permission-Provider-Listener erfüllt nun Nextclouds
+  öffentlichen `IEventListener`-Vertrag; die Berechtigungssemantik bleibt
+  unverändert. Nextcloud 36 bleibt ungeprüft.
 - Den internen LocalBase-Organisationsservice durch einen app-lokalen, lazy
   aufgelösten Consumer des öffentlichen Organization-V1-Vertrags ersetzt.
   Fehlende, deaktivierte, alte, inkompatible, ungültige und fehlerhafte

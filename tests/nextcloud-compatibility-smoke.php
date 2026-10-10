@@ -45,6 +45,7 @@ return [
     'preGrantUiStatuses' => [200],
     'postGrantUiStatuses' => [200],
     'grantService' => OCA\FlzRecruitment\Service\TemporaryAdminAccessService::class,
+    'grantManagerGroups' => ['Datenschutzbeauftragte'],
     'permissionProbe' => static fn(string $uid): bool => OCP\Server::get(RecruitmentAccessService::class)
         ->canSomewhere(RecruitmentAccessService::VIEW),
     'apiSmokes' => [
