@@ -9,10 +9,13 @@ use RecruitmentTests\TestRunner;
 use function RecruitmentTests\assertSame;
 
 $settings = [
-    'firstGuideGroupId' => 'group-first-guides',
+    'roleCapabilities' => [
+        ...array_fill_keys(RecruitmentPermissionPolicy::ACTION_CAPABILITIES, ['staff_hr']),
+        RecruitmentPermissionPolicy::VIEW_FIRST_GUIDE_DOSSIER => ['eb'],
+    ],
     'representatives' => [[
         'uid' => 'global-representative',
-        'capabilities' => [RecruitmentPermissionPolicy::VIEW_DOSSIER, RecruitmentPermissionPolicy::EDIT_APPLICATIONS],
+        'capabilities' => [RecruitmentPermissionPolicy::VIEW_DOSSIER, RecruitmentPermissionPolicy::EDIT_APPLICATIONS, RecruitmentPermissionPolicy::MANAGE_UNASSIGNED_INBOX],
         'all' => true,
         'areaKeys' => [],
         'applicationIds' => [],

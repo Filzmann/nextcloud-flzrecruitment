@@ -10,7 +10,6 @@ Util::addStyle('flzrecruitment', 'style');
 
 $mail = $_['mailSettings'] ?? ['testMode' => false, 'testRecipient' => '', 'revision' => 0];
 $extraction = $_['resumeExtractionSettings'] ?? ['method' => 'rules', 'revision' => 0, 'options' => [], 'runtime' => ['pdfTextAvailable' => false, 'engine' => '']];
-$permissions = $_['permissionSettings'] ?? ['firstGuideGroupId' => '', 'revision' => 0];
 ?>
 <section id="flzrecruitment-admin" class="section flzrecruitment-admin" aria-labelledby="flzrecruitment-admin-heading">
     <h2 id="flzrecruitment-admin-heading">Filzmann Recruitment</h2>
@@ -38,13 +37,5 @@ $permissions = $_['permissionSettings'] ?? ['firstGuideGroupId' => '', 'revision
         <p>Die lokale Stichworterkennung überträgt keine Bewerbungsdaten an KI-Dienste. Ein lokales Server-Modell ist vorbereitet, aber noch nicht angebunden.</p>
         <button id="recr-admin-extraction-submit" type="submit" class="primary">Extraktionsverfahren speichern</button>
         <p id="recr-admin-extraction-status" class="flzrecruitment-admin-status" role="status" aria-live="polite"></p>
-    </form>
-
-    <form id="recr-admin-first-guide-form" class="flzrecruitment-admin-card" data-revision="<?php p((string)$permissions['revision']); ?>">
-        <h3>Strukturelle Erstbegleitungsgruppe</h3>
-        <label for="recr-admin-first-guide-group">Nextcloud-Gruppe für Erstbegleitungen</label>
-        <input id="recr-admin-first-guide-group" type="text" maxlength="255" required value="<?php p($permissions['firstGuideGroupId']); ?>">
-        <button id="recr-admin-first-guide-submit" type="submit" class="primary">Erstbegleitungsgruppe speichern</button>
-        <p id="recr-admin-first-guide-status" class="flzrecruitment-admin-status" role="status" aria-live="polite"></p>
     </form>
 </section>

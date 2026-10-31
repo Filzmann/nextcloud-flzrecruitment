@@ -57,11 +57,21 @@ namespace {
     $dependencies = static function (string $uid, array $members = [], array $admins = [], bool $activeGrant = false) use ($organization): RecruitmentAccessService {
         $config = new TestConfig();
         $groups = new TestGroups($members, $admins);
+        $organizationService = new FixedOrganizationSnapshotService($organization());
+        $config->values['flzrecruitment']['permission_settings'] = json_encode([
+            'version' => 2,
+            'revision' => 1,
+            'roleCapabilities' => [
+                ...array_fill_keys(\OCA\FlzRecruitment\Service\RecruitmentPermissionPolicy::ACTION_CAPABILITIES, ['staff_hr']),
+                \OCA\FlzRecruitment\Service\RecruitmentPermissionPolicy::VIEW_FIRST_GUIDE_DOSSIER => ['eb'],
+            ],
+            'representatives' => [],
+        ], JSON_THROW_ON_ERROR);
         return new RecruitmentAccessService(
             new TestSession(new TestUser($uid)),
             $groups,
-            new FixedOrganizationSnapshotService($organization()),
-            new RecruitmentPermissionSettingsService($config, new TestUsers(), $groups),
+            $organizationService,
+            new RecruitmentPermissionSettingsService($config, new TestUsers(), $organizationService),
             new class($activeGrant) implements TemporaryAdminAccessChecker { public function __construct(private bool $active) {} public function hasActiveGrant(string $uid): bool { return $this->active; } },
         );
     };
@@ -69,14 +79,15 @@ namespace {
     TestRunner::test('anonymous and finance users are denied server-side', static function () use ($dependencies, $organization): void {
         $config = new TestConfig();
         $groups = new TestGroups([]);
-        $anonymous = new RecruitmentAccessService(new TestSession(null), $groups, new FixedOrganizationSnapshotService($organization()), new RecruitmentPermissionSettingsService($config, new TestUsers(), $groups), new class implements TemporaryAdminAccessChecker { public function hasActiveGrant(string $uid): bool { return false; } });
+        $organizationService = new FixedOrganizationSnapshotService($organization());
+        $anonymous = new RecruitmentAccessService(new TestSession(null), $groups, $organizationService, new RecruitmentPermissionSettingsService($config, new TestUsers(), $organizationService), new class implements TemporaryAdminAccessChecker { public function hasActiveGrant(string $uid): bool { return false; } });
         assertThrows(static fn () => $anonymous->requireAnyAccess(), AccessDeniedException::class);
 
         $finance = $dependencies('finance-user', ['flz-Finanzen' => ['finance-user']]);
         assertSame(false, $finance->can(RecruitmentAccessService::VIEW));
     });
 
-    TestRunner::test('HR receives full access and payroll only released hiring data', static function () use ($dependencies): void {
+    TestRunner::test('HR receives all default action rights while payroll has no implicit role rights', static function () use ($dependencies): void {
         $hr = $dependencies('hr-user', ['flz-Stab-HR' => ['hr-user']]);
         assertTrue($hr->can(RecruitmentAccessService::MANAGE_DELEGATIONS));
         assertTrue($hr->can(RecruitmentAccessService::OVERRIDE_STATUS_TRANSITIONS));
@@ -84,8 +95,8 @@ namespace {
 
         $payroll = $dependencies('payroll-user', ['flz-Lohn' => ['payroll-user']]);
         $approved = ['id' => 2, 'status' => 'approved_for_hire', 'areaKey' => 'west', 'firstGuideAccess' => true];
-        assertTrue($payroll->can(RecruitmentAccessService::VIEW_HIRING_DATA, $approved));
-        assertTrue($payroll->can(RecruitmentAccessService::EDIT_PAYROLL_DATA, $approved));
+        assertSame(false, $payroll->can(RecruitmentAccessService::VIEW_HIRING_DATA, $approved));
+        assertSame(false, $payroll->can(RecruitmentAccessService::EDIT_PAYROLL_DATA, $approved));
         assertSame(false, $payroll->can(RecruitmentAccessService::VIEW, $approved));
     });
 
@@ -103,7 +114,6 @@ namespace {
         $guide = $dependencies('guide-user', [
             'flz-EB' => ['guide-user'],
             'flz-Bereich-West' => ['guide-user'],
-            'flzrecruitment-first-guides' => ['guide-user'],
         ]);
         $overview = $guide->filterOverview([
             'jobs' => [['id' => 4]],

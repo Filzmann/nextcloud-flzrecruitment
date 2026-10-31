@@ -258,8 +258,17 @@ final class ApiController extends Controller {
             if ($capabilities[RecruitmentAccessService::MANAGE_CATALOG] ?? false) {
                 $payload['jobResponsibilityGroups'] = $this->jobResponsibilities->allGroups();
             }
-            if ($capabilities[RecruitmentAccessService::MANAGE_DELEGATIONS] ?? false) {
+            if (($capabilities[RecruitmentAccessService::MANAGE_DELEGATIONS] ?? false)
+                || ($capabilities['manage_permission_matrix'] ?? false)) {
                 $payload['permissionSettings'] = $this->access->permissionSettings();
+                $payload['organizationRoles'] = array_map(
+                    static fn(string $key, array $role): array => ['key' => $key, 'label' => $role['label']],
+                    array_keys($this->access->organization()->roles()),
+                    array_values($this->access->organization()->roles()),
+                );
+                $payload['roleAssignableCapabilities'] = RecruitmentPermissionPolicy::ROLE_ASSIGNABLE_CAPABILITIES;
+            }
+            if ($capabilities[RecruitmentAccessService::MANAGE_DELEGATIONS] ?? false) {
                 $payload['delegatableCapabilities'] = RecruitmentPermissionPolicy::DELEGATABLE_CAPABILITIES;
             }
             if (($capabilities[RecruitmentAccessService::MANAGE_MAIL_TEMPLATES] ?? false)
@@ -755,10 +764,10 @@ final class ApiController extends Controller {
     }
 
     #[NoAdminRequired]
-    public function saveFirstGuideGroup(string $groupId, int $revision): JSONResponse {
-        return $this->respond(function () use ($groupId, $revision): array {
-            if (!$this->access->isNextcloudAdmin()) throw new AccessDeniedException();
-            return $this->useCases->saveFirstGuideGroup($groupId, $revision, $this->access->currentUid());
+    public function saveRoleCapabilities(array $roleCapabilities, int $revision): JSONResponse {
+        return $this->respond(function () use ($roleCapabilities, $revision): array {
+            $this->access->requireManagePermissionMatrix();
+            return $this->useCases->saveRoleCapabilities($roleCapabilities, $revision, $this->access->currentUid());
         });
     }
 

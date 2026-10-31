@@ -30,6 +30,8 @@
         basisQualificationRuns: [],
         jobResponsibilityGroups: [],
         permissionSettings: null,
+        organizationRoles: [],
+        roleAssignableCapabilities: [],
         mailConfiguration: null,
         candidatePool: null,
         delegatableCapabilities: [],
@@ -134,6 +136,12 @@
         manage_mail_templates: 'Mailvorlagen verwalten',
         manage_candidate_pool: 'Bewerberpool verwalten',
         manage_first_guide_access: 'Erstbegleitungszugriff steuern',
+        edit_payroll_data: 'Lohndaten bearbeiten',
+        manage_basis_qualification: 'Basisqualifikation verwalten',
+        manage_delegations: 'Vertretungsfreigaben verwalten',
+        override_status_transitions: 'Statusübergänge übersteuern',
+        manage_unassigned_inbox: 'Unzugeordneten Posteingang bearbeiten',
+        view_first_guide_dossier: 'Erstbegleitungsakte lesen',
     }
 
     function element(tag, options = {}, children = []) {
@@ -2340,8 +2348,62 @@
             return
         }
         view.append(element('p', {
-            text: 'Personalreferent*innen vergeben Vertretungsrechte einzeln nach Fähigkeit und Scope. Änderungen werden versioniert protokolliert.',
+            text: 'Berechtigungen werden getrennt von Organigrammrollen vergeben. Vertretungsrechte gelten zusätzlich einzeln nach Fähigkeit und Scope. Änderungen werden versioniert protokolliert.',
         }))
+        if (settings.valid === false) {
+            view.append(element('p', {
+                className: 'flzrecruitment-error',
+                role: 'alert',
+                text: 'Die gespeicherte Berechtigungskonfiguration ist ungültig. Bis zum erneuten Speichern bleiben Rollen- und Vertretungsrechte gesperrt.',
+            }))
+        }
+
+        if (state.capabilities.manage_permission_matrix) {
+            const matrixForm = element('form', { className: 'flzrecruitment-form flzrecruitment-card' })
+            matrixForm.append(
+                element('h3', { text: 'Rollen und Berechtigungen' }),
+                element('p', { text: 'Datenschutzbeauftragte ordnen die fachlichen Rechte den Rollen aus dem Organigramm zu. Erstbegleitungsakten bleiben auf Einsatzbegleitungen im eigenen Bereich begrenzt.' }),
+            )
+            const table = element('table', { className: 'flzrecruitment-permission-matrix' })
+            const head = element('tr', {}, [element('th', { scope: 'col', text: 'Berechtigung' })])
+            for (const role of state.organizationRoles) head.append(element('th', { scope: 'col', text: role.label }))
+            table.append(element('thead', {}, [head]))
+            const body = element('tbody')
+            const controls = new Map()
+            for (const capability of state.roleAssignableCapabilities) {
+                const row = element('tr', {}, [element('th', { scope: 'row', text: capabilityLabels[capability] || capability })])
+                const selectedRoles = settings.roleCapabilities?.[capability] || []
+                for (const role of state.organizationRoles) {
+                    const unavailable = (capability === 'view_first_guide_dossier' && role.key !== 'eb')
+                        || (capability === 'manage_delegations' && role.key !== 'staff_hr')
+                    const control = element('input', {
+                        type: 'checkbox',
+                        checked: selectedRoles.includes(role.key),
+                        disabled: unavailable,
+                        'aria-label': `${capabilityLabels[capability] || capability}: ${role.label}`,
+                    })
+                    controls.set(`${capability}:${role.key}`, control)
+                    row.append(element('td', {}, [control]))
+                }
+                body.append(row)
+            }
+            table.append(body)
+            matrixForm.append(element('div', { className: 'flzrecruitment-table-wrap' }, [table]), button('Rollenzuordnung speichern'))
+            matrixForm.addEventListener('submit', (event) => {
+                event.preventDefault()
+                const roleCapabilities = Object.fromEntries(state.roleAssignableCapabilities.map((capability) => [
+                    capability,
+                    state.organizationRoles
+                        .filter((role) => controls.get(`${capability}:${role.key}`)?.checked)
+                        .map((role) => role.key),
+                ]))
+                run(
+                    () => api.saveRoleCapabilities(roleCapabilities, settings.revision),
+                    'Rollenzuordnung wurde gespeichert.',
+                )
+            })
+            view.append(matrixForm)
+        }
 
         if (settings.representatives.length) {
             const list = element('div', { className: 'flzrecruitment-grid' })
@@ -2427,6 +2489,8 @@
             state.basisQualificationRuns = payload.basisQualificationRuns || []
             state.jobResponsibilityGroups = payload.jobResponsibilityGroups || []
             state.permissionSettings = payload.permissionSettings || null
+            state.organizationRoles = payload.organizationRoles || []
+            state.roleAssignableCapabilities = payload.roleAssignableCapabilities || []
             state.mailConfiguration = payload.mailConfiguration || null
             state.candidatePool = payload.candidatePool || null
             state.delegatableCapabilities = payload.delegatableCapabilities || []

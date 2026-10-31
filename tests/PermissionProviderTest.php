@@ -61,7 +61,13 @@ namespace RecruitmentTests {
         public function __construct(private OrganizationSnapshot $snapshot) {}
         public function organization(): OrganizationSnapshot { return $this->snapshot; }
         public function permissionSettings(): array {
-            return ['firstGuideGroupId' => 'flz-first-guides', 'representatives' => []];
+            return [
+                'roleCapabilities' => [
+                    ...array_fill_keys(\OCA\FlzRecruitment\Service\RecruitmentPermissionPolicy::ACTION_CAPABILITIES, ['staff_hr']),
+                    \OCA\FlzRecruitment\Service\RecruitmentPermissionPolicy::VIEW_FIRST_GUIDE_DOSSIER => ['eb'],
+                ],
+                'representatives' => [],
+            ];
         }
     };
     $provider = new RecruitmentPermissionProvider($source);
@@ -80,9 +86,12 @@ namespace RecruitmentTests {
     );
 
     assertTrue(in_array('group:flz-HR', $conditions('recruitment.view_dossier'), true));
-    assertTrue(in_array('group:flz-Payroll', $conditions('recruitment.edit_payroll_data'), true));
-    assertTrue(!in_array('group:flz-HR', $conditions('recruitment.edit_payroll_data'), true));
-    $adminRule = array_values(array_filter($rules('recruitment.manage_delegations'), static fn($rule): bool => $rule->scope === 'all'))[0] ?? null;
+    assertTrue(!in_array('group:flz-Payroll', $conditions('recruitment.edit_payroll_data'), true));
+    assertTrue(in_array('group:flz-HR', $conditions('recruitment.edit_payroll_data'), true));
+    $adminRule = array_values(array_filter(
+        $rules('recruitment.manage_delegations'),
+        static fn($rule): bool => $rule->scope === 'all' && $rule->condition->operator === 'all',
+    ))[0] ?? null;
     assertSame('all', $adminRule?->condition->operator);
     assertSame(['nextcloud-admin', 'app-admin-grant'], array_map(static fn($condition): string => $condition->operator, $adminRule?->condition->children ?? []));
     $grantManagementRule = $rules('recruitment.manage_temporary_admin_access')[0] ?? null;
@@ -91,13 +100,13 @@ namespace RecruitmentTests {
     assertSame('all', $grantManagementRule?->scope);
 
     $firstGuide = array_values(array_filter(
-        $rules('recruitment.view_dossier'),
+        $rules('recruitment.view_first_guide_dossier'),
         static fn($rule): bool => $rule->scope === 'released-first-guide-access:area:north',
     ))[0] ?? null;
     assertTrue($firstGuide !== null);
     assertSame('all', $firstGuide->condition->operator);
     assertSame(
-        ['flz-first-guides', 'flz-EB', 'flz-Area-North'],
+        ['flz-EB', 'flz-Area-North'],
         array_map(static fn($condition): ?string => $condition->groupId, $firstGuide->condition->children),
     );
 
@@ -109,7 +118,10 @@ namespace RecruitmentTests {
         public function organization(): OrganizationSnapshot { return $this->snapshot; }
         public function permissionSettings(): array {
             return [
-                'firstGuideGroupId' => 'flz-first-guides',
+                'roleCapabilities' => [
+                    ...array_fill_keys(\OCA\FlzRecruitment\Service\RecruitmentPermissionPolicy::ACTION_CAPABILITIES, ['staff_hr']),
+                    \OCA\FlzRecruitment\Service\RecruitmentPermissionPolicy::VIEW_FIRST_GUIDE_DOSSIER => ['eb'],
+                ],
                 'representatives' => [[
                     'uid' => 'representative-a',
                     'capabilities' => ['view_dossier'],
@@ -124,6 +136,17 @@ namespace RecruitmentTests {
     assertSame(false, $partial->complete);
     assertTrue(str_contains(implode(' ', $partial->warnings), 'UID-basierte Vertretungsfreigaben'));
     assertTrue(!str_contains(serialize($partial->rules), 'representative-a'));
+
+    $invalidSettingsSource = new class($snapshot) implements RecruitmentPermissionSourceInterface {
+        public function __construct(private OrganizationSnapshot $snapshot) {}
+        public function organization(): OrganizationSnapshot { return $this->snapshot; }
+        public function permissionSettings(): array {
+            return ['valid' => false, 'roleCapabilities' => [], 'representatives' => []];
+        }
+    };
+    $invalidSettings = (new RecruitmentPermissionProvider($invalidSettingsSource))->collect();
+    assertSame(false, $invalidSettings->complete);
+    assertTrue(str_contains(implode(' ', $invalidSettings->warnings), 'Berechtigungskonfiguration'));
 
     $event = new RegisterPermissionProvidersEvent();
     $listener = new RecruitmentPermissionProviderListener($provider);

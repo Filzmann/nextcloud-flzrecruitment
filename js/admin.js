@@ -37,8 +37,4 @@
         method: control('recr-admin-extraction-method').value,
         revision,
     }))
-    bind('recr-admin-first-guide-form', 'recr-admin-first-guide-submit', 'recr-admin-first-guide-status', (revision) => api.saveFirstGuideGroup(
-        control('recr-admin-first-guide-group').value,
-        revision,
-    ))
 }(window))

@@ -81,7 +81,7 @@
         savePayrollData: (id, data, version) => request(`/api/applications/${id}/payroll-data`, 'PUT', { data, version }),
         setFirstGuideAccess: (id, enabled, version) => request(`/api/applications/${id}/first-guide-access`, 'PUT', { enabled, version }),
         saveRepresentatives: (representatives, revision) => request('/api/permissions/representatives', 'PUT', { representatives, revision }),
-        saveFirstGuideGroup: (groupId, revision) => request('/api/permissions/first-guide-group', 'PUT', { groupId, revision }),
+        saveRoleCapabilities: (roleCapabilities, revision) => request('/api/permissions/roles', 'PUT', { roleCapabilities, revision }),
         requestCandidatePool: (applicationId) => request(`/api/applications/${applicationId}/candidate-pool/request`, 'POST', {}),
         grantCandidatePoolConsent: (id, data) => request(`/api/candidate-pool/${id}/consent`, 'POST', data),
         withdrawCandidatePoolConsent: (id) => request(`/api/candidate-pool/${id}/withdraw`, 'POST', {}),

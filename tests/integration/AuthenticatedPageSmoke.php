@@ -116,7 +116,7 @@ try {
     $adminSettingsError = curl_error($curl);
     $assert($adminSettingsBody !== false, 'Der native Adminabschnitt konnte nicht geladen werden: ' . $adminSettingsError);
     $assert($adminSettingsStatus === 200, "Der native Adminabschnitt antwortet mit HTTP {$adminSettingsStatus}.");
-    foreach (['recr-admin-mail-form', 'recr-admin-extraction-form', 'recr-admin-first-guide-form'] as $formId) {
+    foreach (['recr-admin-mail-form', 'recr-admin-extraction-form'] as $formId) {
         $assert(str_contains($adminSettingsBody, 'id="' . $formId . '"'), "Der native Adminabschnitt enthält {$formId} nicht.");
     }
     $assert(!str_contains($adminSettingsBody, 'id="recr-admin-pool-form"'), 'Der Bewerberpool wird weiterhin doppelt im Nextcloud-Adminbereich angeboten.');

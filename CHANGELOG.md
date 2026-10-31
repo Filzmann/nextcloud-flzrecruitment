@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+- Organigrammrollen und Recruitment-Berechtigungen getrennt: sechzehn
+  operative Rechte sind standardmäßig `staff_hr` zugeordnet und durch
+  `Datenschutzbeauftragte` über eine zugängliche Checkbox-Matrix konfigurierbar.
+  Das neue Recht `Erstbegleitungsakte lesen` bleibt zusätzlich auf EB,
+  eigenen Bereich, freigegebene Akte und aktive Erstbegleitungsfreigabe
+  begrenzt. Die frühere technische Erstbegleitungsgruppe entfällt.
+- Individuelle Vertretungen können durch Personalreferat und
+  `Datenschutzbeauftragte` für fünfzehn operative Rechte mit explizitem Scope
+  gepflegt werden. Die Verwaltung weiterer Vertretungen bleibt als Schutz vor
+  rekursiver Rechteausweitung selbst nicht delegierbar. Beide Rollen verwalten außerdem den zeitlich
+  begrenzten Admin-Vollzugriff; native Administration allein erteilt weiterhin
+  keine Fachrechte.
 - Nextcloud 35.0.1 durch Fresh Install, Upgrade 34→35 sowie Provider-,
   Berechtigungs-, Runtime-, UI-/API- und Asset-Smokes nachgewiesen und den
   unterstützten Bereich auf die lückenlosen Hauptversionen 33 bis 35

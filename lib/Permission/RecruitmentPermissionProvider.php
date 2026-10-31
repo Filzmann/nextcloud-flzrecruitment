@@ -12,8 +12,6 @@ use OCA\FlzPermissionMatrix\PublicApi\V1\PermissionRule;
 use OCA\FlzRecruitment\Service\RecruitmentPermissionPolicy;
 
 final class RecruitmentPermissionProvider implements PermissionProvider {
-    private const MANAGE_TEMPORARY_ADMIN_ACCESS = 'manage_temporary_admin_access';
-
     private const LABELS = [
         RecruitmentPermissionPolicy::VIEW_DOSSIER => 'Bewerbungsakte lesen',
         RecruitmentPermissionPolicy::MANAGE_CATALOG => 'Kataloge verwalten',
@@ -30,8 +28,9 @@ final class RecruitmentPermissionProvider implements PermissionProvider {
         RecruitmentPermissionPolicy::MANAGE_CANDIDATE_POOL => 'Bewerberpool verwalten',
         RecruitmentPermissionPolicy::MANAGE_DELEGATIONS => 'Vertretungsfreigaben verwalten',
         RecruitmentPermissionPolicy::OVERRIDE_STATUS_TRANSITIONS => 'Statusübergänge übersteuern',
-        'manage_unassigned_inbox' => 'Unzugeordneten Posteingang bearbeiten',
-        self::MANAGE_TEMPORARY_ADMIN_ACCESS => 'Zeitlich begrenzten Admin-Vollzugriff verwalten',
+        RecruitmentPermissionPolicy::MANAGE_UNASSIGNED_INBOX => 'Unzugeordneten Posteingang bearbeiten',
+        RecruitmentPermissionPolicy::MANAGE_TEMPORARY_ADMIN_ACCESS => 'Zeitlich begrenzten Admin-Vollzugriff verwalten',
+        RecruitmentPermissionPolicy::VIEW_FIRST_GUIDE_DOSSIER => 'Erstbegleitungsakte lesen',
     ];
 
     public function __construct(private RecruitmentPermissionSourceInterface $source) {}
@@ -43,63 +42,58 @@ final class RecruitmentPermissionProvider implements PermissionProvider {
     public function collect(): PermissionProviderResult {
         $organization = $this->source->organization();
         $settings = $this->source->permissionSettings();
-        $fullCapabilities = [
-            ...RecruitmentPermissionPolicy::DELEGATABLE_CAPABILITIES,
-            RecruitmentPermissionPolicy::MANAGE_BASIS_QUALIFICATION,
-            RecruitmentPermissionPolicy::MANAGE_MAIL_TEMPLATES,
-            RecruitmentPermissionPolicy::MANAGE_CANDIDATE_POOL,
-            RecruitmentPermissionPolicy::MANAGE_DELEGATIONS,
-            RecruitmentPermissionPolicy::OVERRIDE_STATUS_TRANSITIONS,
-        ];
         $rules = [];
         $rules[] = $this->rule(
-            self::MANAGE_TEMPORARY_ADMIN_ACCESS,
+            RecruitmentPermissionPolicy::MANAGE_TEMPORARY_ADMIN_ACCESS,
             'all',
             PermissionCondition::group('Datenschutzbeauftragte'),
             'Historie lesen sowie Freigaben ausschließlich für aktuelle native Administrationskonten erteilen oder widerrufen',
         );
-        foreach ([...$fullCapabilities, RecruitmentPermissionPolicy::EDIT_PAYROLL_DATA, 'manage_unassigned_inbox'] as $capability) {
+        $rules[] = $this->rule(
+            RecruitmentPermissionPolicy::MANAGE_DELEGATIONS,
+            'all',
+            PermissionCondition::group('Datenschutzbeauftragte'),
+            'App-eigene Vertretungsfreigaben verwalten',
+        );
+        foreach (RecruitmentPermissionPolicy::ACTION_CAPABILITIES as $capability) {
             $rules[] = $this->rule($capability, 'all', PermissionCondition::all([PermissionCondition::nextcloudAdmin(), PermissionCondition::temporaryAppAdminGrant()]), 'Native Nextcloud-Administration mit aktiver app-lokaler Freigabe (maximal 24 Stunden)');
         }
 
         $warnings = [];
         $complete = true;
+        if (($settings['valid'] ?? true) === false) {
+            $complete = false;
+            $warnings[] = 'Die app-eigene Berechtigungskonfiguration ist ungültig; Rollen- und Vertretungsrechte bleiben deny by default.';
+        }
         if (!$organization->isValid()) {
             $complete = false;
             $warnings[] = 'Der kanonische Filzmann-Organisationssnapshot ist ungültig; Nicht-Admin-Rechte bleiben deny by default.';
         } else {
+            foreach (RecruitmentPermissionPolicy::ACTION_CAPABILITIES as $capability) {
+                foreach ($settings['roleCapabilities'][$capability] ?? [] as $roleKey) {
+                    $groupId = $organization->roleGroupId((string)$roleKey);
+                    if ($groupId !== null) {
+                        $rules[] = $this->rule($capability, 'all', PermissionCondition::group($groupId), 'App-eigene Zuordnung zur Organigrammrolle ' . $roleKey);
+                    }
+                }
+            }
             $hrGroup = $organization->roleGroupId('staff_hr');
             if ($hrGroup !== null) {
-                foreach ([...$fullCapabilities, 'manage_unassigned_inbox'] as $capability) {
-                    $rules[] = $this->rule($capability, 'all', PermissionCondition::group($hrGroup), 'Kanonische HR-Rolle');
-                }
+                $rules[] = $this->rule(RecruitmentPermissionPolicy::MANAGE_TEMPORARY_ADMIN_ACCESS, 'all', PermissionCondition::group($hrGroup), 'Kanonische HR-Rolle');
             }
 
-            $payrollGroup = $organization->roleGroupId('payroll');
-            if ($payrollGroup !== null) {
-                foreach ([RecruitmentPermissionPolicy::VIEW_HIRING_DATA, RecruitmentPermissionPolicy::EDIT_PAYROLL_DATA] as $capability) {
-                    $rules[] = $this->rule(
-                        $capability,
-                        'released-hiring-records',
-                        PermissionCondition::group($payrollGroup),
-                        'Nur nach ausdrücklicher Einstellungsfreigabe',
-                    );
-                }
-            }
-
-            $firstGuideGroup = trim((string)($settings['firstGuideGroupId'] ?? ''));
             $ebGroup = $organization->roleGroupId('eb');
-            if ($firstGuideGroup !== '' && $ebGroup !== null) {
+            if (in_array('eb', $settings['roleCapabilities'][RecruitmentPermissionPolicy::VIEW_FIRST_GUIDE_DOSSIER] ?? [], true)
+                && $ebGroup !== null) {
                 foreach ($organization->areaKeys() as $areaKey) {
                     $areaGroup = $organization->areaGroupId($areaKey);
                     if ($areaGroup === null) {
                         continue;
                     }
                     $rules[] = $this->rule(
-                        RecruitmentPermissionPolicy::VIEW_DOSSIER,
+                        RecruitmentPermissionPolicy::VIEW_FIRST_GUIDE_DOSSIER,
                         'released-first-guide-access:area:' . $areaKey,
                         PermissionCondition::all([
-                            PermissionCondition::group($firstGuideGroup),
                             PermissionCondition::group($ebGroup),
                             PermissionCondition::group($areaGroup),
                         ]),

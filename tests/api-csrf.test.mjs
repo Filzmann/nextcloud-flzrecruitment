@@ -109,7 +109,7 @@ function loadApi({
         [() => api.savePayrollData(16, { taxId: '123' }, 1), '/api/applications/16/payroll-data', 'PUT', { data: { taxId: '123' }, version: 1 }],
         [() => api.setFirstGuideAccess(16, false, 5), '/api/applications/16/first-guide-access', 'PUT', { enabled: false, version: 5 }],
         [() => api.saveRepresentatives([], 2), '/api/permissions/representatives', 'PUT', { representatives: [], revision: 2 }],
-        [() => api.saveFirstGuideGroup('first-guides', 3), '/api/permissions/first-guide-group', 'PUT', { groupId: 'first-guides', revision: 3 }],
+        [() => api.saveRoleCapabilities({ view_dossier: ['staff_hr'] }, 3), '/api/permissions/roles', 'PUT', { roleCapabilities: { view_dossier: ['staff_hr'] }, revision: 3 }],
         [() => api.inbox(), '/api/inbox', 'GET', null],
         [() => api.inboxMessage(21), '/api/inbox/21', 'GET', null],
         [() => api.applicationMessages(16), '/api/applications/16/messages', 'GET', null],
