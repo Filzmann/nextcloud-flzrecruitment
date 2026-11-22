@@ -6,7 +6,7 @@ namespace OCA\FlzRecruitment\Organization;
 
 use InvalidArgumentException;
 
-/** Immutable, app-local projection of the public LocalBase Organization V1 contract. */
+/** Immutable, app-local projection of the public flz_organization V1 contract. */
 final class OrganizationSnapshot {
     public const VALID = 'VALID';
     public const MISSING = 'MISSING';

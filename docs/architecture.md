@@ -36,7 +36,7 @@ Er ist idempotent, importiert keine fremden Daten und überschreibt keine
 bereits bearbeiteten Demo-Zustände.
 
 Die Stellenmaske bezieht ihre auswählbaren Beteiligungsgruppen aus den
-Rollen des öffentlichen LocalBase-Organisationsvertrags V1 und begrenzt sie
+Rollen des öffentlichen V1-Organisationsvertrags von `flz_organization` und begrenzt sie
 app-lokal je Berufsgruppe. Ein app-lokaler Adapter löst den Provider erst nach
 Installations-, Aktivierungs-, Klassen- und Versionsprüfung über den
 Nextcloud-Container auf. Die Personensuche verwendet ausschließlich die
@@ -79,16 +79,16 @@ weder Snapshot noch Antworten bestehender Interviews.
 
 ## Berechtigungen
 
-Recruitment konsumiert `OCA\\LocalBase\\PublicApi\\V1` ausschließlich über
+Recruitment konsumiert `OCA\\FlzOrganization\\PublicApi\\V1` ausschließlich über
 seinen app-lokalen `OrganizationSnapshotService`. Nur Vertragsversion `1.0`
 mit gültigem Snapshot liefert Rollen und Bereiche. Fehlende, deaktivierte,
 alte, inkompatible, ungültige oder vorübergehend nicht verfügbare Provider
 werden unterscheidbar, aber jeweils mit leeren Organisationsabbildungen
-projiziert. Es gibt keinen direkten Zugriff auf interne LocalBase-Klassen,
-AppConfig oder Persistenz.
+projiziert. Es gibt keinen direkten Zugriff auf interne Providerklassen,
+AppConfig oder Persistenz und keinen LocalBase-Fallback.
 
 Die sechzehn operativen App-Rechte sind eine app-eigene, versionierte
-Berechtigungsmatrix und standardmäßig der LocalBase-Rolle `staff_hr`
+Berechtigungsmatrix und standardmäßig der Organigrammrolle `staff_hr`
 zugeordnet. Organigrammrollen sind nur auswählbare Subjekte und erteilen ohne
 app-eigene Zuordnung keine Aktion. Ausschließlich `Datenschutzbeauftragte`
 ändern diese Rollenmatrix.
@@ -173,10 +173,10 @@ ausschließlich serverseitig für Mitglieder der Nextcloud-Gruppe
 aber ausdrücklich nur als Übergangsimplementierung bis zum versionierten
 Capability-/Event-Vertrag einer eigenständigen BQ-Planer-App.
 
-Erstbegleitungen benötigen zugleich die LocalBase-Rolle `eb`, das getrennte
+Erstbegleitungen benötigen zugleich die Organigrammrolle `eb`, das getrennte
 app-eigene Recht `view_first_guide_dossier` und Mitgliedschaft im Bereich der
 Bewerbung. Sie lesen ausschließlich freigegebene Akten ihres Bereichs. Ein
-fehlender oder nicht gültiger LocalBase-V1-Snapshot sperrt sämtliche daraus
+fehlender oder nicht gültiger `flz_organization`-V1-Snapshot sperrt sämtliche daraus
 abgeleiteten HR-, Lohn-, Erstbegleitungs- und Bereichsrechte. Davon
 unabhängige aktive app-lokale Adminfreigaben sowie globale oder
 einzelaktenbezogene Vertretungsfreigaben bleiben erhalten;

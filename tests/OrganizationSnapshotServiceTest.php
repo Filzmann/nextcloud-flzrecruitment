@@ -7,7 +7,7 @@ namespace OCP\App {
         interface IAppManager {
             /** @return array<string,string> */
             public function getAppInstalledVersions(bool $onlyEnabled = false): array;
-            /** @return list<string> Deprecated Nextcloud alias for enabled apps. */
+            /** @return list<string> */
             public function getInstalledApps(): array;
             /** @return list<string> */
             public function getEnabledApps(): array;
@@ -17,9 +17,18 @@ namespace OCP\App {
 
 namespace OCP {
     if (!class_exists(Server::class)) {
-        final class Server {
-            public static mixed $service = null;
-            public static function get(string $name): mixed { return self::$service; }
+        final class Server
+        {
+            public static ?object $service = null;
+
+            public static function get(string $name): object
+            {
+                if (self::$service === null)
+                {
+                    throw new \RuntimeException('Synthetic provider is unavailable.');
+                }
+                return self::$service;
+            }
         }
     }
 }
@@ -40,8 +49,42 @@ namespace Psr\Log {
     }
 }
 
+namespace OCA\FlzOrganization\PublicApi\V1 {
+    if (!class_exists(Contract::class)) {
+        final class Contract {
+            public const APP_ID = 'flz_organization';
+            public static function supports(string $version): bool { return $version === '1.0'; }
+        }
+        final class OrganizationSnapshot {
+            public function __construct(
+                private bool $valid,
+                private int $definitionVersion,
+                private array $roles,
+                private array $areas,
+            ) {}
+            public function contractVersion(): string { return '1.0'; }
+            public function isValid(): bool { return $this->valid; }
+            public function definitionVersion(): int { return $this->definitionVersion; }
+            public function checksum(): string { return 'flz-organization-checksum'; }
+            public function roles(): array { return $this->valid ? $this->roles : []; }
+            public function areas(): array { return $this->valid ? $this->areas : []; }
+        }
+        final class OrganizationSnapshotService
+        {
+            public function __construct(private OrganizationSnapshot $snapshot)
+            {
+            }
+
+            public function snapshot(): OrganizationSnapshot
+            {
+                return $this->snapshot;
+            }
+        }
+    }
+}
+
 namespace {
-    use OCA\LocalBase\PublicApi\V1\OrganizationSnapshot as ProviderSnapshot;
+    use OCA\FlzOrganization\PublicApi\V1\OrganizationSnapshot as ProviderSnapshot;
     use OCA\FlzRecruitment\Organization\OrganizationSnapshot;
     use OCA\FlzRecruitment\Organization\OrganizationSnapshotService;
     use OCP\App\IAppManager;
@@ -54,122 +97,107 @@ namespace {
         /** @param list<string> $installed @param list<string> $enabled */
         public function __construct(private array $installed, private array $enabled) {}
         public function getAppInstalledVersions(bool $onlyEnabled = false): array {
-            $apps = $onlyEnabled ? $this->enabled : $this->installed;
-            return array_fill_keys($apps, '1.0.0');
+            return array_fill_keys($onlyEnabled ? $this->enabled : $this->installed, '1.0.0');
         }
         public function getInstalledApps(): array { return $this->enabled; }
         public function getEnabledApps(): array { return $this->enabled; }
     }
 
     final class OrganizationLogger implements LoggerInterface {
-        /** @var list<array{message:mixed,context:array<mixed>}> */
         public array $warnings = [];
         public function emergency($message, array $context = []): void {}
         public function alert($message, array $context = []): void {}
         public function critical($message, array $context = []): void {}
         public function error($message, array $context = []): void {}
-        public function warning($message, array $context = []): void { $this->warnings[] = ['message' => $message, 'context' => $context]; }
+        public function warning($message, array $context = []): void { $this->warnings[] = [$message, $context]; }
         public function notice($message, array $context = []): void {}
         public function info($message, array $context = []): void {}
         public function debug($message, array $context = []): void {}
         public function log($level, $message, array $context = []): void {}
     }
 
-    final class OrganizationAdapterUnderTest extends OrganizationSnapshotService {
-        public function __construct(
-            IAppManager $apps,
-            OrganizationLogger $logger,
-            private bool $contractAvailable,
-            private ProviderSnapshot|\Throwable|null $providerSnapshot,
-            private string $contractVersion = ProviderSnapshot::CONTRACT_VERSION,
-        ) {
-            parent::__construct($apps, $logger);
-        }
-
-        protected function providerContractAvailable(): bool { return $this->contractAvailable; }
-
+    final class OrganizationConsumerUnderTest extends OrganizationSnapshotService {
+        public bool $compatible = true;
+        public ProviderSnapshot|\Throwable|null $provider = null;
+        protected function isContractCompatible(): bool { return $this->compatible; }
         protected function readProviderSnapshot(): ProviderSnapshot {
-            if ($this->providerSnapshot instanceof \Throwable) throw $this->providerSnapshot;
-            if ($this->providerSnapshot === null) throw new \UnexpectedValueException('synthetic incompatible provider');
-            return $this->providerSnapshot;
-        }
-
-        protected function providerContractVersion(ProviderSnapshot $snapshot): string {
-            return $this->contractVersion;
+            if ($this->provider instanceof \Throwable) throw $this->provider;
+            if (!$this->provider instanceof ProviderSnapshot) throw new \UnexpectedValueException('Missing provider.');
+            return $this->provider;
         }
     }
 
-    $validProvider = new ProviderSnapshot(true, 4, [
+    $roles = [
         'staff_hr' => ['groupId' => 'group-hr', 'label' => 'Personalreferat'],
         'eb' => ['groupId' => 'group-eb', 'label' => 'Einsatzbegleitung'],
-    ], [
-        'west' => ['groupId' => 'area-west', 'label' => 'West'],
-    ]);
+    ];
+    $areas = ['west' => ['groupId' => 'area-west', 'label' => 'West']];
 
-    TestRunner::test('enabled compatible Organization V1 is projected without a second source of truth', static function () use ($validProvider): void {
+    TestRunner::test('native public service resolution preserves standalone organization mappings', static function () use ($roles, $areas): void {
+        \OCP\Server::$service = new \OCA\FlzOrganization\PublicApi\V1\OrganizationSnapshotService(
+            new ProviderSnapshot(true, 5, $roles, $areas),
+        );
+        try
+        {
+            $consumer = new OrganizationSnapshotService(
+                new OrganizationApps(['flz_organization'], ['flz_organization']),
+                new OrganizationLogger(),
+            );
+            $snapshot = $consumer->snapshot();
+            assertSame(OrganizationSnapshot::VALID, $snapshot->status());
+            assertSame('group-hr', $snapshot->roleGroupId('staff_hr'));
+            assertSame('area-west', $snapshot->areaGroupId('west'));
+        }
+        finally
+        {
+            \OCP\Server::$service = null;
+        }
+    });
+
+    TestRunner::test('compatible flz_organization V1 is the only organization source', static function () use ($roles, $areas): void {
         $logger = new OrganizationLogger();
-        $snapshot = (new OrganizationAdapterUnderTest(
-            new OrganizationApps(['localbase'], ['localbase']),
-            $logger,
-            true,
-            $validProvider,
-        ))->snapshot();
+        $consumer = new OrganizationConsumerUnderTest(new OrganizationApps(['flz_organization'], ['flz_organization']), $logger);
+        $consumer->provider = new ProviderSnapshot(true, 5, $roles, $areas);
+        $snapshot = $consumer->snapshot();
 
         assertSame(OrganizationSnapshot::VALID, $snapshot->status());
-        assertSame(true, $snapshot->isValid());
-        assertSame('1.0', $snapshot->contractVersion());
-        assertSame(4, $snapshot->definitionVersion());
         assertSame('group-hr', $snapshot->roleGroupId('staff_hr'));
         assertSame('area-west', $snapshot->areaGroupId('west'));
         assertSame([], $logger->warnings);
     });
 
-    TestRunner::test('missing and disabled LocalBase expose distinct empty non-authoritative states', static function () use ($validProvider): void {
-        $missing = (new OrganizationAdapterUnderTest(
-            new OrganizationApps([], []), new OrganizationLogger(), true, $validProvider,
-        ))->snapshot();
-        $disabled = (new OrganizationAdapterUnderTest(
-            new OrganizationApps(['localbase'], []), new OrganizationLogger(), true, $validProvider,
-        ))->snapshot();
-
-        assertSame(OrganizationSnapshot::MISSING, $missing->status());
-        assertSame(OrganizationSnapshot::DISABLED, $disabled->status());
-        assertSame([], $missing->roles());
-        assertSame([], $disabled->areas());
+    TestRunner::test('LocalBase presence cannot replace a missing standalone provider', static function (): void {
+        $consumer = new OrganizationConsumerUnderTest(new OrganizationApps(['localbase'], ['localbase']), new OrganizationLogger());
+        assertSame(OrganizationSnapshot::MISSING, $consumer->snapshot()->status());
     });
 
-    TestRunner::test('old, incompatible and invalid providers fail closed without mappings', static function () use ($validProvider): void {
-        $apps = new OrganizationApps(['localbase'], ['localbase']);
-        $old = (new OrganizationAdapterUnderTest($apps, new OrganizationLogger(), false, $validProvider))->snapshot();
-        $incompatible = (new OrganizationAdapterUnderTest($apps, new OrganizationLogger(), true, $validProvider, '2.0'))->snapshot();
-        $invalid = (new OrganizationAdapterUnderTest(
-            $apps,
-            new OrganizationLogger(),
-            true,
-            new ProviderSnapshot(false, 4, [], []),
-        ))->snapshot();
+    TestRunner::test('disabled and incompatible standalone providers fail closed before resolution', static function (): void {
+        $disabled = new OrganizationConsumerUnderTest(new OrganizationApps(['flz_organization'], []), new OrganizationLogger());
+        assertSame(OrganizationSnapshot::DISABLED, $disabled->snapshot()->status());
 
-        assertSame(OrganizationSnapshot::INCOMPATIBLE, $old->status());
-        assertSame(OrganizationSnapshot::INCOMPATIBLE, $incompatible->status());
-        assertSame(OrganizationSnapshot::INVALID, $invalid->status());
-        assertSame([], $old->roles());
-        assertSame([], $incompatible->areas());
-        assertSame([], $invalid->roles());
+        $incompatible = new OrganizationConsumerUnderTest(new OrganizationApps(['flz_organization'], ['flz_organization']), new OrganizationLogger());
+        $incompatible->compatible = false;
+        assertSame(OrganizationSnapshot::INCOMPATIBLE, $incompatible->snapshot()->status());
     });
 
-    TestRunner::test('provider errors are diagnosable and cannot leak organization mappings', static function (): void {
+    TestRunner::test('invalid and failed snapshots expose no organization mappings', static function () use ($roles, $areas): void {
+        $invalid = new OrganizationConsumerUnderTest(new OrganizationApps(['flz_organization'], ['flz_organization']), new OrganizationLogger());
+        $invalid->provider = new ProviderSnapshot(false, 5, $roles, $areas);
+        assertSame(OrganizationSnapshot::INVALID, $invalid->snapshot()->status());
+        assertSame([], $invalid->snapshot()->roles());
+
         $logger = new OrganizationLogger();
-        $failed = (new OrganizationAdapterUnderTest(
-            new OrganizationApps(['localbase'], ['localbase']),
-            $logger,
-            true,
-            new \RuntimeException('synthetic provider failure'),
-        ))->snapshot();
-
-        assertSame(OrganizationSnapshot::UNAVAILABLE, $failed->status());
-        assertSame([], $failed->roles());
-        assertSame([], $failed->areas());
+        $failed = new OrganizationConsumerUnderTest(new OrganizationApps(['flz_organization'], ['flz_organization']), $logger);
+        $failed->provider = new RuntimeException('synthetic secret detail');
+        $failedSnapshot = $failed->snapshot();
+        assertSame(OrganizationSnapshot::UNAVAILABLE, $failedSnapshot->status());
+        assertSame([], $failedSnapshot->areas());
         assertSame(1, count($logger->warnings));
-        assertSame(false, str_contains((string)$logger->warnings[0]['message'], 'synthetic provider failure'));
+        assertSame(false, str_contains((string)$logger->warnings[0][0], 'synthetic secret detail'));
+        assertSame([
+            'app' => 'flzrecruitment',
+            'provider' => 'flz_organization',
+            'exceptionClass' => RuntimeException::class,
+        ], $logger->warnings[0][1]);
     });
 }

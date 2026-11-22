@@ -10,7 +10,7 @@ geltende Architektur in `docs/architecture.md`.
 ### RECR-ORGANIZATION-V1-LIFECYCLE – öffentlichen Organisationsconsumer auf realer Runtime abnehmen
 
 - Den app-lokalen lazy V1-Adapter mit installierter, deaktivierter, fehlender,
-  inkompatibler und wieder aktivierter LocalBase-App auf der unterstützten
+  inkompatibler und wieder aktivierter `flz_organization`-App auf der unterstützten
   Nextcloud-Runtime prüfen.
 - Installation, Update, Deaktivierung, Entfernung, Neuinstallation und
   Rückbau nachweisen; organisationsabgeleitete Rechte müssen in jedem

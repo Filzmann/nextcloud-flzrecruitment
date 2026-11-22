@@ -1,7 +1,9 @@
 import { readFileSync } from 'node:fs'
 import { runInNewContext } from 'node:vm'
+import { fileURLToPath } from 'node:url'
 
-const source = readFileSync(new URL('../js/admin-access.js', import.meta.url), 'utf8')
+const filename = fileURLToPath(new URL('../js/admin-access.js', import.meta.url))
+const source = readFileSync(filename, 'utf8')
 const template = readFileSync(new URL('../templates/index.php', import.meta.url), 'utf8')
 const style = readFileSync(new URL('../css/style.css', import.meta.url), 'utf8')
 const element = () => ({ children: [], dataset: {}, disabled: false, textContent: '', listeners: {}, append(child) { this.children.push(child) }, addEventListener(type, callback) { this.listeners[type] = callback }, replaceChildren() { this.children = [] } })
@@ -21,7 +23,7 @@ class FakeFormData {
 runInNewContext(source, {
     window: { RecruitmentApi: api }, FormData: FakeFormData, Date,
     document: { getElementById: (id) => ({ 'recr-full-access-form': form, 'recr-full-access-history': history, 'recr-full-access-status': status }[id] || null), createElement: () => element() },
-})
+}, { filename })
 await new Promise((resolve) => setImmediate(resolve))
 await form.listeners.submit({ preventDefault() {} })
 const revokeButton = { dataset: { revokeUid: 'admin-target' }, disabled: false }

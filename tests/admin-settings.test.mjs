@@ -1,7 +1,9 @@
 import { readFileSync } from 'node:fs'
 import { runInNewContext } from 'node:vm'
+import { fileURLToPath } from 'node:url'
 
-const source = readFileSync(new URL('../js/admin.js', import.meta.url), 'utf8')
+const filename = fileURLToPath(new URL('../js/admin.js', import.meta.url))
+const source = readFileSync(filename, 'utf8')
 const element = (value = '') => ({
     value, checked: false, disabled: false, textContent: '', dataset: {}, listeners: {},
     addEventListener(type, callback) { this.listeners[type] = callback },
@@ -25,7 +27,7 @@ const api = {
 runInNewContext(source, {
     window: { RecruitmentApi: api },
     document: { getElementById: (id) => elements[id] || null },
-})
+}, { filename })
 
 for (const id of ['recr-admin-mail-form', 'recr-admin-extraction-form']) {
     await elements[id].listeners.submit({ preventDefault() {} })

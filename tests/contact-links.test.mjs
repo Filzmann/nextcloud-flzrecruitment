@@ -1,10 +1,12 @@
 import assert from 'node:assert/strict'
 import vm from 'node:vm'
 import { readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
 
 const context = { window: {} }
 vm.createContext(context)
-vm.runInContext(readFileSync(new URL('../js/modules/contact-links.js', import.meta.url), 'utf8'), context)
+const filename = fileURLToPath(new URL('../js/modules/contact-links.js', import.meta.url))
+vm.runInContext(readFileSync(filename, 'utf8'), context, { filename })
 const links = context.window.FlzRecruitmentContactLinks
 
 assert.equal(links.emailHref('alex.beispiel+job@example.invalid'), 'mailto:alex.beispiel+job@example.invalid')

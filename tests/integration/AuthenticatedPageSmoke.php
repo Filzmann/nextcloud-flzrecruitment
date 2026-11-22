@@ -5,13 +5,19 @@ declare(strict_types=1);
 if (!defined('OC_CONSOLE')) define('OC_CONSOLE', true);
 require dirname(__DIR__, 4) . '/lib/base.php';
 
+// Nextcloud's web exception handler must not turn a failed CLI probe into exit 0.
+set_exception_handler(static function (Throwable $error): never
+{
+    $line = $error->getTrace()[0]['line'] ?? $error->getLine();
+    fwrite(STDERR, 'Recruitment runtime smoke failed: ' . $error::class . ' at line ' . $line . "\n");
+    exit(1);
+});
+
 use OCP\IGroupManager;
 use OCP\IUserManager;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
-use OCP\IAppConfig;
-use OCA\LocalBase\Organization\FlzOrganizationDefinition;
-use OCA\LocalBase\Organization\FlzOrganizationSettingsService;
+use OCA\FlzOrganization\PublicApi\V1\OrganizationSnapshotService;
 
 /**
  * Authentifizierter HTTPS-Smoke mit synthetischem, garantiert bereinigtem Konto.
@@ -26,37 +32,23 @@ $assert = static function (bool $condition, string $message): void {
 $users = \OCP\Server::get(IUserManager::class);
 $groups = \OCP\Server::get(IGroupManager::class);
 $db = \OCP\Server::get(IDBConnection::class);
-$appConfig = \OCP\Server::get(IAppConfig::class);
-$organization = \OCP\Server::get(FlzOrganizationSettingsService::class);
+$organization = \OCP\Server::get(OrganizationSnapshotService::class)->snapshot();
+$assert($organization->isValid(), 'Der öffentliche flz_organization-V1-Snapshot ist nicht verwendbar.');
+$groupId = $organization->roleGroupId('staff_hr');
+$assert(is_string($groupId) && $groupId !== '', 'Der öffentliche Organisationssnapshot enthält keine staff_hr-Gruppe.');
 $baseUrl = rtrim(getenv('RECR_BASE_URL') ?: 'https://nextcloud-dev.ddev.site', '/');
-$previousOrganization = $appConfig->getValueString('localbase', 'flz_organization_definition', '');
-$temporaryOrganization = !$organization->state()['valid'];
-if ($temporaryOrganization) {
-    $organization->save(FlzOrganizationDefinition::defaults()->toArray());
-}
-$restoreOrganization = static function () use ($temporaryOrganization, $previousOrganization, $appConfig): void {
-    if (!$temporaryOrganization) return;
-    if ($previousOrganization === '') {
-        $appConfig->deleteKey('localbase', 'flz_organization_definition');
-    } else {
-        $appConfig->setValueString('localbase', 'flz_organization_definition', $previousOrganization);
-    }
-};
 $uid = 'flzrecruitment-page-smoke-' . bin2hex(random_bytes(5));
 $password = $uid;
 $user = $users->createUser($uid, $password);
 if ($user === null) {
-    $restoreOrganization();
     throw new RuntimeException('Das synthetische Browser-Smoke-Konto konnte nicht angelegt werden.');
 }
 
-$groupId = (string)$organization->definition()->roleGroupId('staff_hr');
 $group = $groups->get($groupId);
 $createdGroup = $group === null;
 $group ??= $groups->createGroup($groupId);
 if ($group === null) {
     $user->delete();
-    $restoreOrganization();
     throw new RuntimeException('Die temporäre Filzmann-Recruitment-Rollengruppe konnte nicht bereitgestellt werden.');
 }
 $group->addUser($user);
@@ -237,5 +229,4 @@ try {
     if ($createdGroup) {
         $group->delete();
     }
-    $restoreOrganization();
 }

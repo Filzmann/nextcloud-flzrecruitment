@@ -98,12 +98,13 @@ Bewerbermanagement orientierten Prozess innerhalb der Filzmann Nextcloud Plugins
 - Technische Systemeinstellungen bleiben native Administration. Ein fehlender Vollzugriff wird nur dem betroffenen Administrationskonto angezeigt; ein direkter Link zur Freigabesteuerung erscheint ausschließlich, wenn dasselbe Konto zugleich `staff_hr` oder Mitglied von `Datenschutzbeauftragte` ist. Die app-eigene Rollenmatrix wird ausschließlich durch `Datenschutzbeauftragte` gepflegt. Änderungen an Freigabehistorie oder Recruitment-Rechten werden gleichzeitig im PersonalDataProvider und PermissionProvider nachgeführt.
 - Controller bleiben dünn. Fachregeln liegen in Services, Datenzugriff im `RecruitmentRepository`, Berechtigungen im `RecruitmentAccessService` und Browserlogik in getrennten JavaScript-Modulen.
 - Rechte werden serverseitig und deny by default über eine gegebenenfalls
-  aktive app-lokale Adminfreigabe, den unveränderlichen LocalBase-
+  aktive app-lokale Adminfreigabe, den unveränderlichen `flz_organization`-
   Organisationssnapshot und app-eigene granulare Vertretungsfreigaben
   geprüft. Der Organisationssnapshot wird ausschließlich lazy über den
-  öffentlichen LocalBase-Vertrag `OCA\\LocalBase\\PublicApi\\V1` konsumiert;
-  Recruitment greift weder auf interne LocalBase-Services noch auf deren
-  AppConfig zu. Der native Adminstatus allein genügt nicht. Ein fehlender,
+  öffentlichen Vertrag `OCA\\FlzOrganization\\PublicApi\\V1` konsumiert;
+  Recruitment greift weder auf interne Provider-Services noch auf deren
+  AppConfig zu. LocalBase ist keine zweite Organisationsquelle. Der native
+  Adminstatus allein genügt nicht. Ein fehlender,
   deaktivierter, inkompatibler, ungültiger oder nicht verfügbarer Provider
   erteilt keine organisationsabgeleiteten Rechte. Davon unabhängige aktive
   app-lokale Adminfreigaben sowie globale oder einzelaktenbezogene

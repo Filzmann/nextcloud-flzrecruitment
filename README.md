@@ -4,8 +4,13 @@
 
 - Nextcloud 33 bis 35
 - PHP 8.3 oder neuer innerhalb des von Nextcloud 33 bis 35 unterstützten Bereichs
-- Laufzeitbasis: `localbase`; `orgsuite` ist ab zwei FLZ-Fachprodukten optional aktiv
+- Laufzeitbasis: `localbase` und `flz_organization`; `orgsuite` ist ab zwei FLZ-Fachprodukten optional aktiv
 - App-ID und Installationsordner: `flzrecruitment`
+
+Für Entwicklung und Staging müssen `localbase` und `flz_organization`
+aktiviert sein. Das Produktbundle `flz-product-flzrecruitment-<release>.tar.gz`
+darf erst wieder ausgeliefert werden, wenn sein Installer beide Laufzeit-Apps
+prüft und installiert; der heutige Installer deckt nur LocalBase ab.
 
 `flzrecruitment` ist eine eigenständige Nextcloud-App für einen strukturierten,
 nachvollziehbaren Bewerbungsprozess. Der vorhandene vertikale Ausschnitt
@@ -90,8 +95,8 @@ geeignet“, „abgebrochen“ und „nicht teilgenommen“.
 Diese lokale BQ-Verwaltung ist eine Übergangslösung, bis die eigenständige
 BQ-Planer-App über einen kleinen versionierten Vertrag angebunden ist.
 
-Die Berechtigungen stammen aus dem öffentlichen LocalBase-
-Organisationsvertrag V1, den Recruitment erst nach Installations-,
+Die Berechtigungen stammen aus dem öffentlichen V1-Organisationsvertrag von
+`flz_organization`, den Recruitment erst nach Installations-,
 Aktivierungs- und Versionsprüfung lazy auflöst. Die sechzehn operativen Rechte
 sind davon getrennte app-eigene Fähigkeiten und standardmäßig `staff_hr`
 zugeordnet. Weitere Organigrammrollen erhalten ohne ausdrückliche Zuordnung
@@ -108,13 +113,14 @@ davon unberührt.
 
 Beim Upgrade wird die bisherige kombinierte Bestandsgruppe sicher der Rolle
 Finanzen zugeordnet. Lohn-Mitarbeitende müssen durch die Administration
-bewusst in die neue LocalBase-Lohn-Gruppe übernommen werden; Mitgliedschaften
+bewusst in die neue Organigramm-Lohn-Gruppe übernommen werden; Mitgliedschaften
 werden wegen der sensiblen Vertragsstammdaten nicht automatisch kopiert.
 
 Die App bleibt eigenständig installierbar. Ab zwei aktivierten FLZ-Fachprodukten
 ersetzt OrgSuite den einzelnen Nextcloud-Einstieg durch das gemeinsame FLZ-Menü.
 Filzmann Recruitment ist Bestandteil des vollständigen Filzmann Nextcloud Plugins-Pakets und wird
-zusätzlich als eigenes Produktpaket mit LocalBase und OrgSuite gebaut.
+zusätzlich als eigenes Produktpaket mit LocalBase, `flz_organization` und
+OrgSuite gebaut.
 
 ## Lokale Entwicklung
 

@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Der authentifizierte lokale HTTPS-Smoke meldet CLI-Fehler zuverlässig mit
+  Exit 1 und datensparsamer Fundstelle statt stillem Exit 0. Die
+  Organisationsprobe prüft zusätzlich die öffentliche Serverauflösung.
+- Die vier isolierten VM-Smokes verwenden ihre absoluten JavaScript-Quellpfade
+  auch als VM-Dateinamen, damit c8 die ausgeführten Dateien eindeutig zuordnet.
 - Organigrammrollen und Recruitment-Berechtigungen getrennt: sechzehn
   operative Rechte sind standardmäßig `staff_hr` zugeordnet und durch
   `Datenschutzbeauftragte` über eine zugängliche Checkbox-Matrix konfigurierbar.
@@ -21,11 +26,13 @@
   öffentlichen `IEventListener`-Vertrag; die Berechtigungssemantik bleibt
   unverändert. Nextcloud 36 bleibt ungeprüft.
 - Den internen LocalBase-Organisationsservice durch einen app-lokalen, lazy
-  aufgelösten Consumer des öffentlichen Organization-V1-Vertrags ersetzt.
-  Fehlende, deaktivierte, alte, inkompatible, ungültige und fehlerhafte
-  Provider liefern keine Organisationsrechte; unabhängige aktive
-  Adminfreigaben sowie globale und einzelaktenbezogene Vertretungen bleiben
-  erhalten, während Bereichsrechte fail-closed bleiben.
+  aufgelösten Consumer des öffentlichen `flz_organization`-V1-Vertrags ersetzt.
+  LocalBase ist keine zweite Organisationsquelle. Fehlende, deaktivierte, alte,
+  inkompatible, ungültige und fehlerhafte Provider liefern keine
+  Organisationsrechte; unabhängige aktive Adminfreigaben sowie globale und
+  einzelaktenbezogene Vertretungen bleiben erhalten, während Bereichsrechte
+  fail-closed bleiben. Der Runtime-Smoke konsumiert dieselbe öffentliche
+  Providergrenze und verändert keine fremde Organisationskonfiguration.
 - Die app-lokale Admin-Vollzugriffssteuerung aus dem technischen Adminbereich
   in die rollenabhängige Recruitment-Fachoberfläche verschoben. Nur
   `Datenschutzbeauftragte` können Historie lesen sowie Freigaben für aktuelle

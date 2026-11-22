@@ -15,4 +15,13 @@ TestRunner::test('authenticated DDEV smoke targets the explicitly selected isola
     assertTrue(str_contains($source, '$baseUrl . \'/index.php/apps/flzrecruitment/api/bootstrap\''), 'API request must use the selected base URL');
     assertTrue(str_contains($source, '$password = $uid;'), 'local test accounts must use their username as password');
     assertTrue(!str_contains($source, '$password = bin2hex('), 'local test accounts must not use an undisclosed random password');
+    assertTrue(
+        str_contains($source, 'OCA\\FlzOrganization\\PublicApi\\V1\\OrganizationSnapshotService'),
+        'runtime smoke must consume the public flz_organization V1 snapshot',
+    );
+    assertTrue(
+        !str_contains($source, 'OCA\\LocalBase\\Organization')
+            && !str_contains($source, "'localbase', 'flz_organization_definition'"),
+        'runtime smoke must not retain an internal LocalBase organization source',
+    );
 });

@@ -10,6 +10,39 @@ Zugangsdaten oder internen Kennungen eintragen. Ausschließlich neutrale
 Testkonten und vollständig synthetische Personen-, Stellen- und Interviewdaten
 verwenden.
 
+## Technischer Organisationsnachweis vom 22. November 2026
+
+Der vorhandene Arbeitsstand wurde mit `php tests/run.php` und
+`node tests/run-js.mjs` geprüft. Der erweiterte
+`tests/OrganizationSnapshotServiceTest.php` führt auch den unveränderten
+öffentlichen Auflösungsweg über `OCP\Server` aus. Fehlender, deaktivierter,
+inkompatibler oder fehlerhafter Organisationsprovider erteilt keine
+organisationsabgeleiteten Rechte; LocalBase ersetzt ihn nicht.
+
+Eine nachträgliche Probe desselben gültigen Standalone-Providers gegen den
+Adapter aus `8af3741` scheiterte mit `MISSING` (Exit 1); der aktuelle Adapter
+übernahm dessen Rollenabbildung (Exit 0). Dies belegt die Regression, jedoch
+keinen ursprünglichen zeitlichen Red–Green-Ablauf. Dessen fehlender
+historischer Nachweis bleibt eine ausdrücklich begründete Abweichung bei der
+Übernahme des bereits bestehenden Integrationsstands.
+
+In der lokalen, ausschließlich synthetischen DDEV-Testinstanz bestand die
+echte DI-Auflösung (`VALID`). Der selbstaufräumende HTTPS-Smoke lief mit
+explizitem Erfolgsmarker und Exit 0:
+
+```bash
+# Aus dem dokumentierten nextcloud-dev-Root ausführen.
+ddev exec -d /var/www/html/html php custom_apps/flzrecruitment/tests/integration/AuthenticatedPageSmoke.php
+```
+
+Er prüft die authentifizierte Appseite, den nativen Adminabschnitt,
+Bootstrap, Gruppenbenutzersuche und einen CSRF-geschützten synthetischen
+Schreibvorgang. Sein CLI-Exceptionhandler verhindert einen stillen Exit 0
+durch Nextclouds Webfehlerbehandlung. Vor dem Lauf wurden die im lokalen
+Testbestand fehlenden deaktivierten Statusmail-Defaults über den bestehenden
+idempotenten App-Migrationsschritt wiederhergestellt; der Lauf versendet
+keine Mail. Eine interaktive Browserprüfung ist dadurch nicht ersetzt.
+
 ## Kopfdaten
 
 | Feld | Eintrag |
