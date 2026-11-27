@@ -28,6 +28,7 @@ use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\AppFramework\Http\DataDisplayResponse;
+use OCP\IL10N;
 use OCP\IRequest;
 use Psr\Log\LoggerInterface;
 
@@ -35,8 +36,7 @@ use Psr\Log\LoggerInterface;
  * HTTP-Adapter des ersten vertikalen Recruitment-Durchstichs.
  */
 final class ApiController extends Controller {
-    public function __construct(
-        IRequest $request,
+    public function __construct(IRequest $request,
         private RecruitmentAccessService $access,
         private RecruitmentUseCaseService $useCases,
         private MailInboxService $inboxService,
@@ -49,8 +49,14 @@ final class ApiController extends Controller {
         private ?CandidatePoolService $candidatePool = null,
         private ?CandidatePoolSettingsService $candidatePoolSettings = null,
         private ?ResumeExtractionSettingsService $resumeExtractionSettings = null,
-    ) {
+        private ?IL10N $l10n = null) {
         parent::__construct(Application::APP_ID, $request);
+    }
+
+    /** Lokalisierung fachlicher Texte; im Test ohne IL10N identity. */
+    private function t(string $text): string
+    {
+        return $this->l10n?->t($text) ?? $text;
     }
 
     #[NoAdminRequired]
@@ -861,20 +867,20 @@ final class ApiController extends Controller {
 
     private function errorResponse(\Throwable $error): JSONResponse {
         if ($error instanceof AccessDeniedException) {
-            return new JSONResponse(['message' => $error->getMessage()], Http::STATUS_FORBIDDEN);
+            return new JSONResponse(['message' => $this->t($error->getMessage())], Http::STATUS_FORBIDDEN);
         }
         if ($error instanceof NotFoundException) {
-            return new JSONResponse(['message' => $error->getMessage()], Http::STATUS_NOT_FOUND);
+            return new JSONResponse(['message' => $this->t($error->getMessage())], Http::STATUS_NOT_FOUND);
         }
         if ($error instanceof ConflictException) {
-            return new JSONResponse(['message' => $error->getMessage()], Http::STATUS_CONFLICT);
+            return new JSONResponse(['message' => $this->t($error->getMessage())], Http::STATUS_CONFLICT);
         }
         if ($error instanceof ValidationException) {
-            return new JSONResponse(['message' => $error->getMessage()], Http::STATUS_UNPROCESSABLE_ENTITY);
+            return new JSONResponse(['message' => $this->t($error->getMessage())], Http::STATUS_UNPROCESSABLE_ENTITY);
         }
         $this->logger->error('Filzmann-Recruitment-Anfrage fehlgeschlagen.', ['exceptionClass' => $error::class]);
         return new JSONResponse(
-            ['message' => 'Die Anfrage konnte technisch nicht verarbeitet werden.'],
+            ['message' => $this->t('Die Anfrage konnte technisch nicht verarbeitet werden.')],
             Http::STATUS_INTERNAL_SERVER_ERROR,
         );
     }

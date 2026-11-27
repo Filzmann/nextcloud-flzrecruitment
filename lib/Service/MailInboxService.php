@@ -9,6 +9,7 @@ use OCA\FlzRecruitment\Contract\MailAttachmentStorage;
 use OCA\FlzRecruitment\Contract\MailInboxStore;
 use OCA\FlzRecruitment\Contract\PdfTextExtractor;
 use OCA\FlzRecruitment\Exception\ValidationException;
+use OCP\IL10N;
 
 /** Fachgrenze für unveränderlichen, wiederholbaren Mailimport und versionierte Zuordnung. */
 final class MailInboxService {
@@ -40,8 +41,7 @@ final class MailInboxService {
     private DesiredWeeklyHoursService $desiredWeeklyHours;
     private RecruitmentService $recruitment;
 
-    public function __construct(
-        private ApplicationMailFieldExtractor $extractor,
+    public function __construct(private ApplicationMailFieldExtractor $extractor,
         private MailInboxStore $store,
         private MailAttachmentStorage $attachments,
         private PdfTextExtractor $pdfTextExtractor,
@@ -49,11 +49,17 @@ final class MailInboxService {
         ?ApplicationFieldValueService $applicationFieldValues = null,
         ?DesiredWeeklyHoursService $desiredWeeklyHours = null,
         ?RecruitmentService $recruitment = null,
-    ) {
+        private ?IL10N $l10n = null) {
         $this->hiringMasterData = $hiringMasterData ?? new HiringMasterDataService();
         $this->applicationFieldValues = $applicationFieldValues ?? new ApplicationFieldValueService();
         $this->desiredWeeklyHours = $desiredWeeklyHours ?? new DesiredWeeklyHoursService();
         $this->recruitment = $recruitment ?? new RecruitmentService($this->desiredWeeklyHours);
+    }
+
+    /** Lokalisierung fachlicher Texte; im Test ohne IL10N identity. */
+    private function t(string $text): string
+    {
+        return $this->l10n?->t($text) ?? $text;
     }
 
     /**
@@ -309,7 +315,7 @@ final class MailInboxService {
                 throw new ValidationException('Es sind ausschließlich PDF-Anhänge innerhalb der Größenbegrenzung zulässig.');
             }
             $validatedAttachments[] = [
-                'originalName' => substr(trim((string)($attachment['originalName'] ?? 'Anhang.pdf')), 0, 255),
+                'originalName' => substr(trim((string)($attachment['originalName'] ?? $this->t('Anhang.pdf'))), 0, 255),
                 'content' => $content,
                 'contentHash' => hash('sha256', $content),
                 'extractedText' => substr(trim((string)($attachment['extractedText'] ?? '')), 0, self::MAX_BODY_BYTES),

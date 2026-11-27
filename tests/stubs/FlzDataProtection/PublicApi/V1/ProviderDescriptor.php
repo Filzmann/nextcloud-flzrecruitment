@@ -20,13 +20,13 @@ final class ProviderDescriptor {
         private int $maxPageSize,
     ) {
         if (!preg_match('/^[a-z][a-z0-9_]{1,63}$/', $appId)) {
-            throw new InvalidArgumentException('Invalid provider app ID.');
+            throw new InvalidArgumentException('Ungültige Provider-App-ID.');
         }
         if ($displayName === '') {
-            throw new InvalidArgumentException('Provider display name must not be empty.');
+            throw new InvalidArgumentException('Der Anzeigename des Providers darf nicht leer sein.');
         }
         if (!preg_match('/^[1-9][0-9]*\.[0-9]+$/', $contractVersion)) {
-            throw new InvalidArgumentException('Invalid provider contract version.');
+            throw new InvalidArgumentException('Ungültige Provider-Vertragsversion.');
         }
         if (
             $subjectTypes === []
@@ -36,11 +36,11 @@ final class ProviderDescriptor {
             || $maxPageSize < 1
             || $maxPageSize > 1000
         ) {
-            throw new InvalidArgumentException('Invalid provider limits.');
+            throw new InvalidArgumentException('Ungültige Provider-Limits.');
         }
         foreach (array_merge($subjectTypes, $capabilities) as $identifier) {
             if (!is_string($identifier) || !preg_match('/^[a-z][a-z0-9-]{1,63}$/', $identifier)) {
-                throw new InvalidArgumentException('Invalid provider capability or subject type.');
+                throw new InvalidArgumentException('Ungültige Provider-Fähigkeit oder -Subjekttyp.');
             }
         }
     }

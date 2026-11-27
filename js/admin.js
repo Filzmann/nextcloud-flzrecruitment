@@ -1,5 +1,6 @@
 (function (root) {
     'use strict'
+    const translate = typeof t === 'function' ? t : (_app, text, params) => Object.entries(params || {}).reduce((s, [k, v]) => s.split('{' + k + '}').join(String(v)), text)
 
     const api = root.RecruitmentApi
 
@@ -15,13 +16,13 @@
         form.addEventListener('submit', async (event) => {
             event.preventDefault()
             submit.disabled = true
-            status.textContent = 'Einstellung wird gespeichert …'
+            status.textContent = translate('flzrecruitment', 'Einstellung wird gespeichert') + ' ' + '…'
             try {
                 const result = await save(Number(form.dataset.revision || 0))
                 form.dataset.revision = String(result.revision)
-                status.textContent = 'Einstellung wurde gespeichert.'
+                status.textContent = translate('flzrecruitment', 'Einstellung wurde gespeichert.')
             } catch (error) {
-                status.textContent = error?.message || 'Die Einstellung konnte nicht gespeichert werden.'
+                status.textContent = error?.message || translate('flzrecruitment', 'Die Einstellung konnte nicht gespeichert werden.')
             } finally {
                 submit.disabled = false
             }

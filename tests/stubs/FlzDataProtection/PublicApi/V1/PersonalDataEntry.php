@@ -27,23 +27,23 @@ final class PersonalDataEntry {
     ) {
         foreach ([$categoryId, $categoryLabel, $reference, $summary, $purpose, $source, $retention, $thirdCountryTransfer, $automatedDecision] as $value) {
             if (trim($value) === '') {
-                throw new InvalidArgumentException('Required personal data metadata is missing.');
+                throw new InvalidArgumentException('Erforderliche personenbezogene Metadaten fehlen.');
             }
         }
         if (!preg_match('/^[a-z][a-z0-9_-]{1,63}$/', $categoryId) || $recipientCategories === []) {
-            throw new InvalidArgumentException('Invalid personal data category or recipients.');
+            throw new InvalidArgumentException('Ungültige personenbezogene Datenkategorie oder -Empfänger.');
         }
         if (strlen($reference) > 255 || preg_match('/[\x00-\x1F\x7F]/', $reference)) {
-            throw new InvalidArgumentException('Invalid personal data reference.');
+            throw new InvalidArgumentException('Ungültige personenbezogene Datenreferenz.');
         }
         foreach ($recipientCategories as $recipientCategory) {
             if (!is_string($recipientCategory) || trim($recipientCategory) === '') {
-                throw new InvalidArgumentException('Invalid recipient category.');
+                throw new InvalidArgumentException('Ungültige Empfängerkategorie.');
             }
         }
         foreach ($attributes as $name => $value) {
             if (!is_string($name) || $name === '' || (!is_scalar($value) && $value !== null)) {
-                throw new InvalidArgumentException('Invalid personal data attribute.');
+                throw new InvalidArgumentException('Ungültiges personenbezogenes Datenattribut.');
             }
         }
     }

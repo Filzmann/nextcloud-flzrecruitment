@@ -5,12 +5,19 @@ declare(strict_types=1);
 namespace OCA\FlzRecruitment\Settings;
 
 use OCA\FlzRecruitment\AppInfo\Application;
+use OCP\IL10N;
 use OCP\IURLGenerator;
 use OCP\Settings\IIconSection;
 
 /** Registriert den ausschließlich für Nextcloud-Admins sichtbaren App-Abschnitt. */
 final class AdminSection implements IIconSection {
-    public function __construct(private IURLGenerator $url) {}
+    public function __construct(private IURLGenerator $url, private ?IL10N $l10n = null) {}
+
+    /** Lokalisierung fachlicher Texte; im Test ohne IL10N identity. */
+    private function t(string $text): string
+    {
+        return $this->l10n?->t($text) ?? $text;
+    }
 
     public function getIcon(): string {
         return $this->url->imagePath(Application::APP_ID, 'app.svg');
@@ -21,7 +28,7 @@ final class AdminSection implements IIconSection {
     }
 
     public function getName(): string {
-        return 'Filzmann Recruitment';
+        return $this->t('Filzmann Recruitment');
     }
 
     public function getPriority(): int {

@@ -1,5 +1,6 @@
 (function (root, factory) {
     'use strict'
+    const translate = typeof t === 'function' ? t : (_app, text, params) => Object.entries(params || {}).reduce((s, [k, v]) => s.split('{' + k + '}').join(String(v)), text)
 
     const api = factory()
     if (typeof module === 'object' && module.exports) {
@@ -10,32 +11,33 @@
     }
 }(typeof window !== 'undefined' ? window : globalThis, function () {
     'use strict'
+    const translate = typeof t === 'function' ? t : (_app, text, params) => Object.entries(params || {}).reduce((s, [k, v]) => s.split('{' + k + '}').join(String(v)), text)
 
     const labels = {
-        received: 'Eingegangen',
-        screening: 'Vorprüfung',
-        questionnaire_pending: 'Kurzfragebogen ausstehend',
-        questionnaire_received: 'Kurzfragebogen eingegangen',
-        phone_planned: 'Telefoninterview geplant',
-        phone_completed: 'Telefoninterview abgeschlossen',
-        live_planned: 'Liveinterview geplant',
-        decision_pending: 'Entscheidung ausstehend',
-        basis_qualification: 'Basisqualifikation',
-        approved_for_hire: 'Zur Einstellung freigegeben',
-        accepted: 'Zusage',
-        rejected: 'Absage',
-        withdrawn: 'Zurückgezogen',
-        hired: 'Eingestellt',
-        archived: 'Archiviert',
-        not_started: 'Nicht begonnen',
-        in_progress: 'In Bearbeitung',
-        completed: 'Abgeschlossen',
-        aborted: 'Abgebrochen',
+        received: translate('flzrecruitment', 'Eingegangen'),
+        screening: translate('flzrecruitment', 'Vorprüfung'),
+        questionnaire_pending: translate('flzrecruitment', 'Kurzfragebogen ausstehend'),
+        questionnaire_received: translate('flzrecruitment', 'Kurzfragebogen eingegangen'),
+        phone_planned: translate('flzrecruitment', 'Telefoninterview geplant'),
+        phone_completed: translate('flzrecruitment', 'Telefoninterview abgeschlossen'),
+        live_planned: translate('flzrecruitment', 'Liveinterview geplant'),
+        decision_pending: translate('flzrecruitment', 'Entscheidung ausstehend'),
+        basis_qualification: translate('flzrecruitment', 'Basisqualifikation'),
+        approved_for_hire: translate('flzrecruitment', 'Zur Einstellung freigegeben'),
+        accepted: translate('flzrecruitment', 'Zusage'),
+        rejected: translate('flzrecruitment', 'Absage'),
+        withdrawn: translate('flzrecruitment', 'Zurückgezogen'),
+        hired: translate('flzrecruitment', 'Eingestellt'),
+        archived: translate('flzrecruitment', 'Archiviert'),
+        not_started: translate('flzrecruitment', 'Nicht begonnen'),
+        in_progress: translate('flzrecruitment', 'In Bearbeitung'),
+        completed: translate('flzrecruitment', 'Abgeschlossen'),
+        aborted: translate('flzrecruitment', 'Abgebrochen'),
     }
     const sourceLabels = {
         email_import: 'E-Mail-Eingang',
         manual: 'Manuelle Ausnahme',
-        referral: 'Empfehlung',
+        referral: translate('flzrecruitment', 'Empfehlung'),
         other: 'Sonstiger Kanal',
     }
 
@@ -55,7 +57,7 @@
     }
 
     function desiredHoursLabel(minimum, maximum) {
-        if (minimum === null || minimum === undefined || minimum === '') return 'Nicht angegeben'
+        if (minimum === null || minimum === undefined || minimum === '') return translate('flzrecruitment', 'Nicht angegeben')
         if (maximum === null || maximum === undefined || maximum === '') return `ca. ${minimum} Stunden`
         return `ca. ${minimum}–${maximum} Stunden`
     }

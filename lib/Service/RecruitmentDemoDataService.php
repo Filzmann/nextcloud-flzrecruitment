@@ -3,15 +3,17 @@
 declare(strict_types=1);
 
 namespace OCA\FlzRecruitment\Service;
+use OCP\IL10N;
 
 /** Installiert einen ausschließlich synthetischen, wiederholbaren Recruitment-Datensatz. */
 final class RecruitmentDemoDataService {
     private const ACTOR = 'demo-seed';
 
     /** @var list<array{internalTitle:string,publicTitle:string,assignmentKey:string,bq:bool,professionCategory:string}> */
-    private const JOBS = [
+    private function jobs(): array {
+        return [
         [
-            'internalTitle' => 'Assistenz – Persönliche Assistenz (Demo)',
+            'internalTitle' => $this->t('Assistenz – Persönliche Assistenz (Demo)'),
             'publicTitle' => 'Assistent*in für Menschen mit Behinderung (Demo)',
             'assignmentKey' => 'demo-assistenz',
             'bq' => true,
@@ -20,15 +22,16 @@ final class RecruitmentDemoDataService {
             'fullTimeWeeklyHours' => 38.5, 'vacationDays' => 30.0, 'workLocation' => 'Berlin',
         ],
         [
-            'internalTitle' => 'Pflegefachkraft (Demo)',
-            'publicTitle' => 'Pflegefachkraft im ambulanten Dienst (Demo)',
+            'internalTitle' => $this->t('Pflegefachkraft (Demo)'),
+            'publicTitle' => $this->t('Pflegefachkraft im ambulanten Dienst (Demo)'),
             'assignmentKey' => 'demo-pflegefachkraft',
             'bq' => false,
             'professionCategory' => 'nursing',
             'contractTerm' => 'permanent', 'payGrade' => '8', 'advertisedWeeklyHours' => 32.0,
             'fullTimeWeeklyHours' => 38.5, 'vacationDays' => 30.0, 'workLocation' => 'Berlin',
         ],
-    ];
+        ];
+    }
 
     /** @var list<array{givenName:string,familyName:string,email:string,phone:string,salutation:string,title:string,plannedStartDate:string,city:string}> */
     private const PEOPLE = [
@@ -53,170 +56,180 @@ final class RecruitmentDemoDataService {
      *
      * @var list<array{name:string,type:string,description:string,questions:list<array{prompt:string,hint:string}>}>
      */
-    private const INTERVIEW_TEMPLATES = [
+    private function interview_templates(): array {
+        return [
         [
-            'name' => 'Telefoninterview Assistenz (Demo)',
+            'name' => $this->t('Telefoninterview Assistenz (Demo)'),
             'type' => 'phone',
-            'description' => 'Neutralisierter Demo-Fragenkatalog für ein telefonisches Kurzinterview.',
+            'description' => $this->t('Neutralisierter Demo-Fragenkatalog für ein telefonisches Kurzinterview.'),
             'questions' => [
-                ['prompt' => 'Wie sind Sie auf uns aufmerksam geworden?', 'hint' => 'Nur die für das Recruiting relevante Quelle dokumentieren.'],
-                ['prompt' => 'Was motiviert die Person für die persönliche Assistenz?', 'hint' => 'Nur neutrale, für die Auswahl relevante Beobachtungen dokumentieren.'],
-                ['prompt' => 'Welche relevanten Erfahrungen, Ausbildungen oder Fortbildungen bringen Sie mit?', 'hint' => 'Art, Dauer und gegebenenfalls erforderliche Nachweise festhalten.'],
-                ['prompt' => 'Welche zeitliche Perspektive verbinden Sie mit der Tätigkeit?', 'hint' => 'Kurzfristige Übergangslösung oder längerfristige Perspektive sachlich festhalten.'],
-                ['prompt' => 'Wie viele Stunden pro Woche möchten Sie arbeiten?', 'hint' => 'Gewünschten Umfang und mögliche Bandbreite erfassen.'],
-                ['prompt' => 'Wie soll die Tätigkeit mit Studium, Ausbildung oder Nebentätigkeiten kombiniert werden?', 'hint' => 'Nur arbeitszeitrelevante Rahmenbedingungen dokumentieren.'],
-                ['prompt' => 'An welchen Wochentagen und zu welchen Zeiten können Sie arbeiten?', 'hint' => 'Regelmäßige Verfügbarkeit einschließlich Wochenenden klären.'],
-                ['prompt' => 'Gibt es konkrete Ausschlusszeiten?', 'hint' => 'Nur zeitliche Verfügbarkeit erfassen, keine privaten Begründungen verlangen.'],
-                ['prompt' => 'Welche Schichtlängen und Tageszeiten kommen für Sie infrage?', 'hint' => 'Präferenzen und verbindliche Grenzen getrennt notieren.'],
-                ['prompt' => 'Ab wann können Sie beginnen und welche Fristen sind zu berücksichtigen?', 'hint' => 'Frühesten Start sowie Kündigungsfristen oder bereits geplante Abwesenheiten erfassen.'],
+                ['prompt' => $this->t('Wie sind Sie auf uns aufmerksam geworden?'), 'hint' => $this->t('Nur die für das Recruiting relevante Quelle dokumentieren.')],
+                ['prompt' => $this->t('Was motiviert die Person für die persönliche Assistenz?'), 'hint' => $this->t('Nur neutrale, für die Auswahl relevante Beobachtungen dokumentieren.')],
+                ['prompt' => $this->t('Welche relevanten Erfahrungen, Ausbildungen oder Fortbildungen bringen Sie mit?'), 'hint' => $this->t('Art, Dauer und gegebenenfalls erforderliche Nachweise festhalten.')],
+                ['prompt' => $this->t('Welche zeitliche Perspektive verbinden Sie mit der Tätigkeit?'), 'hint' => $this->t('Kurzfristige Übergangslösung oder längerfristige Perspektive sachlich festhalten.')],
+                ['prompt' => $this->t('Wie viele Stunden pro Woche möchten Sie arbeiten?'), 'hint' => $this->t('Gewünschten Umfang und mögliche Bandbreite erfassen.')],
+                ['prompt' => $this->t('Wie soll die Tätigkeit mit Studium, Ausbildung oder Nebentätigkeiten kombiniert werden?'), 'hint' => $this->t('Nur arbeitszeitrelevante Rahmenbedingungen dokumentieren.')],
+                ['prompt' => $this->t('An welchen Wochentagen und zu welchen Zeiten können Sie arbeiten?'), 'hint' => $this->t('Regelmäßige Verfügbarkeit einschließlich Wochenenden klären.')],
+                ['prompt' => $this->t('Gibt es konkrete Ausschlusszeiten?'), 'hint' => $this->t('Nur zeitliche Verfügbarkeit erfassen, keine privaten Begründungen verlangen.')],
+                ['prompt' => $this->t('Welche Schichtlängen und Tageszeiten kommen für Sie infrage?'), 'hint' => $this->t('Präferenzen und verbindliche Grenzen getrennt notieren.')],
+                ['prompt' => $this->t('Ab wann können Sie beginnen und welche Fristen sind zu berücksichtigen?'), 'hint' => $this->t('Frühesten Start sowie Kündigungsfristen oder bereits geplante Abwesenheiten erfassen.')],
             ],
         ],
         [
-            'name' => 'Vorstellungsgespräch Assistenz (Demo)',
+            'name' => $this->t('Vorstellungsgespräch Assistenz (Demo)'),
             'type' => 'live',
-            'description' => 'Neutralisierter Demo-Fragenkatalog für ein persönliches Gespräch mit Fallfragen.',
+            'description' => $this->t('Neutralisierter Demo-Fragenkatalog für ein persönliches Gespräch mit Fallfragen.'),
             'questions' => [
-                ['prompt' => 'Was interessiert Sie an einem Wechsel in die persönliche Assistenz?', 'hint' => 'Motivation ohne Bewertung des bisherigen Berufswegs erfragen.'],
-                ['prompt' => 'Was verstehen Sie unter persönlicher Assistenz und Selbstbestimmung?', 'hint' => 'Abgrenzung zur Betreuung und Rolle der assistierten Person besprechen.'],
-                ['prompt' => 'Mit welchen Personengruppen rechnen Sie in der persönlichen Assistenz?', 'hint' => 'Vorstellungen zu Alter und Unterstützungsbedarf sachlich einordnen.'],
-                ['prompt' => 'Welche konkreten Aufgaben erwarten Sie in der persönlichen Assistenz?', 'hint' => 'Körperbezogene Assistenz, Haushalt, Transfers und Begleitung einbeziehen.'],
-                ['prompt' => 'Gibt es Aufgaben, die Sie nicht übernehmen können oder möchten?', 'hint' => 'Grenzen offen und ohne Rechtfertigungsdruck klären.'],
-                ['prompt' => 'Wie stellen Sie sich die Zusammenarbeit mit einer Person mit Sprechbeeinträchtigung vor?', 'hint' => 'Kommunikationswege, Einarbeitung und vorhandene Unterstützung ansprechen.'],
-                ['prompt' => 'Wie würden Sie mit Konflikten mit einer assistierten Person umgehen?', 'hint' => 'Direkte Klärung, professionelle Unterstützung und erreichbare Ansprechpersonen berücksichtigen.'],
-                ['prompt' => 'Ihre Ablösung erscheint nicht und Sie haben selbst einen Termin. Wie handeln Sie?', 'hint' => 'Sicherstellung, rechtzeitige Eskalation und zuständige Rufbereitschaft besprechen.'],
-                ['prompt' => 'Die assistierte Person möchte nachts spontan länger wach bleiben. Wie reagieren Sie?', 'hint' => 'Selbstbestimmung, Absprachen und sichere Assistenz gegeneinander abwägen.'],
-                ['prompt' => 'Welche professionelle Beziehung wünschen Sie sich zur assistierten Person?', 'hint' => 'Nähe, Distanz, Rollenklärung und Privatsphäre thematisieren.'],
-                ['prompt' => 'Wie reagieren Sie auf die Bitte, Alkohol anzureichen?', 'hint' => 'Selbstbestimmung, Anleitungsfähigkeit und bekannte medizinische Vorgaben berücksichtigen.'],
-                ['prompt' => 'Wie reagieren Sie auf die Bitte, illegale Rauschmittel zu beschaffen oder anzureichen?', 'hint' => 'Rechtliche Grenze benennen und zuständige Unterstützung hinzuziehen.'],
-                ['prompt' => 'Wie gehen Sie mit einer Assistenzaufgabe um, die Ihren persönlichen Ernährungsgewohnheiten widerspricht?', 'hint' => 'Professionelle Rolle, konkrete Aufgabe und begründete Grenzen besprechen.'],
+                ['prompt' => $this->t('Was interessiert Sie an einem Wechsel in die persönliche Assistenz?'), 'hint' => $this->t('Motivation ohne Bewertung des bisherigen Berufswegs erfragen.')],
+                ['prompt' => $this->t('Was verstehen Sie unter persönlicher Assistenz und Selbstbestimmung?'), 'hint' => $this->t('Abgrenzung zur Betreuung und Rolle der assistierten Person besprechen.')],
+                ['prompt' => $this->t('Mit welchen Personengruppen rechnen Sie in der persönlichen Assistenz?'), 'hint' => $this->t('Vorstellungen zu Alter und Unterstützungsbedarf sachlich einordnen.')],
+                ['prompt' => $this->t('Welche konkreten Aufgaben erwarten Sie in der persönlichen Assistenz?'), 'hint' => $this->t('Körperbezogene Assistenz, Haushalt, Transfers und Begleitung einbeziehen.')],
+                ['prompt' => $this->t('Gibt es Aufgaben, die Sie nicht übernehmen können oder möchten?'), 'hint' => $this->t('Grenzen offen und ohne Rechtfertigungsdruck klären.')],
+                ['prompt' => $this->t('Wie stellen Sie sich die Zusammenarbeit mit einer Person mit Sprechbeeinträchtigung vor?'), 'hint' => $this->t('Kommunikationswege, Einarbeitung und vorhandene Unterstützung ansprechen.')],
+                ['prompt' => $this->t('Wie würden Sie mit Konflikten mit einer assistierten Person umgehen?'), 'hint' => $this->t('Direkte Klärung, professionelle Unterstützung und erreichbare Ansprechpersonen berücksichtigen.')],
+                ['prompt' => $this->t('Ihre Ablösung erscheint nicht und Sie haben selbst einen Termin. Wie handeln Sie?'), 'hint' => $this->t('Sicherstellung, rechtzeitige Eskalation und zuständige Rufbereitschaft besprechen.')],
+                ['prompt' => $this->t('Die assistierte Person möchte nachts spontan länger wach bleiben. Wie reagieren Sie?'), 'hint' => $this->t('Selbstbestimmung, Absprachen und sichere Assistenz gegeneinander abwägen.')],
+                ['prompt' => $this->t('Welche professionelle Beziehung wünschen Sie sich zur assistierten Person?'), 'hint' => $this->t('Nähe, Distanz, Rollenklärung und Privatsphäre thematisieren.')],
+                ['prompt' => $this->t('Wie reagieren Sie auf die Bitte, Alkohol anzureichen?'), 'hint' => $this->t('Selbstbestimmung, Anleitungsfähigkeit und bekannte medizinische Vorgaben berücksichtigen.')],
+                ['prompt' => $this->t('Wie reagieren Sie auf die Bitte, illegale Rauschmittel zu beschaffen oder anzureichen?'), 'hint' => $this->t('Rechtliche Grenze benennen und zuständige Unterstützung hinzuziehen.')],
+                ['prompt' => $this->t('Wie gehen Sie mit einer Assistenzaufgabe um, die Ihren persönlichen Ernährungsgewohnheiten widerspricht?'), 'hint' => $this->t('Professionelle Rolle, konkrete Aufgabe und begründete Grenzen besprechen.')],
             ],
         ],
-    ];
+        ];
+    }
 
     /** @var array<string,list<array{label:string,insertText:string}>> */
-    private const DEMO_ANSWER_BUBBLES = [
-        'Wie sind Sie auf uns aufmerksam geworden?' => [
-            ['label' => 'Stellenportal', 'insertText' => 'Ich habe die Ausschreibung über ein Stellenportal gefunden.'],
-            ['label' => 'Empfehlung', 'insertText' => 'Mir wurde die Stelle persönlich empfohlen.'],
-            ['label' => 'Online-Auftritt', 'insertText' => 'Ich bin über den Online-Auftritt auf die Stelle aufmerksam geworden.'],
+    private function demo_answer_bubbles(): array {
+        return [
+        $this->t('Wie sind Sie auf uns aufmerksam geworden?') => [
+            ['label' => 'Stellenportal', 'insertText' => $this->t('Ich habe die Ausschreibung über ein Stellenportal gefunden.')],
+            ['label' => 'Empfehlung', 'insertText' => $this->t('Mir wurde die Stelle persönlich empfohlen.')],
+            ['label' => 'Online-Auftritt', 'insertText' => $this->t('Ich bin über den Online-Auftritt auf die Stelle aufmerksam geworden.')],
         ],
-        'Was motiviert die Person für die persönliche Assistenz?' => [
-            ['label' => 'Selbstbestimmung', 'insertText' => 'Mich motiviert, eine selbstbestimmte Lebensführung praktisch zu unterstützen.'],
-            ['label' => 'Abwechslungsreiche Aufgabe', 'insertText' => 'Ich suche eine abwechslungsreiche Tätigkeit mit direkter Verantwortung.'],
-            ['label' => 'Berufliche Perspektive', 'insertText' => 'Ich möchte persönliche Assistenz als längerfristige berufliche Perspektive kennenlernen.'],
+        $this->t('Was motiviert die Person für die persönliche Assistenz?') => [
+            ['label' => 'Selbstbestimmung', 'insertText' => $this->t('Mich motiviert, eine selbstbestimmte Lebensführung praktisch zu unterstützen.')],
+            ['label' => $this->t('Abwechslungsreiche Aufgabe'), 'insertText' => $this->t('Ich suche eine abwechslungsreiche Tätigkeit mit direkter Verantwortung.')],
+            ['label' => $this->t('Berufliche Perspektive'), 'insertText' => $this->t('Ich möchte persönliche Assistenz als längerfristige berufliche Perspektive kennenlernen.')],
         ],
-        'Welche relevanten Erfahrungen, Ausbildungen oder Fortbildungen bringen Sie mit?' => [
-            ['label' => 'Direkte Erfahrung', 'insertText' => 'Ich habe bereits praktische Erfahrung in Assistenz oder Pflege gesammelt.'],
-            ['label' => 'Übertragbare Erfahrung', 'insertText' => 'Ich bringe übertragbare Erfahrung aus einem anderen sozialen oder dienstleistenden Bereich mit.'],
-            ['label' => 'Quereinstieg', 'insertText' => 'Ich habe noch keine direkte Vorerfahrung und möchte mich durch Einarbeitung und Qualifizierung einarbeiten.'],
+        $this->t('Welche relevanten Erfahrungen, Ausbildungen oder Fortbildungen bringen Sie mit?') => [
+            ['label' => $this->t('Direkte Erfahrung'), 'insertText' => $this->t('Ich habe bereits praktische Erfahrung in Assistenz oder Pflege gesammelt.')],
+            ['label' => $this->t('Übertragbare Erfahrung'), 'insertText' => $this->t('Ich bringe übertragbare Erfahrung aus einem anderen sozialen oder dienstleistenden Bereich mit.')],
+            ['label' => 'Quereinstieg', 'insertText' => $this->t('Ich habe noch keine direkte Vorerfahrung und möchte mich durch Einarbeitung und Qualifizierung einarbeiten.')],
         ],
-        'Welche zeitliche Perspektive verbinden Sie mit der Tätigkeit?' => [
-            ['label' => 'Langfristig', 'insertText' => 'Ich suche eine längerfristige Tätigkeit.'],
-            ['label' => 'Übergangsweise', 'insertText' => 'Ich plane die Tätigkeit zunächst für einen begrenzten Zeitraum.'],
-            ['label' => 'Noch offen', 'insertText' => 'Meine zeitliche Perspektive ist noch offen und hängt von der konkreten Einsatzplanung ab.'],
+        $this->t('Welche zeitliche Perspektive verbinden Sie mit der Tätigkeit?') => [
+            ['label' => 'Langfristig', 'insertText' => $this->t('Ich suche eine längerfristige Tätigkeit.')],
+            ['label' => $this->t('Übergangsweise'), 'insertText' => $this->t('Ich plane die Tätigkeit zunächst für einen begrenzten Zeitraum.')],
+            ['label' => $this->t('Noch offen'), 'insertText' => $this->t('Meine zeitliche Perspektive ist noch offen und hängt von der konkreten Einsatzplanung ab.')],
         ],
-        'Wie viele Stunden pro Woche möchten Sie arbeiten?' => [
-            ['label' => 'Bis 20 Stunden', 'insertText' => 'Ich möchte bis zu 20 Stunden pro Woche arbeiten.'],
-            ['label' => '20–30 Stunden', 'insertText' => 'Ich möchte zwischen 20 und 30 Stunden pro Woche arbeiten.'],
-            ['label' => 'Ab 30 Stunden', 'insertText' => 'Ich möchte mindestens 30 Stunden pro Woche arbeiten.'],
+        $this->t('Wie viele Stunden pro Woche möchten Sie arbeiten?') => [
+            ['label' => $this->t('Bis 20 Stunden'), 'insertText' => $this->t('Ich möchte bis zu 20 Stunden pro Woche arbeiten.')],
+            ['label' => '20–30 Stunden', 'insertText' => $this->t('Ich möchte zwischen 20 und 30 Stunden pro Woche arbeiten.')],
+            ['label' => $this->t('Ab 30 Stunden'), 'insertText' => $this->t('Ich möchte mindestens 30 Stunden pro Woche arbeiten.')],
         ],
-        'Wie soll die Tätigkeit mit Studium, Ausbildung oder Nebentätigkeiten kombiniert werden?' => [
-            ['label' => 'Studium/Ausbildung', 'insertText' => 'Die Tätigkeit soll mit meinem Studium oder meiner Ausbildung abgestimmt werden.'],
-            ['label' => 'Nebentätigkeit', 'insertText' => 'Bei der Einsatzplanung muss eine weitere Tätigkeit berücksichtigt werden.'],
-            ['label' => 'Keine Kombination', 'insertText' => 'Ich habe derzeit keine weiteren arbeitszeitrelevanten Verpflichtungen.'],
+        $this->t('Wie soll die Tätigkeit mit Studium, Ausbildung oder Nebentätigkeiten kombiniert werden?') => [
+            ['label' => 'Studium/Ausbildung', 'insertText' => $this->t('Die Tätigkeit soll mit meinem Studium oder meiner Ausbildung abgestimmt werden.')],
+            ['label' => $this->t('Nebentätigkeit'), 'insertText' => $this->t('Bei der Einsatzplanung muss eine weitere Tätigkeit berücksichtigt werden.')],
+            ['label' => $this->t('Keine Kombination'), 'insertText' => $this->t('Ich habe derzeit keine weiteren arbeitszeitrelevanten Verpflichtungen.')],
         ],
-        'An welchen Wochentagen und zu welchen Zeiten können Sie arbeiten?' => [
-            ['label' => 'Werktags', 'insertText' => 'Ich kann regelmäßig werktags arbeiten.'],
-            ['label' => 'Abends/Nachts', 'insertText' => 'Ich kann grundsätzlich Abend- und Nachtdienste übernehmen.'],
-            ['label' => 'Wochenenden', 'insertText' => 'Ich kann regelmäßig an Wochenenden arbeiten.'],
+        $this->t('An welchen Wochentagen und zu welchen Zeiten können Sie arbeiten?') => [
+            ['label' => 'Werktags', 'insertText' => $this->t('Ich kann regelmäßig werktags arbeiten.')],
+            ['label' => 'Abends/Nachts', 'insertText' => $this->t('Ich kann grundsätzlich Abend- und Nachtdienste übernehmen.')],
+            ['label' => 'Wochenenden', 'insertText' => $this->t('Ich kann regelmäßig an Wochenenden arbeiten.')],
         ],
-        'Gibt es konkrete Ausschlusszeiten?' => [
-            ['label' => 'Keine', 'insertText' => 'Ich habe keine regelmäßigen Ausschlusszeiten.'],
-            ['label' => 'Feste Wochentage', 'insertText' => 'An einzelnen fest benannten Wochentagen kann ich nicht arbeiten.'],
-            ['label' => 'Vorübergehend', 'insertText' => 'Ich habe vorübergehende Ausschlusszeiten, die zeitlich klar begrenzt sind.'],
+        $this->t('Gibt es konkrete Ausschlusszeiten?') => [
+            ['label' => $this->t('Keine'), 'insertText' => $this->t('Ich habe keine regelmäßigen Ausschlusszeiten.')],
+            ['label' => $this->t('Feste Wochentage'), 'insertText' => $this->t('An einzelnen fest benannten Wochentagen kann ich nicht arbeiten.')],
+            ['label' => $this->t('Vorübergehend'), 'insertText' => $this->t('Ich habe vorübergehende Ausschlusszeiten, die zeitlich klar begrenzt sind.')],
         ],
-        'Welche Schichtlängen und Tageszeiten kommen für Sie infrage?' => [
-            ['label' => 'Kurze Dienste', 'insertText' => 'Ich bevorzuge kürzere Dienste.'],
-            ['label' => 'Lange Dienste', 'insertText' => 'Ich kann auch längere Dienste übernehmen.'],
-            ['label' => 'Flexibel', 'insertText' => 'Ich bin bei Schichtlänge und Tageszeit flexibel.'],
+        $this->t('Welche Schichtlängen und Tageszeiten kommen für Sie infrage?') => [
+            ['label' => $this->t('Kurze Dienste'), 'insertText' => $this->t('Ich bevorzuge kürzere Dienste.')],
+            ['label' => $this->t('Lange Dienste'), 'insertText' => $this->t('Ich kann auch längere Dienste übernehmen.')],
+            ['label' => 'Flexibel', 'insertText' => $this->t('Ich bin bei Schichtlänge und Tageszeit flexibel.')],
         ],
-        'Ab wann können Sie beginnen und welche Fristen sind zu berücksichtigen?' => [
-            ['label' => 'Kurzfristig', 'insertText' => 'Ich kann kurzfristig beginnen.'],
-            ['label' => 'Kündigungsfrist', 'insertText' => 'Vor meinem Beginn ist eine bestehende Kündigungsfrist zu berücksichtigen.'],
-            ['label' => 'Termin noch offen', 'insertText' => 'Den frühestmöglichen Starttermin muss ich noch abschließend klären.'],
+        $this->t('Ab wann können Sie beginnen und welche Fristen sind zu berücksichtigen?') => [
+            ['label' => 'Kurzfristig', 'insertText' => $this->t('Ich kann kurzfristig beginnen.')],
+            ['label' => $this->t('Kündigungsfrist'), 'insertText' => $this->t('Vor meinem Beginn ist eine bestehende Kündigungsfrist zu berücksichtigen.')],
+            ['label' => $this->t('Termin noch offen'), 'insertText' => $this->t('Den frühestmöglichen Starttermin muss ich noch abschließend klären.')],
         ],
-        'Was interessiert Sie an einem Wechsel in die persönliche Assistenz?' => [
-            ['label' => 'Neuorientierung', 'insertText' => 'Ich möchte mich bewusst beruflich neu orientieren.'],
-            ['label' => 'Erfahrung vertiefen', 'insertText' => 'Ich möchte vorhandene Erfahrungen in der persönlichen Assistenz vertiefen.'],
-            ['label' => 'Sinnvolle Tätigkeit', 'insertText' => 'Ich suche eine sinnvolle und verantwortliche Tätigkeit mit direktem Kontakt.'],
+        $this->t('Was interessiert Sie an einem Wechsel in die persönliche Assistenz?') => [
+            ['label' => 'Neuorientierung', 'insertText' => $this->t('Ich möchte mich bewusst beruflich neu orientieren.')],
+            ['label' => $this->t('Erfahrung vertiefen'), 'insertText' => $this->t('Ich möchte vorhandene Erfahrungen in der persönlichen Assistenz vertiefen.')],
+            ['label' => $this->t('Sinnvolle Tätigkeit'), 'insertText' => $this->t('Ich suche eine sinnvolle und verantwortliche Tätigkeit mit direktem Kontakt.')],
         ],
-        'Was verstehen Sie unter persönlicher Assistenz und Selbstbestimmung?' => [
-            ['label' => 'Selbstbestimmung', 'insertText' => 'Die assistierte Person entscheidet selbst über ihren Alltag und die gewünschte Unterstützung.'],
-            ['label' => 'Anleitung', 'insertText' => 'Ich richte Assistenzhandlungen an der Anleitung der assistierten Person aus.'],
-            ['label' => 'Keine Betreuung', 'insertText' => 'Persönliche Assistenz bedeutet für mich Unterstützung ohne Bevormundung oder erzieherischen Auftrag.'],
+        $this->t('Was verstehen Sie unter persönlicher Assistenz und Selbstbestimmung?') => [
+            ['label' => 'Selbstbestimmung', 'insertText' => $this->t('Die assistierte Person entscheidet selbst über ihren Alltag und die gewünschte Unterstützung.')],
+            ['label' => 'Anleitung', 'insertText' => $this->t('Ich richte Assistenzhandlungen an der Anleitung der assistierten Person aus.')],
+            ['label' => $this->t('Keine Betreuung'), 'insertText' => $this->t('Persönliche Assistenz bedeutet für mich Unterstützung ohne Bevormundung oder erzieherischen Auftrag.')],
         ],
-        'Mit welchen Personengruppen rechnen Sie in der persönlichen Assistenz?' => [
-            ['label' => 'Erwachsene Menschen', 'insertText' => 'Ich rechne mit erwachsenen Menschen mit unterschiedlichem Unterstützungsbedarf.'],
-            ['label' => 'Körperliche Behinderung', 'insertText' => 'Ich erwarte vor allem Einsätze bei Menschen mit körperlichen Behinderungen.'],
-            ['label' => 'Offen', 'insertText' => 'Ich bin gegenüber unterschiedlichen Assistenzsituationen offen.'],
+        $this->t('Mit welchen Personengruppen rechnen Sie in der persönlichen Assistenz?') => [
+            ['label' => $this->t('Erwachsene Menschen'), 'insertText' => $this->t('Ich rechne mit erwachsenen Menschen mit unterschiedlichem Unterstützungsbedarf.')],
+            ['label' => $this->t('Körperliche Behinderung'), 'insertText' => $this->t('Ich erwarte vor allem Einsätze bei Menschen mit körperlichen Behinderungen.')],
+            ['label' => 'Offen', 'insertText' => $this->t('Ich bin gegenüber unterschiedlichen Assistenzsituationen offen.')],
         ],
-        'Welche konkreten Aufgaben erwarten Sie in der persönlichen Assistenz?' => [
-            ['label' => 'Körperbezogene Assistenz', 'insertText' => 'Ich rechne mit körperbezogener Assistenz und möglichen Transfers.'],
-            ['label' => 'Haushalt', 'insertText' => 'Ich rechne mit Unterstützung im Haushalt, etwa Kochen, Reinigen oder Wäsche.'],
-            ['label' => 'Begleitung', 'insertText' => 'Ich rechne mit Begleitung im Alltag, bei Arbeit, Freizeit oder Reisen.'],
+        $this->t('Welche konkreten Aufgaben erwarten Sie in der persönlichen Assistenz?') => [
+            ['label' => $this->t('Körperbezogene Assistenz'), 'insertText' => $this->t('Ich rechne mit körperbezogener Assistenz und möglichen Transfers.')],
+            ['label' => 'Haushalt', 'insertText' => $this->t('Ich rechne mit Unterstützung im Haushalt, etwa Kochen, Reinigen oder Wäsche.')],
+            ['label' => 'Begleitung', 'insertText' => $this->t('Ich rechne mit Begleitung im Alltag, bei Arbeit, Freizeit oder Reisen.')],
         ],
-        'Gibt es Aufgaben, die Sie nicht übernehmen können oder möchten?' => [
-            ['label' => 'Keine Grenze', 'insertText' => 'Ich sehe derzeit keine grundsätzliche Aufgabengrenze.'],
-            ['label' => 'Vorher klären', 'insertText' => 'Einzelne Aufgaben möchte ich vor einem Einsatz konkret besprechen.'],
-            ['label' => 'Konkrete Grenze', 'insertText' => 'Ich habe eine konkrete persönliche Aufgabengrenze, die ich offen benenne.'],
+        $this->t('Gibt es Aufgaben, die Sie nicht übernehmen können oder möchten?') => [
+            ['label' => $this->t('Keine Grenze'), 'insertText' => $this->t('Ich sehe derzeit keine grundsätzliche Aufgabengrenze.')],
+            ['label' => $this->t('Vorher klären'), 'insertText' => $this->t('Einzelne Aufgaben möchte ich vor einem Einsatz konkret besprechen.')],
+            ['label' => $this->t('Konkrete Grenze'), 'insertText' => $this->t('Ich habe eine konkrete persönliche Aufgabengrenze, die ich offen benenne.')],
         ],
-        'Wie stellen Sie sich die Zusammenarbeit mit einer Person mit Sprechbeeinträchtigung vor?' => [
-            ['label' => 'Signale lernen', 'insertText' => 'Ich möchte die individuellen Kommunikationssignale aufmerksam erlernen.'],
-            ['label' => 'Geduldig nachfragen', 'insertText' => 'Ich würde ausreichend Zeit geben und bei Unklarheiten geduldig nachfragen.'],
-            ['label' => 'Einarbeitung nutzen', 'insertText' => 'Ich würde Einarbeitung und vorhandene Kommunikationshilfen konsequent nutzen.'],
+        $this->t('Wie stellen Sie sich die Zusammenarbeit mit einer Person mit Sprechbeeinträchtigung vor?') => [
+            ['label' => $this->t('Signale lernen'), 'insertText' => $this->t('Ich möchte die individuellen Kommunikationssignale aufmerksam erlernen.')],
+            ['label' => $this->t('Geduldig nachfragen'), 'insertText' => $this->t('Ich würde ausreichend Zeit geben und bei Unklarheiten geduldig nachfragen.')],
+            ['label' => $this->t('Einarbeitung nutzen'), 'insertText' => $this->t('Ich würde Einarbeitung und vorhandene Kommunikationshilfen konsequent nutzen.')],
         ],
-        'Wie würden Sie mit Konflikten mit einer assistierten Person umgehen?' => [
-            ['label' => 'Direkt klären', 'insertText' => 'Ich würde den Konflikt zunächst ruhig und direkt ansprechen.'],
-            ['label' => 'Deeskalieren', 'insertText' => 'In einer angespannten Situation würde ich zunächst Abstand schaffen und deeskalieren.'],
-            ['label' => 'Unterstützung holen', 'insertText' => 'Wenn eine direkte Klärung nicht gelingt, würde ich die zuständige Unterstützung hinzuziehen.'],
+        $this->t('Wie würden Sie mit Konflikten mit einer assistierten Person umgehen?') => [
+            ['label' => $this->t('Direkt klären'), 'insertText' => $this->t('Ich würde den Konflikt zunächst ruhig und direkt ansprechen.')],
+            ['label' => 'Deeskalieren', 'insertText' => $this->t('In einer angespannten Situation würde ich zunächst Abstand schaffen und deeskalieren.')],
+            ['label' => $this->t('Unterstützung holen'), 'insertText' => $this->t('Wenn eine direkte Klärung nicht gelingt, würde ich die zuständige Unterstützung hinzuziehen.')],
         ],
-        'Ihre Ablösung erscheint nicht und Sie haben selbst einen Termin. Wie handeln Sie?' => [
-            ['label' => 'Nicht allein lassen', 'insertText' => 'Ich lasse die assistierte Person nicht ohne gesicherte Ablösung zurück.'],
-            ['label' => 'Sofort melden', 'insertText' => 'Ich melde die fehlende Ablösung unverzüglich bei der zuständigen Stelle.'],
-            ['label' => 'Rufbereitschaft', 'insertText' => 'Ich nutze die vorgesehene Rufbereitschaft, um eine sichere Lösung zu organisieren.'],
+        $this->t('Ihre Ablösung erscheint nicht und Sie haben selbst einen Termin. Wie handeln Sie?') => [
+            ['label' => $this->t('Nicht allein lassen'), 'insertText' => $this->t('Ich lasse die assistierte Person nicht ohne gesicherte Ablösung zurück.')],
+            ['label' => $this->t('Sofort melden'), 'insertText' => $this->t('Ich melde die fehlende Ablösung unverzüglich bei der zuständigen Stelle.')],
+            ['label' => 'Rufbereitschaft', 'insertText' => $this->t('Ich nutze die vorgesehene Rufbereitschaft, um eine sichere Lösung zu organisieren.')],
         ],
-        'Die assistierte Person möchte nachts spontan länger wach bleiben. Wie reagieren Sie?' => [
-            ['label' => 'Wunsch respektieren', 'insertText' => 'Ich respektiere den spontanen Wunsch als Teil der selbstbestimmten Lebensführung.'],
-            ['label' => 'Rahmen klären', 'insertText' => 'Ich kläre gemeinsam bestehende Absprachen und eine sichere Durchführung.'],
-            ['label' => 'Unterstützung einholen', 'insertText' => 'Wenn ich die Situation nicht sicher lösen kann, hole ich zuständige Unterstützung hinzu.'],
+        $this->t('Die assistierte Person möchte nachts spontan länger wach bleiben. Wie reagieren Sie?') => [
+            ['label' => $this->t('Wunsch respektieren'), 'insertText' => $this->t('Ich respektiere den spontanen Wunsch als Teil der selbstbestimmten Lebensführung.')],
+            ['label' => $this->t('Rahmen klären'), 'insertText' => $this->t('Ich kläre gemeinsam bestehende Absprachen und eine sichere Durchführung.')],
+            ['label' => $this->t('Unterstützung einholen'), 'insertText' => $this->t('Wenn ich die Situation nicht sicher lösen kann, hole ich zuständige Unterstützung hinzu.')],
         ],
-        'Welche professionelle Beziehung wünschen Sie sich zur assistierten Person?' => [
-            ['label' => 'Respektvoll', 'insertText' => 'Ich wünsche mir eine respektvolle und verlässliche Zusammenarbeit.'],
-            ['label' => 'Professionelle Grenzen', 'insertText' => 'Mir sind klare professionelle Grenzen bei Nähe und Distanz wichtig.'],
-            ['label' => 'Privatsphäre', 'insertText' => 'Ich respektiere die Privatsphäre und persönlichen Entscheidungen der assistierten Person.'],
+        $this->t('Welche professionelle Beziehung wünschen Sie sich zur assistierten Person?') => [
+            ['label' => 'Respektvoll', 'insertText' => $this->t('Ich wünsche mir eine respektvolle und verlässliche Zusammenarbeit.')],
+            ['label' => $this->t('Professionelle Grenzen'), 'insertText' => $this->t('Mir sind klare professionelle Grenzen bei Nähe und Distanz wichtig.')],
+            ['label' => $this->t('Privatsphäre'), 'insertText' => $this->t('Ich respektiere die Privatsphäre und persönlichen Entscheidungen der assistierten Person.')],
         ],
-        'Wie reagieren Sie auf die Bitte, Alkohol anzureichen?' => [
-            ['label' => 'Selbstbestimmung', 'insertText' => 'Ich respektiere den selbstbestimmten Wunsch grundsätzlich.'],
-            ['label' => 'Vorgaben prüfen', 'insertText' => 'Ich berücksichtige bekannte medizinische Vorgaben und prüfe, ob eine sichere Anleitung möglich ist.'],
-            ['label' => 'Unsicherheit klären', 'insertText' => 'Bei Unsicherheit kläre ich die Situation vor der Handlung mit der zuständigen Unterstützung.'],
+        $this->t('Wie reagieren Sie auf die Bitte, Alkohol anzureichen?') => [
+            ['label' => 'Selbstbestimmung', 'insertText' => $this->t('Ich respektiere den selbstbestimmten Wunsch grundsätzlich.')],
+            ['label' => $this->t('Vorgaben prüfen'), 'insertText' => $this->t('Ich berücksichtige bekannte medizinische Vorgaben und prüfe, ob eine sichere Anleitung möglich ist.')],
+            ['label' => $this->t('Unsicherheit klären'), 'insertText' => $this->t('Bei Unsicherheit kläre ich die Situation vor der Handlung mit der zuständigen Unterstützung.')],
         ],
-        'Wie reagieren Sie auf die Bitte, illegale Rauschmittel zu beschaffen oder anzureichen?' => [
-            ['label' => 'Ablehnen', 'insertText' => 'Ich lehne die Beschaffung oder das Anreichen illegaler Rauschmittel ab.'],
-            ['label' => 'Grenze erklären', 'insertText' => 'Ich erkläre die rechtliche und professionelle Grenze ruhig und eindeutig.'],
-            ['label' => 'Unterstützung hinzuziehen', 'insertText' => 'Ich ziehe zur weiteren Klärung die zuständige Unterstützung hinzu.'],
+        $this->t('Wie reagieren Sie auf die Bitte, illegale Rauschmittel zu beschaffen oder anzureichen?') => [
+            ['label' => 'Ablehnen', 'insertText' => $this->t('Ich lehne die Beschaffung oder das Anreichen illegaler Rauschmittel ab.')],
+            ['label' => $this->t('Grenze erklären'), 'insertText' => $this->t('Ich erkläre die rechtliche und professionelle Grenze ruhig und eindeutig.')],
+            ['label' => $this->t('Unterstützung hinzuziehen'), 'insertText' => $this->t('Ich ziehe zur weiteren Klärung die zuständige Unterstützung hinzu.')],
         ],
-        'Wie gehen Sie mit einer Assistenzaufgabe um, die Ihren persönlichen Ernährungsgewohnheiten widerspricht?' => [
-            ['label' => 'Vegan – kein Fleisch', 'insertText' => 'Als vegan lebende Person kann ich keine Speisen mit Fleisch zubereiten.'],
-            ['label' => 'ASN entscheidet selbst', 'insertText' => 'Die assistierte Person entscheidet selbst, was sie essen möchte. Ich richte mein Handeln danach aus.'],
-            ['label' => 'Vorher abstimmen', 'insertText' => 'Ich spreche einen persönlichen Konflikt frühzeitig an und suche vor dem Einsatz eine verlässliche Abstimmung.'],
+        $this->t('Wie gehen Sie mit einer Assistenzaufgabe um, die Ihren persönlichen Ernährungsgewohnheiten widerspricht?') => [
+            ['label' => $this->t('Vegan – kein Fleisch'), 'insertText' => $this->t('Als vegan lebende Person kann ich keine Speisen mit Fleisch zubereiten.')],
+            ['label' => $this->t('ASN entscheidet selbst'), 'insertText' => $this->t('Die assistierte Person entscheidet selbst, was sie essen möchte. Ich richte mein Handeln danach aus.')],
+            ['label' => $this->t('Vorher abstimmen'), 'insertText' => $this->t('Ich spreche einen persönlichen Konflikt frühzeitig an und suche vor dem Einsatz eine verlässliche Abstimmung.')],
         ],
-    ];
+        ];
+    }
 
-    public function __construct(private RecruitmentUseCaseService $useCases) {}
+    public function __construct(private RecruitmentUseCaseService $useCases, private ?IL10N $l10n = null) {}
+
+    /** Lokalisierung fachlicher Texte; im Test ohne IL10N identity. */
+    private function t(string $text): string
+    {
+        return $this->l10n?->t($text) ?? $text;
+    }
 
     /** @return array{jobs:int,people:int,applications:int,basisQualifications:int,templates:int} */
     public function install(): array {
-        foreach (self::JOBS as $fixture) $this->ensureJob($fixture);
+        foreach ($this->jobs() as $fixture) $this->ensureJob($fixture);
         foreach (self::PEOPLE as $fixture) $this->ensurePerson($fixture);
 
         $applicationIds = [];
@@ -241,14 +254,14 @@ final class RecruitmentDemoDataService {
             }
         }
         $templateIds = $this->ensureInterviewTemplates();
-        $this->ensureInterview($applicationIds['nuri.neutral@demo.invalid'], $templateIds['Telefoninterview Assistenz (Demo)']);
+        $this->ensureInterview($applicationIds['nuri.neutral@demo.invalid'], $templateIds[$this->t('Telefoninterview Assistenz (Demo)')]);
 
         return [
-            'jobs' => count(self::JOBS),
+            'jobs' => count($this->jobs()),
             'people' => count(self::PEOPLE),
             'applications' => count(self::APPLICATIONS),
             'basisQualifications' => 1,
-            'templates' => count(self::INTERVIEW_TEMPLATES),
+            'templates' => count($this->interview_templates()),
         ];
     }
 
@@ -352,7 +365,7 @@ final class RecruitmentDemoDataService {
     /** @return array<string,int> */
     private function ensureInterviewTemplates(): array {
         $templateIds = [];
-        foreach (self::INTERVIEW_TEMPLATES as $fixture) {
+        foreach ($this->interview_templates() as $fixture) {
             $templateId = 0;
             foreach ($this->useCases->overview()['templates'] as $template) {
                 if ((string)$template['name'] === $fixture['name']) $templateId = (int)$template['id'];
@@ -388,7 +401,7 @@ final class RecruitmentDemoDataService {
                 $this->ensureDemoBubbles(
                     $questionId,
                     $stored['bubbles'] ?? [],
-                    self::DEMO_ANSWER_BUBBLES[$question['prompt']],
+                    $this->demo_answer_bubbles()[$question['prompt']],
                 );
             }
             $templateIds[$fixture['name']] = $templateId;

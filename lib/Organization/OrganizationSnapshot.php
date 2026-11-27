@@ -37,7 +37,7 @@ final class OrganizationSnapshot {
         private array $areas,
     ) {
         if (!in_array($status, self::STATUSES, true)) {
-            throw new InvalidArgumentException('Unknown organization snapshot status.');
+            throw new InvalidArgumentException('Unbekannter Organisations-Snapshot-Status.');
         }
         if ($status !== self::VALID) {
             $this->roles = [];
@@ -66,7 +66,7 @@ final class OrganizationSnapshot {
         string $checksum = '',
     ): self {
         if ($status === self::VALID) {
-            throw new InvalidArgumentException('A valid organization snapshot requires provider mappings.');
+            throw new InvalidArgumentException('Ein gültiger Organisations-Snapshot erfordert Provider-Zuordnungen.');
         }
         return new self($status, $contractVersion, $definitionVersion, $checksum, [], []);
     }

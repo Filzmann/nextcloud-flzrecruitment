@@ -1,5 +1,6 @@
 (function (root) {
     'use strict'
+    const translate = typeof t === 'function' ? t : (_app, text, params) => Object.entries(params || {}).reduce((s, [k, v]) => s.split('{' + k + '}').join(String(v)), text)
 
     const api = root.RecruitmentApi
     const { appendBubbleText } = root.RecruitmentBubbleText
@@ -46,52 +47,52 @@
         applicationMoveAreaKey: '',
     }
     const hiringFields = [
-        ['salutation', 'Anrede'], ['title', 'Titel'], ['birthName', 'Geburtsname'],
-        ['birthDate', 'Geburtsdatum', 'date'], ['birthPlace', 'Geburtsort'],
-        ['street', 'Straße'], ['houseNumber', 'Hausnummer'], ['postalCode', 'Postleitzahl'],
-        ['city', 'Ort'], ['country', 'Land'], ['nationality', 'Staatsangehörigkeit'],
-        ['privateEmail', 'Private E-Mail', 'email'], ['privatePhone', 'Private Telefonnummer', 'tel'],
-        ['plannedStartDate', 'Geplanter Eintritt', 'date'], ['contractType', 'Beschäftigungsform'],
-        ['positionTitle', 'Tätigkeitsbezeichnung'], ['payStep', 'Tarifstufe'],
-        ['contractEndDate', 'Vertragsende', 'date'],
+        ['salutation', translate('flzrecruitment', 'Anrede')], ['title', translate('flzrecruitment', 'Titel')], ['birthName', translate('flzrecruitment', 'Geburtsname')],
+        ['birthDate', translate('flzrecruitment', 'Geburtsdatum'), 'date'], ['birthPlace', translate('flzrecruitment', 'Geburtsort')],
+        ['street', translate('flzrecruitment', 'Straße')], ['houseNumber', translate('flzrecruitment', 'Hausnummer')], ['postalCode', translate('flzrecruitment', 'Postleitzahl')],
+        ['city', translate('flzrecruitment', 'Ort')], ['country', translate('flzrecruitment', 'Land')], ['nationality', translate('flzrecruitment', 'Staatsangehörigkeit')],
+        ['privateEmail', translate('flzrecruitment', 'Private E-Mail'), 'email'], ['privatePhone', 'Private Telefonnummer', 'tel'],
+        ['plannedStartDate', 'Geplanter Eintritt', 'date'], ['contractType', translate('flzrecruitment', 'Beschäftigungsform')],
+        ['positionTitle', translate('flzrecruitment', 'Tätigkeitsbezeichnung')], ['payStep', translate('flzrecruitment', 'Tarifstufe')],
+        ['contractEndDate', translate('flzrecruitment', 'Vertragsende'), 'date'],
     ]
     const payrollOnlyFields = [
         ['iban', 'IBAN'], ['bic', 'BIC'], ['accountHolder', 'Kontoinhaber*in'],
-        ['healthInsurance', 'Krankenkasse'], ['healthInsuranceType', 'Versicherungsart'],
-        ['socialSecurityNumber', 'Sozialversicherungsnummer'], ['taxId', 'Steuer-ID'], ['taxClass', 'Steuerklasse'],
+        ['healthInsurance', translate('flzrecruitment', 'Krankenkasse')], ['healthInsuranceType', translate('flzrecruitment', 'Versicherungsart')],
+        ['socialSecurityNumber', translate('flzrecruitment', 'Sozialversicherungsnummer')], ['taxId', 'Steuer-ID'], ['taxClass', translate('flzrecruitment', 'Steuerklasse')],
     ]
     const jobDerivedHiringFields = [
-        ['contractTerm', 'Vertragsdauer'], ['workingTimeModel', 'Arbeitszeitmodell'],
-        ['workLocation', 'Arbeitsort'], ['payGrade', 'Entgeltgruppe'],
-        ['weeklyHours', 'Ausgeschriebene Wochenstunden'], ['vacationDays', 'Urlaubstage gemäß HTV'],
+        ['contractTerm', translate('flzrecruitment', 'Vertragsdauer')], ['workingTimeModel', translate('flzrecruitment', 'Arbeitszeitmodell')],
+        ['workLocation', translate('flzrecruitment', 'Arbeitsort')], ['payGrade', translate('flzrecruitment', 'Entgeltgruppe')],
+        ['weeklyHours', 'Ausgeschriebene Wochenstunden'], ['vacationDays', translate('flzrecruitment', 'Urlaubstage gemäß HTV')],
     ]
     const hiringChoices = {
         salutation: [
-            { value: 'female', label: 'Frau' }, { value: 'male', label: 'Herr' },
-            { value: 'diverse', label: 'Divers' }, { value: 'neutral', label: 'Keine Anrede' },
+            { value: 'female', label: translate('flzrecruitment', 'Frau') }, { value: 'male', label: translate('flzrecruitment', 'Herr') },
+            { value: 'diverse', label: translate('flzrecruitment', 'Divers') }, { value: 'neutral', label: translate('flzrecruitment', 'Keine Anrede') },
         ],
         title: [
             { value: 'dr', label: 'Dr.' }, { value: 'prof', label: 'Prof.' },
             { value: 'prof_dr', label: 'Prof. Dr.' },
         ],
         healthInsuranceType: [
-            { value: 'statutory', label: 'Gesetzlich' },
-            { value: 'private', label: 'Privat' },
-            { value: 'other', label: 'Sonstige' },
+            { value: 'statutory', label: translate('flzrecruitment', 'Gesetzlich') },
+            { value: 'private', label: translate('flzrecruitment', 'Privat') },
+            { value: 'other', label: translate('flzrecruitment', 'Sonstige') },
         ],
         taxClass: ['1', '2', '3', '4', '5', '6'].map((value) => ({ value, label: `Steuerklasse ${value}` })),
         contractType: [
-            { value: 'marginal', label: 'Geringfügig' },
-            { value: 'social_insurance', label: 'Sozialversicherungspflichtig' },
-            { value: 'student', label: 'Studentisch' },
-            { value: 'other', label: 'Sonstige' },
+            { value: 'marginal', label: translate('flzrecruitment', 'Geringfügig') },
+            { value: 'social_insurance', label: translate('flzrecruitment', 'Sozialversicherungspflichtig') },
+            { value: 'student', label: translate('flzrecruitment', 'Studentisch') },
+            { value: 'other', label: translate('flzrecruitment', 'Sonstige') },
         ],
         contractTerm: [
-            { value: 'permanent', label: 'Unbefristet' },
-            { value: 'fixed_term_reason', label: 'Befristet mit Sachgrund' },
+            { value: 'permanent', label: translate('flzrecruitment', 'Unbefristet') },
+            { value: 'fixed_term_reason', label: translate('flzrecruitment', 'Befristet mit Sachgrund') },
         ],
         workingTimeModel: [
-            { value: 'fixed', label: 'Feste Arbeitszeit' },
+            { value: 'fixed', label: translate('flzrecruitment', 'Feste Arbeitszeit') },
             { value: 'kapovaz', label: 'KAPOVAZ' },
         ],
         payGrade: ['3', '5', '8', '9a', '9b', '10', '11', '12', '13'].map((value) => ({ value, label: `EG ${value}` })),
@@ -107,7 +108,7 @@
 
     function hiringControl(name, type, value, choices = null) {
         const control = choices
-            ? select(name, [{ value: '', label: 'Bitte wählen' }].concat(choices), value ?? '')
+            ? select(name, [{ value: '', label: translate('flzrecruitment', 'Bitte wählen') }].concat(choices), value ?? '')
             : input(name, type, false, value ?? '')
         control.classList.add('flzrecruitment-content-input')
         if (type === 'date') control.classList.add('is-date')
@@ -122,26 +123,26 @@
         return control
     }
     const professionCategories = [
-        { value: 'assistance', label: 'Assistenz' },
-        { value: 'nursing', label: 'Pflegefachkraft' },
-        { value: 'social_work', label: 'Sozialarbeit' },
-        { value: 'administration', label: 'Verwaltung' },
-        { value: 'other', label: 'Sonstige' },
+        { value: 'assistance', label: translate('flzrecruitment', 'Assistenz') },
+        { value: 'nursing', label: translate('flzrecruitment', 'Pflegefachkraft') },
+        { value: 'social_work', label: translate('flzrecruitment', 'Sozialarbeit') },
+        { value: 'administration', label: translate('flzrecruitment', 'Verwaltung') },
+        { value: 'other', label: translate('flzrecruitment', 'Sonstige') },
     ]
     const capabilityLabels = {
-        view_dossier: 'Bewerberakte lesen', manage_catalog: 'Stellen und Vorlagen verwalten',
-        edit_applications: 'Bewerbungen bearbeiten', interview: 'Interviews bearbeiten',
-        edit_hiring_data: 'Einstellungsstammdaten bearbeiten', view_hiring_data: 'Einstellungsstammdaten lesen',
-        manage_documents: 'Dokumente verwalten', communicate: 'Kommunikation bearbeiten',
-        manage_mail_templates: 'Mailvorlagen verwalten',
-        manage_candidate_pool: 'Bewerberpool verwalten',
-        manage_first_guide_access: 'Erstbegleitungszugriff steuern',
-        edit_payroll_data: 'Lohndaten bearbeiten',
-        manage_basis_qualification: 'Basisqualifikation verwalten',
-        manage_delegations: 'Vertretungsfreigaben verwalten',
-        override_status_transitions: 'Statusübergänge übersteuern',
-        manage_unassigned_inbox: 'Unzugeordneten Posteingang bearbeiten',
-        view_first_guide_dossier: 'Erstbegleitungsakte lesen',
+        view_dossier: translate('flzrecruitment', 'Bewerberakte lesen'), manage_catalog: translate('flzrecruitment', 'Stellen und Vorlagen verwalten'),
+        edit_applications: translate('flzrecruitment', 'Bewerbungen bearbeiten'), interview: translate('flzrecruitment', 'Interviews bearbeiten'),
+        edit_hiring_data: translate('flzrecruitment', 'Einstellungsstammdaten bearbeiten'), view_hiring_data: translate('flzrecruitment', 'Einstellungsstammdaten lesen'),
+        manage_documents: translate('flzrecruitment', 'Dokumente verwalten'), communicate: translate('flzrecruitment', 'Kommunikation bearbeiten'),
+        manage_mail_templates: translate('flzrecruitment', 'Mailvorlagen verwalten'),
+        manage_candidate_pool: translate('flzrecruitment', 'Bewerberpool verwalten'),
+        manage_first_guide_access: translate('flzrecruitment', 'Erstbegleitungszugriff steuern'),
+        edit_payroll_data: translate('flzrecruitment', 'Lohndaten bearbeiten'),
+        manage_basis_qualification: translate('flzrecruitment', 'Basisqualifikation verwalten'),
+        manage_delegations: translate('flzrecruitment', 'Vertretungsfreigaben verwalten'),
+        override_status_transitions: translate('flzrecruitment', 'Statusübergänge übersteuern'),
+        manage_unassigned_inbox: translate('flzrecruitment', 'Unzugeordneten Posteingang bearbeiten'),
+        view_first_guide_dossier: translate('flzrecruitment', 'Erstbegleitungsakte lesen'),
     }
 
     function element(tag, options = {}, children = []) {
@@ -168,7 +169,7 @@
             className: 'app-horizontal-scroll-proxy',
             tabIndex: 0,
             role: 'region',
-            'aria-label': 'Horizontal durch die Bewerbungsansicht scrollen',
+            'aria-label': translate('flzrecruitment', 'Horizontal durch die Bewerbungsansicht scrollen'),
         })
         const track = element('div', { className: 'app-horizontal-scroll-proxy__track', 'aria-hidden': 'true' })
         proxy.append(track)
@@ -272,7 +273,7 @@
     function createFormOverlay(title, triggerLabel, form, description = '') {
         const headingId = `flzrecruitment-overlay-title-${++overlaySequence}`
         const trigger = button(triggerLabel, 'button', 'primary')
-        const close = button('Schließen', 'button', 'flzrecruitment-secondary')
+        const close = button(translate('flzrecruitment', 'Schließen'), 'button', 'flzrecruitment-secondary')
         const body = element('div', { className: 'flzrecruitment-overlay__body' })
         if (description) body.append(element('p', { text: description }))
         body.append(form)
@@ -299,15 +300,15 @@
         content.removeAttribute('aria-busy')
         errorBox.hidden = false
         if (error?.status === 403) {
-            errorBox.textContent = 'Ihre Berechtigung reicht für diese Aktion nicht aus.'
+            errorBox.textContent = translate('flzrecruitment', 'Ihre Berechtigung reicht für diese Aktion nicht aus.')
         } else if (error?.status === 404) {
-            errorBox.textContent = 'Der angeforderte Datensatz wurde nicht gefunden.'
+            errorBox.textContent = translate('flzrecruitment', 'Der angeforderte Datensatz wurde nicht gefunden.')
         } else if (error?.status === 409) {
-            errorBox.textContent = 'Der Datensatz wurde parallel geändert. Bitte laden Sie ihn neu.'
+            errorBox.textContent = translate('flzrecruitment', 'Der Datensatz wurde parallel geändert. Bitte laden Sie ihn neu.')
         } else {
-            errorBox.textContent = error?.message || 'Ein technischer Fehler ist aufgetreten.'
+            errorBox.textContent = error?.message || translate('flzrecruitment', 'Ein technischer Fehler ist aufgetreten.')
         }
-        status.textContent = 'Fehler'
+        status.textContent = translate('flzrecruitment', 'Fehler')
     }
 
     function clearError() {
@@ -315,19 +316,19 @@
         errorBox.textContent = ''
     }
 
-    function setBusy(message = 'Daten werden geladen …') {
+    function setBusy(message = translate('flzrecruitment', 'Daten werden geladen') + ' ' + '…') {
         status.textContent = message
         content.setAttribute('aria-busy', 'true')
     }
 
-    function setReady(message = 'Bereit') {
+    function setReady(message = translate('flzrecruitment', 'Bereit')) {
         status.textContent = message
         content.removeAttribute('aria-busy')
     }
 
     async function run(operation, successMessage, after = load) {
         clearError()
-        setBusy('Änderung wird gespeichert …')
+        setBusy(translate('flzrecruitment', 'Änderung wird gespeichert') + ' ' + '…')
         try {
             const result = await operation()
             await after(result)
@@ -342,13 +343,13 @@
         tabs.setAttribute('role', 'tablist')
         const settingsSections = settingsNavigation.sections(state.capabilities)
         const definitions = [
-            ...(state.capabilities.manage_unassigned_inbox ? [['inbox', 'Posteingang']] : []),
-            ...(state.capabilities.view_dossier ? [['applications', 'Bewerbungen']] : []),
-            ...(state.capabilities.manage_catalog ? [['jobs', 'Stellen']] : []),
-            ...(state.capabilities.manage_basis_qualification ? [['basis-qualifications', 'Basisqualifikationen']] : []),
-            ...(state.capabilities.manage_candidate_pool ? [['candidate-pool', 'Rückstellungen']] : []),
-            ...(state.capabilities.view_hiring_data ? [['payroll', 'Vertragsvorbereitung']] : []),
-            ...(settingsSections.length ? [['settings', 'Einstellungen']] : []),
+            ...(state.capabilities.manage_unassigned_inbox ? [['inbox', translate('flzrecruitment', 'Posteingang')]] : []),
+            ...(state.capabilities.view_dossier ? [['applications', translate('flzrecruitment', 'Bewerbungen')]] : []),
+            ...(state.capabilities.manage_catalog ? [['jobs', translate('flzrecruitment', 'Stellen')]] : []),
+            ...(state.capabilities.manage_basis_qualification ? [['basis-qualifications', translate('flzrecruitment', 'Basisqualifikationen')]] : []),
+            ...(state.capabilities.manage_candidate_pool ? [['candidate-pool', translate('flzrecruitment', 'Rückstellungen')]] : []),
+            ...(state.capabilities.view_hiring_data ? [['payroll', translate('flzrecruitment', 'Vertragsvorbereitung')]] : []),
+            ...(settingsSections.length ? [['settings', translate('flzrecruitment', 'Einstellungen')]] : []),
         ]
         if (!definitions.some(([id]) => id === state.activeTab)) {
             state.activeTab = definitions[0]?.[0] || ''
@@ -417,14 +418,14 @@
             state.activeSettingsSection,
             definitions,
         )
-        const view = panel('settings', 'Einstellungen')
+        const view = panel('settings', translate('flzrecruitment', 'Einstellungen'))
         view.append(element('p', {
-            text: 'Hier finden Sie Funktionen, die nur gelegentlich für die Einrichtung und Pflege des Recruitings benötigt werden.',
+            text: translate('flzrecruitment', 'Hier finden Sie Funktionen, die nur gelegentlich für die Einrichtung und Pflege des Recruitings benötigt werden.'),
         }))
         const navigation = element('div', {
             className: 'flzrecruitment-settings-nav',
             role: 'tablist',
-            'aria-label': 'Einstellungsbereiche',
+            'aria-label': translate('flzrecruitment', 'Einstellungsbereiche'),
         })
         for (const [index, definition] of definitions.entries()) {
             const tab = button(definition.label, 'button', 'flzrecruitment-settings-tab')
@@ -457,35 +458,35 @@
     }
 
     function renderCandidatePool() {
-        const view = panel('candidate-pool', 'Datenschutzgerechte Rückstellungen')
+        const view = panel('candidate-pool', translate('flzrecruitment', 'Datenschutzgerechte Rückstellungen'))
         const pool = state.candidatePool || { entries: [], settings: {} }
-        view.append(element('p', { text: 'Nur reduzierte Profile mit dokumentierter, freiwilliger Einwilligung werden berücksichtigt. Vorschläge sind Hinweise für eine menschliche Prüfung und lösen weder Kontakt noch Entscheidung automatisch aus.' }))
-        if (!pool.settings.enabled) view.append(element('p', { className: 'flzrecruitment-warning', text: 'Der Bewerberpool ist bis zur Freigabe des Datenschutzhinweises deaktiviert.' }))
+        view.append(element('p', { text: translate('flzrecruitment', 'Nur reduzierte Profile mit dokumentierter, freiwilliger Einwilligung werden berücksichtigt. Vorschläge sind Hinweise für eine menschliche Prüfung und lösen weder Kontakt noch Entscheidung automatisch aus.') }))
+        if (!pool.settings.enabled) view.append(element('p', { className: 'flzrecruitment-warning', text: translate('flzrecruitment', 'Der Bewerberpool ist bis zur Freigabe des Datenschutzhinweises deaktiviert.') }))
         const requestForm = element('form', { className: 'flzrecruitment-form flzrecruitment-card' }, [
-            element('h3', { text: 'Rückstellung anfragen' }),
+            element('h3', { text: translate('flzrecruitment', 'Rückstellung anfragen') }),
             field('Bewerbungs-ID', input('applicationId', 'number', true)),
-            button('Einwilligung anfragen'),
+            button(translate('flzrecruitment', 'Einwilligung anfragen')),
         ])
-        requestForm.addEventListener('submit', (event) => { event.preventDefault(); run(() => api.requestCandidatePool(Number(new FormData(requestForm).get('applicationId'))), 'Rückstellung wurde angefragt.', load) })
+        requestForm.addEventListener('submit', (event) => { event.preventDefault(); run(() => api.requestCandidatePool(Number(new FormData(requestForm).get('applicationId'))), translate('flzrecruitment', 'Rückstellung wurde angefragt.'), load) })
         view.append(requestForm)
-        if (!pool.entries.length) view.append(emptyState('Noch keine Rückstellung vorhanden.'))
+        if (!pool.entries.length) view.append(emptyState(translate('flzrecruitment', 'Noch keine Rückstellung vorhanden.')))
         for (const entry of pool.entries) {
             const card = element('article', { className: 'flzrecruitment-card' }, [
-                element('h3', { text: `Bewerbung #${entry.sourceApplicationId}` }),
-                element('p', { text: `Status: ${entry.status} · Berufsgruppe: ${entry.professionCategory}` }),
-                element('p', { text: entry.expiresAt ? `Einwilligung bis ${entry.expiresAt}` : 'Einwilligung noch nicht erfasst' }),
+                element('h3', { text: `${translate('flzrecruitment', 'Bewerbung')} #${entry.sourceApplicationId}` }),
+                element('p', { text: `${translate('flzrecruitment', 'Status:')} ${entry.status} · Berufsgruppe: ${entry.professionCategory}` }),
+                element('p', { text: entry.expiresAt ? `Einwilligung bis ${entry.expiresAt}` : translate('flzrecruitment', 'Einwilligung noch nicht erfasst') }),
             ])
-            for (const match of entry.matches || []) card.append(element('p', { text: `Passende Stelle #${match.jobId}: ${(match.reasons || []).join(' ')}` }))
+            for (const match of entry.matches || []) card.append(element('p', { text: `${translate('flzrecruitment', 'Passende Stelle')} #${match.jobId}: ${(match.reasons || []).join(' ')}` }))
             if (entry.status === 'requested') {
                 const form = element('form', { className: 'flzrecruitment-form' }, [
-                    field('Nachweisreferenz', input('evidenceReference', 'text', true), 'Zum Beispiel die Message-ID der bestätigenden E-Mail; nicht den Mailinhalt kopieren.'),
-                    button('Einwilligung erfassen'),
+                    field(translate('flzrecruitment', 'Nachweisreferenz'), input('evidenceReference', 'text', true), translate('flzrecruitment', 'Zum Beispiel die Message-ID der bestätigenden E-Mail; nicht den Mailinhalt kopieren.')),
+                    button(translate('flzrecruitment', 'Einwilligung erfassen')),
                 ])
-                form.addEventListener('submit', (event) => { event.preventDefault(); run(() => api.grantCandidatePoolConsent(entry.id, { evidenceType: 'email_reply', evidenceReference: new FormData(form).get('evidenceReference'), noticeVersion: pool.settings.noticeVersion, areaKeys: [] }), 'Einwilligung wurde dokumentiert.', load) })
+                form.addEventListener('submit', (event) => { event.preventDefault(); run(() => api.grantCandidatePoolConsent(entry.id, { evidenceType: 'email_reply', evidenceReference: new FormData(form).get('evidenceReference'), noticeVersion: pool.settings.noticeVersion, areaKeys: [] }), translate('flzrecruitment', 'Einwilligung wurde dokumentiert.'), load) })
                 card.append(form)
             } else if (entry.status === 'active') {
-                const revoke = button('Einwilligung widerrufen', 'button', 'flzrecruitment-secondary')
-                revoke.addEventListener('click', () => run(() => api.withdrawCandidatePoolConsent(entry.id), 'Einwilligung wurde widerrufen.', load))
+                const revoke = button(translate('flzrecruitment', 'Einwilligung widerrufen'), 'button', 'flzrecruitment-secondary')
+                revoke.addEventListener('click', () => run(() => api.withdrawCandidatePoolConsent(entry.id), translate('flzrecruitment', 'Einwilligung wurde widerrufen.'), load))
                 card.append(revoke)
             }
             view.append(card)
@@ -494,18 +495,18 @@
     }
 
     function renderCandidatePoolSettings(target) {
-        const view = settingsPanel('candidate-pool', 'Datenschutz & Rückstellungen')
+        const view = settingsPanel('candidate-pool', translate('flzrecruitment', 'Datenschutz & Rückstellungen'))
         const settings = state.candidatePool?.settings || { enabled: false, noticeVersion: '', consentMonths: 12, reminderDays: 30, revision: 0 }
         view.append(element('p', {
-            text: 'Das Personalreferat pflegt hier Datenschutzhinweis und Einwilligungsfristen. Die Funktion bleibt aus, bis ein versionierter Datenschutzhinweis freigegeben ist.',
+            text: translate('flzrecruitment', 'Das Personalreferat pflegt hier Datenschutzhinweis und Einwilligungsfristen. Die Funktion bleibt aus, bis ein versionierter Datenschutzhinweis freigegeben ist.'),
         }))
         const enabled = input('enabled', 'checkbox'); enabled.checked = settings.enabled
         const form = element('form', { className: 'flzrecruitment-form flzrecruitment-card' }, [
-            field('Bewerberpool aktiv', enabled),
+            field(translate('flzrecruitment', 'Bewerberpool aktiv'), enabled),
             field('Version Datenschutzhinweis', input('noticeVersion', 'text', false, settings.noticeVersion)),
             field('Einwilligung (Monate)', input('consentMonths', 'number', true, settings.consentMonths)),
-            field('Erinnerung vor Ablauf (Tage)', input('reminderDays', 'number', true, settings.reminderDays)),
-            button('Einstellung speichern'),
+            field(translate('flzrecruitment', 'Erinnerung vor Ablauf (Tage)'), input('reminderDays', 'number', true, settings.reminderDays)),
+            button(translate('flzrecruitment', 'Einstellung speichern')),
         ])
         form.addEventListener('submit', (event) => {
             event.preventDefault()
@@ -518,7 +519,7 @@
                     reminderDays: Number(data.get('reminderDays')),
                     revision: settings.revision,
                 }),
-                'Bewerberpool-Einstellung wurde gespeichert.',
+                translate('flzrecruitment', 'Bewerberpool-Einstellung wurde gespeichert.'),
                 load,
             )
         })
@@ -531,24 +532,24 @@
     }
 
     async function renderInbox() {
-        const view = panel('inbox', 'Posteingang für Bewerbungen')
+        const view = panel('inbox', translate('flzrecruitment', 'Posteingang für Bewerbungen'))
         view.append(element('p', {
-            text: 'Eingegangene Mails bleiben unverändert. Ausgelesene Angaben sind Vorschläge und werden erst durch die Zuordnung Teil einer Bewerberakte.',
+            text: translate('flzrecruitment', 'Eingegangene Mails bleiben unverändert. Ausgelesene Angaben sind Vorschläge und werden erst durch die Zuordnung Teil einer Bewerberakte.'),
         }))
         content.replaceChildren(view)
-        setBusy('Posteingang wird geladen …')
+        setBusy(translate('flzrecruitment', 'Posteingang wird geladen') + ' ' + '…')
         try {
             state.inboxMessages = (await api.inbox()).messages || []
             if (!state.inboxMessages.length) {
-                view.append(emptyState('Aktuell liegen keine Eingangsnachrichten vor.'))
+                view.append(emptyState(translate('flzrecruitment', 'Aktuell liegen keine Eingangsnachrichten vor.')))
             } else {
-                const stateLabels = { new: 'Neu', unclear: 'Unklar', assigned: 'Zugeordnet', error: 'Importfehler', ignored: 'Ignoriert' }
+                const stateLabels = { new: translate('flzrecruitment', 'Neu'), unclear: translate('flzrecruitment', 'Unklar'), assigned: translate('flzrecruitment', 'Zugeordnet'), error: translate('flzrecruitment', 'Importfehler'), ignored: translate('flzrecruitment', 'Ignoriert') }
                 const list = element('div', { className: 'flzrecruitment-grid' })
                 for (const message of state.inboxMessages) {
-                    const open = button('Nachricht prüfen', 'button')
+                    const open = button(translate('flzrecruitment', 'Nachricht prüfen'), 'button')
                     open.addEventListener('click', () => openInboxMessage(message.id))
                     list.append(element('article', { className: 'flzrecruitment-card' }, [
-                        element('h3', { text: message.subject || 'Ohne Betreff' }),
+                        element('h3', { text: message.subject || translate('flzrecruitment', 'Ohne Betreff') }),
                         element('p', {}, [contactNode(message.senderAddress, 'email'), element('span', { text: ` · ${message.receivedAt}` })]),
                         element('p', { text: stateLabels[message.state] || message.state }),
                         open,
@@ -564,7 +565,7 @@
 
     async function openInboxMessage(id) {
         clearError()
-        setBusy('Nachricht wird geladen …')
+        setBusy(translate('flzrecruitment', 'Nachricht wird geladen') + ' ' + '…')
         try {
             renderInboxDetail(await api.inboxMessage(id))
             setReady()
@@ -575,16 +576,16 @@
 
     function renderInboxDetail(message) {
         const view = element('section', { className: 'flzrecruitment-panel' })
-        const back = button('← Zurück zum Posteingang', 'button', 'flzrecruitment-secondary')
+        const back = button('← ' + translate('flzrecruitment', 'Zurück zum Posteingang'), 'button', 'flzrecruitment-secondary')
         back.addEventListener('click', renderInbox)
-        view.append(back, element('h2', { text: message.subject || 'Ohne Betreff' }))
+        view.append(back, element('h2', { text: message.subject || translate('flzrecruitment', 'Ohne Betreff') }))
         view.append(element('dl', { className: 'flzrecruitment-facts' }, [
-            element('div', {}, [element('dt', { text: 'Absender' }), element('dd', {}, contactNode(message.senderAddress, 'email'))]),
-            element('div', {}, [element('dt', { text: 'Empfangen' }), element('dd', { text: message.receivedAt })]),
-            element('div', {}, [element('dt', { text: 'Postfach' }), element('dd', { text: message.mailbox.label })]),
+            element('div', {}, [element('dt', { text: translate('flzrecruitment', 'Absender') }), element('dd', {}, contactNode(message.senderAddress, 'email'))]),
+            element('div', {}, [element('dt', { text: translate('flzrecruitment', 'Empfangen') }), element('dd', { text: message.receivedAt })]),
+            element('div', {}, [element('dt', { text: translate('flzrecruitment', 'Postfach') }), element('dd', { text: message.mailbox.label })]),
         ]))
         view.append(element('section', { className: 'flzrecruitment-card' }, [
-            element('h3', { text: 'Unveränderter Mailtext' }),
+            element('h3', { text: translate('flzrecruitment', 'Unveränderter Mailtext') }),
             element('pre', { className: 'flzrecruitment-mail-body', text: message.bodyText }),
         ]))
         view.append(renderMailSuggestions(message.fieldSuggestions))
@@ -599,18 +600,18 @@
                 const givenName = nameParts.join(' ') || suggestedName
                 const suggestionSelection = renderAssignableMailSuggestions(message.fieldSuggestions)
                 const creationForm = element('form', { className: 'flzrecruitment-inline-form flzrecruitment-card' }, [
-                    element('h3', { text: 'Neue Bewerbung aus diesem Eingang' }),
-                    field('Stelle', select('jobId', jobs.map((job) => ({
+                    element('h3', { text: translate('flzrecruitment', 'Neue Bewerbung aus diesem Eingang') }),
+                    field(translate('flzrecruitment', 'Stelle'), select('jobId', jobs.map((job) => ({
                         value: job.id,
-                        label: job.publicTitle || job.internalTitle || `Stelle #${job.id}`,
+                        label: job.publicTitle || job.internalTitle || `${translate('flzrecruitment', 'Stelle')} #${job.id}`,
                     })), jobs[0].id, true)),
-                    field('Vorname', input('givenName', 'text', true, givenName)),
-                    field('Nachname', input('familyName', 'text', true, familyName)),
+                    field(translate('flzrecruitment', 'Vorname'), input('givenName', 'text', true, givenName)),
+                    field(translate('flzrecruitment', 'Nachname'), input('familyName', 'text', true, familyName)),
                     field('E-Mail', input('email', 'email', false, message.fieldSuggestions?.email?.value || message.senderAddress || '')),
-                    field('Telefon', input('phone', 'text', false, message.fieldSuggestions?.phone?.value || '')),
-                    field('Zuständige Person (UID, optional)', input('assigneeUid')),
+                    field(translate('flzrecruitment', 'Telefon'), input('phone', 'text', false, message.fieldSuggestions?.phone?.value || '')),
+                    field(translate('flzrecruitment', 'Zuständige Person (UID, optional)'), input('assigneeUid')),
                     suggestionSelection.node,
-                    button('Person und Bewerbung anlegen'),
+                    button(translate('flzrecruitment', 'Person und Bewerbung anlegen')),
                 ])
                 creationForm.addEventListener('submit', (event) => {
                     event.preventDefault()
@@ -626,15 +627,15 @@
                             assigneeUid: data.get('assigneeUid'),
                             acceptedSuggestions: suggestionSelection.values(),
                         }),
-                        'Person und Bewerbung wurden angelegt und der Eingang wurde zugeordnet.',
+                        translate('flzrecruitment', 'Person und Bewerbung wurden angelegt und der Eingang wurde zugeordnet.'),
                         () => renderInbox(),
                     )
                 })
                 view.append(creationForm)
             } else {
                 view.append(element('section', { className: 'flzrecruitment-card' }, [
-                    element('h3', { text: 'Neue Bewerbung anlegen' }),
-                    element('p', { text: 'Es ist keine aktive Stelle verfügbar. Legen Sie zuerst eine Stelle an oder aktivieren Sie eine vorhandene Stelle.' }),
+                    element('h3', { text: translate('flzrecruitment', 'Neue Bewerbung anlegen') }),
+                    element('p', { text: translate('flzrecruitment', 'Es ist keine aktive Stelle verfügbar. Legen Sie zuerst eine Stelle an oder aktivieren Sie eine vorhandene Stelle.') }),
                 ]))
             }
         }
@@ -644,14 +645,14 @@
             const applicationControl = candidates.length
                 ? select('applicationId', candidates.map((application) => ({
                     value: application.id,
-                    label: `Bewerbung #${application.id} · ${statusLabel(application.status)}`,
+                    label: `${translate('flzrecruitment', 'Bewerbung')} #${application.id} · ${statusLabel(application.status)}`,
                 })), message.applicationId || '')
                 : input('applicationId', 'number', true, message.applicationId || '')
             const suggestionSelection = renderAssignableMailSuggestions(message.fieldSuggestions)
             const form = element('form', { className: 'flzrecruitment-inline-form flzrecruitment-card' }, [
-                field('Vorhandene Bewerbung', applicationControl, 'Falls keine Auswahl sichtbar ist, kann die Bewerbungs-ID eingetragen werden.'),
+                field(translate('flzrecruitment', 'Vorhandene Bewerbung'), applicationControl, translate('flzrecruitment', 'Falls keine Auswahl sichtbar ist, kann die Bewerbungs-ID eingetragen werden.')),
                 suggestionSelection.node,
-                button(message.state === 'assigned' ? 'Zuordnung korrigieren' : 'Bewerbung zuordnen'),
+                button(message.state === 'assigned' ? 'Zuordnung korrigieren' : translate('flzrecruitment', 'Bewerbung zuordnen')),
             ])
             form.addEventListener('submit', (event) => {
                 event.preventDefault()
@@ -662,17 +663,17 @@
                         message.version,
                         suggestionSelection.values(),
                     ),
-                    'Eingangsnachricht wurde zugeordnet.',
+                    translate('flzrecruitment', 'Eingangsnachricht wurde zugeordnet.'),
                     () => renderInbox(),
                 )
             })
             view.append(form)
         }
         if (['new', 'unclear', 'error'].includes(message.state)) {
-            const ignore = button('Als keine Bewerbung schließen', 'button', 'flzrecruitment-secondary')
+            const ignore = button(translate('flzrecruitment', 'Als keine Bewerbung schließen'), 'button', 'flzrecruitment-secondary')
             ignore.addEventListener('click', () => run(
                 () => api.ignoreInboxMessage(message.id, message.version),
-                'Eingangsnachricht wurde geschlossen.',
+                translate('flzrecruitment', 'Eingangsnachricht wurde geschlossen.'),
                 () => renderInbox(),
             ))
             view.append(ignore)
@@ -681,9 +682,9 @@
     }
 
     function renderMailSuggestions(suggestions) {
-        const card = element('section', { className: 'flzrecruitment-card' }, [element('h3', { text: 'Ausgelesene Vorschläge' })])
+        const card = element('section', { className: 'flzrecruitment-card' }, [element('h3', { text: translate('flzrecruitment', 'Ausgelesene Vorschläge') })])
         const facts = element('dl', { className: 'flzrecruitment-facts' })
-        const labels = { salutation: 'Anrede', title: 'Titel', name: 'Name', email: 'E-Mail', phone: 'Telefon', jobPreference: 'Stellenwunsch', desiredWeeklyHours: 'Wunschstunden', availableFrom: 'Verfügbar ab', previousExperience: 'Berufserfahrung', germanLanguageLevel: 'Deutschkenntnisse', location: 'Wohnort', message: 'Nachricht' }
+        const labels = { salutation: translate('flzrecruitment', 'Anrede'), title: translate('flzrecruitment', 'Titel'), name: translate('flzrecruitment', 'Name'), email: 'E-Mail', phone: translate('flzrecruitment', 'Telefon'), jobPreference: translate('flzrecruitment', 'Stellenwunsch'), desiredWeeklyHours: translate('flzrecruitment', 'Wunschstunden'), availableFrom: translate('flzrecruitment', 'Verfügbar ab'), previousExperience: translate('flzrecruitment', 'Berufserfahrung'), germanLanguageLevel: translate('flzrecruitment', 'Deutschkenntnisse'), location: translate('flzrecruitment', 'Wohnort'), message: translate('flzrecruitment', 'Nachricht') }
         for (const [key, label] of Object.entries(labels)) {
             if (!suggestions?.[key]?.value) continue
             const value = suggestions[key].value
@@ -692,16 +693,16 @@
                 : element('span', { text: value })
             facts.append(element('div', {}, [element('dt', { text: label }), element('dd', {}, displayed)]))
         }
-        card.append(facts.childElementCount ? facts : emptyState('Keine zusätzlichen Felder erkannt.'))
+        card.append(facts.childElementCount ? facts : emptyState(translate('flzrecruitment', 'Keine zusätzlichen Felder erkannt.')))
         return card
     }
 
     function renderAssignableMailSuggestions(suggestions) {
         const labels = {
-            salutation: 'Anrede', title: 'Titel', email: 'Private E-Mail', phone: 'Telefon',
-            availableFrom: 'Geplanter Eintritt', location: 'Wohnort',
-            previousExperience: 'Vorerfahrung', germanLanguageLevel: 'Deutschniveau',
-            desiredWeeklyHours: 'Wunschstunden',
+            salutation: translate('flzrecruitment', 'Anrede'), title: translate('flzrecruitment', 'Titel'), email: translate('flzrecruitment', 'Private E-Mail'), phone: translate('flzrecruitment', 'Telefon'),
+            availableFrom: 'Geplanter Eintritt', location: translate('flzrecruitment', 'Wohnort'),
+            previousExperience: translate('flzrecruitment', 'Vorerfahrung'), germanLanguageLevel: translate('flzrecruitment', 'Deutschniveau'),
+            desiredWeeklyHours: translate('flzrecruitment', 'Wunschstunden'),
         }
         const controls = new Map()
         const fields = []
@@ -715,8 +716,8 @@
                 const level = ({ muttersprachlich: 'native', 'nicht bewertet': 'not_assessed' })[String(suggestion).toLowerCase()] || String(suggestion).toUpperCase()
                 editor = select(`suggestion-${key}`, [
                     ...['A1', 'A2', 'B1', 'B2', 'C1', 'C2'].map((value) => ({ value, label: value })),
-                    { value: 'native', label: 'Muttersprachlich' },
-                    { value: 'not_assessed', label: 'Nicht bewertet' },
+                    { value: 'native', label: translate('flzrecruitment', 'Muttersprachlich') },
+                    { value: 'not_assessed', label: translate('flzrecruitment', 'Nicht bewertet') },
                 ], level)
             } else if (key === 'previousExperience') {
                 editor = element('textarea', { name: `suggestion-${key}`, rows: 3, maxLength: 8000, value: suggestion })
@@ -725,7 +726,7 @@
                 const minimum = element('input', { name: `suggestion-${key}-min`, type: 'number', min: 0.01, max: 80, step: 0.5, required: true, value: match?.[1] || '' })
                 const maximum = element('input', { name: `suggestion-${key}-max`, type: 'number', min: 0.01, max: 80, step: 0.5, value: match?.[2] || '' })
                 editor = element('div', { className: 'flzrecruitment-hours-range' }, [
-                    field('Von', minimum), field('Bis (optional)', maximum),
+                    field(translate('flzrecruitment', 'Von'), minimum), field('Bis (optional)', maximum),
                 ])
                 read = () => maximum.value === '' ? minimum.value : `${minimum.value}-${maximum.value}`
             } else {
@@ -733,14 +734,14 @@
             }
             controls.set(key, { accepted, read: read || (() => editor.value) })
             fields.push(element('div', { className: 'flzrecruitment-suggestion-choice' }, [
-                element('label', {}, [accepted, element('span', { text: `${label} übernehmen` })]),
-                field(`Wert für ${label}`, editor),
+                element('label', {}, [accepted, element('span', { text: `${label} ${translate('flzrecruitment', 'übernehmen')}` })]),
+                field(`${translate('flzrecruitment', 'Wert für')} ${label}`, editor),
             ]))
         }
         const node = element('fieldset', { className: 'flzrecruitment-suggestion-selection' }, [
-            element('legend', { text: 'Vorschläge einzeln übernehmen' }),
-            element('p', { text: 'Nur markierte Werte werden übernommen. Werte können vor der Zuordnung korrigiert werden.' }),
-            ...(fields.length ? fields : [emptyState('Keine übernehmbaren Kontakt- oder Eintrittsdaten erkannt.')]),
+            element('legend', { text: translate('flzrecruitment', 'Vorschläge einzeln übernehmen') }),
+            element('p', { text: translate('flzrecruitment', 'Nur markierte Werte werden übernommen. Werte können vor der Zuordnung korrigiert werden.') }),
+            ...(fields.length ? fields : [emptyState(translate('flzrecruitment', 'Keine übernehmbaren Kontakt- oder Eintrittsdaten erkannt.'))]),
         ])
         return {
             node,
@@ -756,16 +757,16 @@
     }
 
     function renderMailAttachments(attachments, applicationId = null, reload = null) {
-        const card = element('section', { className: 'flzrecruitment-card' }, [element('h3', { text: 'Bewerbungsunterlagen' })])
+        const card = element('section', { className: 'flzrecruitment-card' }, [element('h3', { text: translate('flzrecruitment', 'Bewerbungsunterlagen') })])
         if (!attachments?.length) {
-            card.append(emptyState('Keine PDF-Anhänge vorhanden.'))
+            card.append(emptyState(translate('flzrecruitment', 'Keine PDF-Anhänge vorhanden.')))
             return card
         }
         for (const attachment of attachments) {
             const review = element('article', { className: 'flzrecruitment-document-review' }, [
                 element('h4', { text: `${attachment.originalName} · ${Math.ceil(attachment.sizeBytes / 1024)} KB · PDF` }),
             ])
-            const openButton = button('PDF in Lightbox öffnen', 'button', 'primary')
+            const openButton = button(translate('flzrecruitment', 'PDF in Lightbox öffnen'), 'button', 'primary')
             openButton.addEventListener('click', () => {
                 let lightbox = null
                 const panel = createPdfFieldPanel(attachment, applicationId, async () => {
@@ -785,7 +786,7 @@
             if (attachment.comments?.length) review.append(renderLegacyDocumentComments(attachment.comments))
             card.append(review)
         }
-        card.append(element('p', { text: 'Markierungen und Feldverknüpfungen liegen getrennt vom unveränderten PDF-Original.' }))
+        card.append(element('p', { text: translate('flzrecruitment', 'Markierungen und Feldverknüpfungen liegen getrennt vom unveränderten PDF-Original.') }))
         return card
     }
 
@@ -803,26 +804,26 @@
     }
 
     const documentTargetLabels = {
-        previousExperience: 'Vorerfahrung',
-        germanLanguageLevel: 'Deutschniveau',
-        birthDate: 'Geburtsdatum',
-        birthPlace: 'Geburtsort',
-        freeComment: 'Freier Kommentar der Bewerbung',
+        previousExperience: translate('flzrecruitment', 'Vorerfahrung'),
+        germanLanguageLevel: translate('flzrecruitment', 'Deutschniveau'),
+        birthDate: translate('flzrecruitment', 'Geburtsdatum'),
+        birthPlace: translate('flzrecruitment', 'Geburtsort'),
+        freeComment: translate('flzrecruitment', 'Freier Kommentar der Bewerbung'),
     }
 
     function renderDocumentFieldLinks(links) {
         const section = element('section', { className: 'flzrecruitment-document-comments' }, [
-            element('h5', { text: 'Verknüpfte PDF-Fundstellen' }),
+            element('h5', { text: translate('flzrecruitment', 'Verknüpfte PDF-Fundstellen') }),
         ])
         if (!links.length) {
-            section.append(emptyState('Noch keine PDF-Fundstelle mit Bewerbungsdaten verknüpft.'))
+            section.append(emptyState(translate('flzrecruitment', 'Noch keine PDF-Fundstelle mit Bewerbungsdaten verknüpft.')))
             return section
         }
         const list = element('ol', { className: 'flzrecruitment-field-link-list' })
         for (const link of links) {
             const source = link.selectedText ? `„${link.selectedText}“ → ` : ''
             list.append(element('li', {
-                text: `Seite ${link.pageNumber}: ${source}${documentTargetLabels[link.targetField] || link.targetField}: ${link.appliedValue} · ${link.actorUid} · ${link.createdAt}`,
+                text: `${translate('flzrecruitment', 'Seite')} ${link.pageNumber}: ${source}${documentTargetLabels[link.targetField] || link.targetField}: ${link.appliedValue} · ${link.actorUid} · ${link.createdAt}`,
             }))
         }
         section.append(list)
@@ -831,31 +832,31 @@
 
     function createPdfFieldPanel(attachment, applicationId, afterSave) {
         const panel = element('aside', {}, [
-            element('h3', { text: 'Fundstelle zuordnen' }),
-            element('p', { text: 'Markieren Sie Text oder einen Bereich. Alternativ können Seite und Quelltext vollständig per Tastatur eingetragen werden.' }),
+            element('h3', { text: translate('flzrecruitment', 'Fundstelle zuordnen') }),
+            element('p', { text: translate('flzrecruitment', 'Markieren Sie Text oder einen Bereich. Alternativ können Seite und Quelltext vollständig per Tastatur eingetragen werden.') }),
         ])
         const selection = { pageNumber: 1, selectedText: '', rectangles: [] }
-        const summary = element('p', { className: 'flzrecruitment-pdf-selection-summary', text: 'Noch keine Fundstelle ausgewählt.' })
+        const summary = element('p', { className: 'flzrecruitment-pdf-selection-summary', text: translate('flzrecruitment', 'Noch keine Fundstelle ausgewählt.') })
         panel.append(summary, renderDocumentFieldLinks(attachment.fieldLinks || []))
 
         const canEditApplication = Boolean(state.capabilities.manage_documents && state.capabilities.edit_applications)
         const canEditHiring = Boolean(state.capabilities.manage_documents && state.capabilities.edit_hiring_data)
         if (!applicationId || (!canEditApplication && !canEditHiring)) {
             panel.append(element('p', { text: applicationId
-                ? 'Sie dürfen vorhandene Verknüpfungen lesen, aber keine Bewerbungsfelder aus dem PDF ergänzen.'
-                : 'Das Dokument muss vor einer Feldzuordnung zuerst einer Bewerbung zugeordnet werden.' }))
+                ? translate('flzrecruitment', 'Sie dürfen vorhandene Verknüpfungen lesen, aber keine Bewerbungsfelder aus dem PDF ergänzen.')
+                : translate('flzrecruitment', 'Das Dokument muss vor einer Feldzuordnung zuerst einer Bewerbung zugeordnet werden.') }))
             return { element: panel, onSelection: () => {} }
         }
 
         const targets = [
             ...(canEditApplication ? [
-                { value: 'previousExperience', label: 'Vorerfahrung' },
-                { value: 'germanLanguageLevel', label: 'Deutschniveau' },
-                { value: 'freeComment', label: 'Freier Kommentar der Bewerbung' },
+                { value: 'previousExperience', label: translate('flzrecruitment', 'Vorerfahrung') },
+                { value: 'germanLanguageLevel', label: translate('flzrecruitment', 'Deutschniveau') },
+                { value: 'freeComment', label: translate('flzrecruitment', 'Freier Kommentar der Bewerbung') },
             ] : []),
             ...(canEditHiring ? [
-                { value: 'birthDate', label: 'Geburtsdatum' },
-                { value: 'birthPlace', label: 'Geburtsort' },
+                { value: 'birthDate', label: translate('flzrecruitment', 'Geburtsdatum') },
+                { value: 'birthPlace', label: translate('flzrecruitment', 'Geburtsort') },
             ] : []),
         ]
         const target = select('targetField', targets, targets[0].value, true)
@@ -864,20 +865,20 @@
         page.max = 2000
         const sourceText = element('textarea', { name: 'selectedText', rows: 4, maxLength: 4000 })
         const valueHost = element('div')
-        const currentValue = element('p', { text: 'Aktueller Feldwert wird geladen …' })
+        const currentValue = element('p', { text: translate('flzrecruitment', 'Aktueller Feldwert wird geladen') + ' ' + '…' })
         const replace = input('replaceExisting', 'checkbox')
-        const replaceField = field('Vorhandenen strukturierten Wert ausdrücklich ersetzen', replace)
+        const replaceField = field(translate('flzrecruitment', 'Vorhandenen strukturierten Wert ausdrücklich ersetzen'), replace)
         replaceField.hidden = true
         const contextStatus = element('p', { role: 'status' })
         const form = element('form', { className: 'flzrecruitment-form' }, [
-            field('Zielfeld', target),
-            field('PDF-Seite', page, 'Für eine rein tastaturbediente Erfassung kann die Seite manuell angegeben werden.'),
-            field('Markierter Quelltext', sourceText, 'Bei einer grafischen Bereichsmarkierung darf dieses Feld leer bleiben.'),
+            field(translate('flzrecruitment', 'Zielfeld'), target),
+            field('PDF-Seite', page, translate('flzrecruitment', 'Für eine rein tastaturbediente Erfassung kann die Seite manuell angegeben werden.')),
+            field('Markierter Quelltext', sourceText, translate('flzrecruitment', 'Bei einer grafischen Bereichsmarkierung darf dieses Feld leer bleiben.')),
             currentValue,
             valueHost,
             replaceField,
             contextStatus,
-            button('Fundstelle mit Datenfeld verbinden'),
+            button(translate('flzrecruitment', 'Fundstelle mit Datenfeld verbinden')),
         ])
         panel.append(form)
         let fieldContext = null
@@ -887,10 +888,10 @@
             const fieldName = target.value
             if (fieldName === 'germanLanguageLevel') {
                 valueControl = select('appliedValue', [
-                    { value: '', label: 'Bitte auswählen' },
+                    { value: '', label: translate('flzrecruitment', 'Bitte auswählen') },
                     ...['A1', 'A2', 'B1', 'B2', 'C1', 'C2'].map((value) => ({ value, label: value })),
-                    { value: 'native', label: 'Muttersprachlich' },
-                    { value: 'not_assessed', label: 'Nicht bewertet' },
+                    { value: 'native', label: translate('flzrecruitment', 'Muttersprachlich') },
+                    { value: 'not_assessed', label: translate('flzrecruitment', 'Nicht bewertet') },
                 ], '', true)
             } else {
                 const type = fieldName === 'birthDate' ? 'date' : 'text'
@@ -898,7 +899,7 @@
                     ? element('textarea', { name: 'appliedValue', rows: 5, maxLength: 8000, required: true })
                     : input('appliedValue', type, true)
             }
-            valueHost.replaceChildren(field('Zu übernehmender Wert', valueControl))
+            valueHost.replaceChildren(field(translate('flzrecruitment', 'Zu übernehmender Wert'), valueControl))
             if (sourceText.value && fieldName !== 'germanLanguageLevel') valueControl.value = sourceText.value
         }
 
@@ -906,7 +907,7 @@
             const requestedTarget = target.value
             fieldContext = null
             renderValue()
-            contextStatus.textContent = 'Aktueller Feldwert wird geladen …'
+            contextStatus.textContent = translate('flzrecruitment', 'Aktueller Feldwert wird geladen') + ' ' + '…'
             try {
                 const loadedContext = await api.attachmentFieldContext(attachment.id, requestedTarget)
                 if (target.value !== requestedTarget) return
@@ -914,14 +915,14 @@
                 const existing = fieldContext.value || ''
                 currentValue.textContent = existing
                     ? `Aktueller Feldwert: ${existing}`
-                    : 'Das Zielfeld ist derzeit leer.'
+                    : translate('flzrecruitment', 'Das Zielfeld ist derzeit leer.')
                 replaceField.hidden = target.value === 'freeComment' || existing === ''
                 replace.checked = false
                 contextStatus.textContent = target.value === 'freeComment' && existing
-                    ? 'Der neue Text wird an den bestehenden freien Kommentar angehängt.'
-                    : 'Zielfeld ist bereit.'
+                    ? translate('flzrecruitment', 'Der neue Text wird an den bestehenden freien Kommentar angehängt.')
+                    : translate('flzrecruitment', 'Zielfeld ist bereit.')
             } catch (error) {
-                contextStatus.textContent = error?.message || 'Das Zielfeld konnte nicht geladen werden.'
+                contextStatus.textContent = error?.message || translate('flzrecruitment', 'Das Zielfeld konnte nicht geladen werden.')
                 showError(error)
             }
         }
@@ -931,7 +932,7 @@
         form.addEventListener('submit', (event) => {
             event.preventDefault()
             if (!fieldContext) {
-                contextStatus.textContent = 'Warten Sie, bis der aktuelle Feldwert geladen wurde.'
+                contextStatus.textContent = translate('flzrecruitment', 'Warten Sie, bis der aktuelle Feldwert geladen wurde.')
                 return
             }
             run(
@@ -945,7 +946,7 @@
                     expectedVersion: fieldContext.version,
                     clientKey: documentCommentKey(),
                 }),
-                'PDF-Fundstelle wurde mit dem Bewerbungsfeld verbunden.',
+                translate('flzrecruitment', 'PDF-Fundstelle wurde mit dem Bewerbungsfeld verbunden.'),
                 afterSave,
             )
         })
@@ -958,8 +959,8 @@
                 page.value = selected.pageNumber
                 sourceText.value = selected.selectedText
                 summary.textContent = selected.selectedText
-                    ? `Seite ${selected.pageNumber}: „${selected.selectedText}“`
-                    : `Grafischer Bereich auf Seite ${selected.pageNumber}`
+                    ? `${translate('flzrecruitment', 'Seite')} ${selected.pageNumber}: „${selected.selectedText}“`
+                    : `${translate('flzrecruitment', 'Grafischer Bereich auf Seite')} ${selected.pageNumber}`
                 if (valueControl && target.value !== 'germanLanguageLevel' && selected.selectedText) {
                     valueControl.value = selected.selectedText
                 }
@@ -968,7 +969,7 @@
     }
 
     function renderJobs() {
-        const view = panel('jobs', 'Stellen und Ausschreibungen')
+        const view = panel('jobs', translate('flzrecruitment', 'Stellen und Ausschreibungen'))
         if (state.capabilities.manage_catalog) {
             const profession = select('professionCategory', professionCategories, 'assistance', true)
             const groupSelect = select('responsibleGroups', [])
@@ -976,12 +977,12 @@
             groupSelect.size = 6
             const userSearch = input('responsibilityUserSearch', 'search')
             userSearch.autocomplete = 'off'
-            userSearch.placeholder = 'Name oder Benutzerkennung'
-            const searchButton = button('Suchen', 'button', 'flzrecruitment-secondary')
+            userSearch.placeholder = translate('flzrecruitment', 'Name oder Benutzerkennung')
+            const searchButton = button(translate('flzrecruitment', 'Suchen'), 'button', 'flzrecruitment-secondary')
             const searchResults = element('div', {
                 className: 'flzrecruitment-responsibility-results',
                 role: 'list',
-                'aria-label': 'Gefundene verantwortliche Personen',
+                'aria-label': translate('flzrecruitment', 'Gefundene verantwortliche Personen'),
             })
             const selectedUsers = new Map()
             const selectedUserList = element('div', {
@@ -994,11 +995,11 @@
             const renderSelectedUsers = () => {
                 selectedUserList.replaceChildren()
                 if (selectedUsers.size === 0) {
-                    selectedUserList.append(element('small', { text: 'Keine einzelne Person zusätzlich ausgewählt.' }))
+                    selectedUserList.append(element('small', { text: translate('flzrecruitment', 'Keine einzelne Person zusätzlich ausgewählt.') }))
                     return
                 }
                 for (const user of selectedUsers.values()) {
-                    const remove = button(`Entfernen: ${user.displayName}`, 'button', 'flzrecruitment-chip')
+                    const remove = button(`${translate('flzrecruitment', 'Entfernen:')} ${user.displayName}`, 'button', 'flzrecruitment-chip')
                     remove.addEventListener('click', () => {
                         selectedUsers.delete(user.uid)
                         renderSelectedUsers()
@@ -1020,8 +1021,8 @@
                 searchResults.replaceChildren()
                 renderSelectedUsers()
                 bqRule.textContent = category === 'assistance'
-                    ? 'Assistenzstellen benötigen immer eine Basisqualifikation.'
-                    : 'Für diese Berufsgruppe ist keine Basisqualifikation vorgesehen.'
+                    ? translate('flzrecruitment', 'Assistenzstellen benötigen immer eine Basisqualifikation.')
+                    : translate('flzrecruitment', 'Für diese Berufsgruppe ist keine Basisqualifikation vorgesehen.')
             }
             profession.addEventListener('change', updateProfessionFields)
             groupSelect.addEventListener('change', () => {
@@ -1034,17 +1035,17 @@
                 const query = userSearch.value.trim()
                 const groupIds = selectedGroupIds()
                 if (groupIds.length === 0) {
-                    searchResults.append(element('small', { text: 'Wählen Sie zuerst mindestens eine beteiligte Gruppe.' }))
+                    searchResults.append(element('small', { text: translate('flzrecruitment', 'Wählen Sie zuerst mindestens eine beteiligte Gruppe.') }))
                     return
                 }
                 if (query.length < 2) {
-                    searchResults.append(element('small', { text: 'Geben Sie mindestens zwei Zeichen ein.' }))
+                    searchResults.append(element('small', { text: translate('flzrecruitment', 'Geben Sie mindestens zwei Zeichen ein.') }))
                     return
                 }
                 try {
                     const payload = await api.jobResponsibilityUsers(profession.value, groupIds, query)
                     if (!payload.users.length) {
-                        searchResults.append(element('small', { text: 'Keine passende Person in den ausgewählten Gruppen gefunden.' }))
+                        searchResults.append(element('small', { text: translate('flzrecruitment', 'Keine passende Person in den ausgewählten Gruppen gefunden.') }))
                         return
                     }
                     for (const user of payload.users) {
@@ -1067,28 +1068,28 @@
 
             const form = element('form', { className: 'flzrecruitment-form flzrecruitment-card' }, [
                 field('Interne Bezeichnung', input('internalTitle', 'text', true)),
-                field('Öffentliche Bezeichnung', input('publicTitle')),
-                field('Berufsgruppe', profession),
+                field(translate('flzrecruitment', 'Öffentliche Bezeichnung'), input('publicTitle')),
+                field(translate('flzrecruitment', 'Berufsgruppe'), profession),
                 bqRule,
-                field('Beteiligte Gruppen', groupSelect, 'Nur fachlich passende Gruppen der Filzmann-Organisation werden angeboten.'),
-                field('Verantwortliche Personen suchen', userSearch, 'Die Suche berücksichtigt ausschließlich die ausgewählten Gruppen.'),
+                field('Beteiligte Gruppen', groupSelect, translate('flzrecruitment', 'Nur fachlich passende Gruppen der Filzmann-Organisation werden angeboten.')),
+                field(translate('flzrecruitment', 'Verantwortliche Personen suchen'), userSearch, translate('flzrecruitment', 'Die Suche berücksichtigt ausschließlich die ausgewählten Gruppen.')),
                 searchButton,
                 searchResults,
                 selectedUserList,
-                field('Vertragsdauer', select('contractTerm', [
-                    { value: 'permanent', label: 'Unbefristet' },
-                    { value: 'fixed_term_reason', label: 'Befristet mit Sachgrund' },
+                field(translate('flzrecruitment', 'Vertragsdauer'), select('contractTerm', [
+                    { value: 'permanent', label: translate('flzrecruitment', 'Unbefristet') },
+                    { value: 'fixed_term_reason', label: translate('flzrecruitment', 'Befristet mit Sachgrund') },
                 ], 'permanent', true)),
-                field('Entgeltgruppe gemäß HTV', select('payGrade', hiringChoices.payGrade, '5', true)),
+                field(translate('flzrecruitment', 'Entgeltgruppe gemäß HTV'), select('payGrade', hiringChoices.payGrade, '5', true)),
                 field('Ausgeschriebene Wochenstunden', input('advertisedWeeklyHours', 'number', true)),
-                field('Vollzeitstunden gemäß HTV', input('fullTimeWeeklyHours', 'number', true)),
-                field('Urlaubstage gemäß HTV', input('vacationDays', 'number', true)),
-                field('Arbeitsort', input('workLocation', 'text', true, 'Berlin')),
+                field(translate('flzrecruitment', 'Vollzeitstunden gemäß HTV'), input('fullTimeWeeklyHours', 'number', true)),
+                field(translate('flzrecruitment', 'Urlaubstage gemäß HTV'), input('vacationDays', 'number', true)),
+                field(translate('flzrecruitment', 'Arbeitsort'), input('workLocation', 'text', true, translate('flzrecruitment', 'Berlin'))),
                 element('details', {}, [
                     element('summary', { text: 'Weitere Angaben' }),
-                    field('Technischer Zuordnungsschlüssel', input('assignmentKey')),
+                    field(translate('flzrecruitment', 'Technischer Zuordnungsschlüssel'), input('assignmentKey')),
                 ]),
-                button('Stelle anlegen'),
+                button(translate('flzrecruitment', 'Stelle anlegen')),
             ])
             updateProfessionFields()
             form.addEventListener('submit', (event) => {
@@ -1106,31 +1107,31 @@
                     advertisedWeeklyHours: Number(data.get('advertisedWeeklyHours')),
                     fullTimeWeeklyHours: Number(data.get('fullTimeWeeklyHours')),
                     vacationDays: Number(data.get('vacationDays')), workLocation: data.get('workLocation'),
-                }), 'Stelle wurde angelegt.')
+                }), translate('flzrecruitment', 'Stelle wurde angelegt.'))
             })
-            view.append(createFormOverlay('Neue Stelle', 'Stelle neu', form))
+            view.append(createFormOverlay(translate('flzrecruitment', 'Neue Stelle'), translate('flzrecruitment', 'Stelle neu'), form))
         }
 
         const jobs = state.data.jobs
         if (jobs.length === 0) {
-            view.append(emptyState('Noch keine Stellen vorhanden.'))
+            view.append(emptyState(translate('flzrecruitment', 'Noch keine Stellen vorhanden.')))
         } else {
             const list = element('div', { className: 'flzrecruitment-grid' })
             for (const job of jobs) {
                 const card = element('article', { className: 'flzrecruitment-card' }, [
                     element('h3', { text: job.internalTitle }),
                     job.publicTitle ? element('p', { text: job.publicTitle }) : null,
-                    element('p', { text: job.active ? 'Aktiv' : 'Deaktiviert' }),
+                    element('p', { text: job.active ? 'Aktiv' : translate('flzrecruitment', 'Deaktiviert') }),
                     element('p', { text: professionCategories.find((item) => item.value === job.professionCategory)?.label || 'Sonstige Berufsgruppe' }),
-                    element('p', { text: job.professionCategory === 'assistance' ? 'Basisqualifikation erforderlich' : 'Keine Basisqualifikation' }),
-                    element('p', { text: `${job.workingTimeModel === 'kapovaz' ? 'KAPOVAZ' : 'Festgehalt'} · EG ${job.payGrade || '–'} · ${job.advertisedWeeklyHours ?? '–'} Std./Woche · ${job.workLocation || 'Berlin'}` }),
+                    element('p', { text: job.professionCategory === 'assistance' ? 'Basisqualifikation erforderlich' : translate('flzrecruitment', 'Keine Basisqualifikation') }),
+                    element('p', { text: `${job.workingTimeModel === 'kapovaz' ? 'KAPOVAZ' : translate('flzrecruitment', 'Festgehalt')} · EG ${job.payGrade || '–'} · ${job.advertisedWeeklyHours ?? '–'} Std./Woche · ${job.workLocation || translate('flzrecruitment', 'Berlin')}` }),
                     element('small', {
                         text: [
                             job.responsibleUsers.length ? `Benutzer: ${job.responsibleUsers.join(', ')}` : '',
                             job.responsibleGroups.length ? `Gruppen: ${job.responsibleGroups.map((groupId) =>
                                 state.jobResponsibilityGroups.find((group) => group.id === groupId)?.label || groupId
                             ).join(', ')}` : '',
-                        ].filter(Boolean).join(' · ') || 'Noch keine Zuständigkeit zugeordnet.',
+                        ].filter(Boolean).join(' · ') || translate('flzrecruitment', 'Noch keine Zuständigkeit zugeordnet.'),
                     }),
                 ])
                 list.append(card)
@@ -1141,32 +1142,32 @@
     }
 
     function renderApplications() {
-        const view = panel('applications', 'Bewerbungen')
+        const view = panel('applications', translate('flzrecruitment', 'Bewerbungen'))
         if (state.capabilities.edit_applications) {
             view.append(element('p', {
-                text: 'Im Regelbetrieb entstehen Bewerber*innen und Bewerbungen aus eingehenden E-Mails. Die manuelle Anlage bleibt für Ausnahmen und Empfehlungen verfügbar.',
+                text: translate('flzrecruitment', 'Im Regelbetrieb entstehen Bewerber*innen und Bewerbungen aus eingehenden E-Mails. Die manuelle Anlage bleibt für Ausnahmen und Empfehlungen verfügbar.'),
             }))
             const forms = element('div', { className: 'flzrecruitment-actions' })
             const personForm = element('form', { className: 'flzrecruitment-form flzrecruitment-card' }, [
-                field('Vorname', input('givenName', 'text', true)),
-                field('Nachname', input('familyName', 'text', true)),
+                field(translate('flzrecruitment', 'Vorname'), input('givenName', 'text', true)),
+                field(translate('flzrecruitment', 'Nachname'), input('familyName', 'text', true)),
                 field('E-Mail', input('email', 'email')),
-                field('Telefon', input('phone', 'tel')),
-                button('Person anlegen'),
+                field(translate('flzrecruitment', 'Telefon'), input('phone', 'tel')),
+                button(translate('flzrecruitment', 'Person anlegen')),
             ])
             personForm.addEventListener('submit', (event) => {
                 event.preventDefault()
                 const data = Object.fromEntries(new FormData(personForm))
-                run(() => api.createPerson(data), 'Person wurde angelegt.')
+                run(() => api.createPerson(data), translate('flzrecruitment', 'Person wurde angelegt.'))
             })
 
-            const personOptions = [{ value: '', label: 'Person wählen' }].concat(
+            const personOptions = [{ value: '', label: translate('flzrecruitment', 'Person wählen') }].concat(
                 state.data.people.map((person) => ({
                     value: person.id,
                     label: `${person.familyName}, ${person.givenName}`,
                 })),
             )
-            const jobOptions = [{ value: '', label: 'Stelle wählen' }].concat(
+            const jobOptions = [{ value: '', label: translate('flzrecruitment', 'Stelle wählen') }].concat(
                 state.data.jobs.filter((job) => job.active).map((job) => ({
                     value: job.id,
                     label: job.internalTitle,
@@ -1180,18 +1181,18 @@
                 control.step = '0.01'
             }
             const applicationForm = element('form', { className: 'flzrecruitment-form flzrecruitment-card' }, [
-                field('Person', select('personId', personOptions, '', true)),
-                field('Stelle', select('jobId', jobOptions, '', true)),
-                field('Eingangskanal', select('source', [
+                field(translate('flzrecruitment', 'Person'), select('personId', personOptions, '', true)),
+                field(translate('flzrecruitment', 'Stelle'), select('jobId', jobOptions, '', true)),
+                field(translate('flzrecruitment', 'Eingangskanal'), select('source', [
                     { value: 'manual', label: 'Manuelle Ausnahme' },
-                    { value: 'referral', label: 'Empfehlung' },
+                    { value: 'referral', label: translate('flzrecruitment', 'Empfehlung') },
                     { value: 'other', label: 'Sonstiger Kanal' },
                 ])),
-                field('Eingangsdatum', input('receivedOn', 'date', true, new Date().toISOString().slice(0, 10))),
-                field('Wunschstunden von (ca.)', desiredHoursMinimum, 'Unverbindliche Untergrenze oder einzelner Circa-Wert'),
-                field('Wunschstunden bis (ca., optional)', desiredHoursMaximum, 'Nur bei einer Von-bis-Angabe ausfüllen'),
-                field('Zuständige Benutzer-UID', input('assigneeUid')),
-                button('Bewerbung anlegen'),
+                field(translate('flzrecruitment', 'Eingangsdatum'), input('receivedOn', 'date', true, new Date().toISOString().slice(0, 10))),
+                field(translate('flzrecruitment', 'Wunschstunden von (ca.)'), desiredHoursMinimum, translate('flzrecruitment', 'Unverbindliche Untergrenze oder einzelner Circa-Wert')),
+                field(translate('flzrecruitment', 'Wunschstunden bis (ca., optional)'), desiredHoursMaximum, translate('flzrecruitment', 'Nur bei einer Von-bis-Angabe ausfüllen')),
+                field(translate('flzrecruitment', 'Zuständige Benutzer-UID'), input('assigneeUid')),
+                button(translate('flzrecruitment', 'Bewerbung anlegen')),
             ])
             applicationForm.addEventListener('submit', (event) => {
                 event.preventDefault()
@@ -1200,18 +1201,18 @@
                 data.jobId = Number(data.jobId)
                 data.desiredWeeklyHours = data.desiredWeeklyHours === '' ? null : Number(data.desiredWeeklyHours)
                 data.desiredWeeklyHoursMax = data.desiredWeeklyHoursMax === '' ? null : Number(data.desiredWeeklyHoursMax)
-                run(() => api.createApplication(data), 'Bewerbung wurde angelegt.')
+                run(() => api.createApplication(data), translate('flzrecruitment', 'Bewerbung wurde angelegt.'))
             })
             forms.append(
-                createFormOverlay('Bewerber*in manuell anlegen',
-                    'Bewerber*in neu',
+                createFormOverlay(translate('flzrecruitment', 'Bewerber*in manuell anlegen'),
+                    translate('flzrecruitment', 'Bewerber') + '*' + translate('flzrecruitment', 'in neu'),
                     personForm,
-                    'Diese Funktion ist für Ausnahmefälle bestimmt. Üblicherweise entsteht der Datensatz aus einer eingehenden Bewerbungsmail.',
+                    translate('flzrecruitment', 'Diese Funktion ist für Ausnahmefälle bestimmt. Üblicherweise entsteht der Datensatz aus einer eingehenden Bewerbungsmail.'),
                 ),
-                createFormOverlay('Bewerbung manuell anlegen',
-                    'Bewerbung neu',
+                createFormOverlay(translate('flzrecruitment', 'Bewerbung manuell anlegen'),
+                    translate('flzrecruitment', 'Bewerbung neu'),
                     applicationForm,
-                    'Diese Funktion ist für Empfehlungen und andere Bewerbungen außerhalb des konfigurierten E-Mail-Eingangs bestimmt.',
+                    translate('flzrecruitment', 'Diese Funktion ist für Empfehlungen und andere Bewerbungen außerhalb des konfigurierten E-Mail-Eingangs bestimmt.'),
                 ),
             )
             view.append(forms)
@@ -1222,28 +1223,28 @@
     }
 
     function renderApplicationWorkbench() {
-        const workbench = element('section', { className: 'flzrecruitment-workbench', 'aria-label': 'Bewerbungsarbeitsplatz' })
+        const workbench = element('section', { className: 'flzrecruitment-workbench', 'aria-label': translate('flzrecruitment', 'Bewerbungsarbeitsplatz') })
         const result = element('div')
         const query = input('applicationQuery', 'search', false, state.applicationFilters.query)
-        query.placeholder = 'Name, Stelle oder Zuständigkeit'
+        query.placeholder = translate('flzrecruitment', 'Name, Stelle oder Zuständigkeit')
         const job = select('applicationJob', [{ value: '', label: 'Alle Stellen' }].concat(
             state.data.jobs.map((item) => ({ value: item.id, label: item.internalTitle })),
         ), state.applicationFilters.jobId)
         const statuses = Array.from(new Set(state.data.applications.map((item) => item.status)))
             .sort((left, right) => statusLabel(left).localeCompare(statusLabel(right), 'de'))
-        const applicationStatus = select('applicationStatus', [{ value: '', label: 'Alle Status' }].concat(
+        const applicationStatus = select('applicationStatus', [{ value: '', label: translate('flzrecruitment', 'Alle Status') }].concat(
             statuses.map((value) => ({ value, label: statusLabel(value) })),
         ), state.applicationFilters.status)
-        const applicationArea = select('applicationArea', [{ value: '', label: 'Alle Bürobereiche' }].concat(
+        const applicationArea = select('applicationArea', [{ value: '', label: translate('flzrecruitment', 'Alle Bürobereiche') }].concat(
             state.areas.map((area) => ({ value: area.key, label: area.label })),
         ), state.applicationFilters.areaKey)
         const assignees = Array.from(new Set(state.data.applications
             .map((application) => application.assigneeUid)
             .filter(Boolean)))
             .sort((left, right) => left.localeCompare(right, 'de'))
-        const assigneeOptions = [{ value: '', label: 'Alle Zuständigkeiten' }]
+        const assigneeOptions = [{ value: '', label: translate('flzrecruitment', 'Alle Zuständigkeiten') }]
         if (state.data.applications.some((application) => !application.assigneeUid)) {
-            assigneeOptions.push({ value: '__unassigned__', label: 'Nicht zugeordnet' })
+            assigneeOptions.push({ value: '__unassigned__', label: translate('flzrecruitment', 'Nicht zugeordnet') })
         }
         assigneeOptions.push(...assignees.map((uid) => ({ value: uid, label: uid })))
         const applicationAssignee = select(
@@ -1254,22 +1255,22 @@
         const receivedFrom = input('applicationReceivedFrom', 'date', false, state.applicationFilters.receivedFrom)
         const receivedTo = input('applicationReceivedTo', 'date', false, state.applicationFilters.receivedTo)
         const applicationSort = select('applicationSort', [
-            { value: 'received_desc', label: 'Eingang: neueste zuerst' },
-            { value: 'received_asc', label: 'Eingang: älteste zuerst' },
+            { value: 'received_desc', label: translate('flzrecruitment', 'Eingang: neueste zuerst') },
+            { value: 'received_asc', label: translate('flzrecruitment', 'Eingang: älteste zuerst') },
             { value: 'person_asc', label: 'Person: A–Z' },
-            { value: 'job_asc', label: 'Stelle: A–Z' },
-            { value: 'status_asc', label: 'Status: Prozessreihenfolge' },
+            { value: 'job_asc', label: translate('flzrecruitment', 'Stelle: A–Z') },
+            { value: 'status_asc', label: translate('flzrecruitment', 'Status: Prozessreihenfolge') },
         ], state.applicationFilters.sort)
-        const moveArea = select('applicationMoveAreaKey', [{ value: '', label: 'Bürobereich wählen' }].concat(
+        const moveArea = select('applicationMoveAreaKey', [{ value: '', label: translate('flzrecruitment', 'Bürobereich wählen') }].concat(
             state.areas.map((area) => ({ value: area.key, label: area.label })),
         ), state.applicationMoveAreaKey)
         moveArea.addEventListener('change', () => { state.applicationMoveAreaKey = moveArea.value })
-        const tableButton = button('Tabelle', 'button')
-        const boardButton = button('Karten', 'button')
+        const tableButton = button(translate('flzrecruitment', 'Tabelle'), 'button')
+        const boardButton = button(translate('flzrecruitment', 'Karten'), 'button')
         const viewSwitch = element('div', {
             className: 'flzrecruitment-actions flzrecruitment-view-switch',
             role: 'group',
-            'aria-label': 'Darstellung der Bewerbungen',
+            'aria-label': translate('flzrecruitment', 'Darstellung der Bewerbungen'),
         }, [tableButton, boardButton])
         const updatePressed = () => {
             tableButton.setAttribute('aria-pressed', String(state.applicationView === 'table'))
@@ -1278,7 +1279,7 @@
         const updateResult = () => {
             const applications = filterApplications(state.data, state.applicationFilters)
             result.replaceChildren(applications.length === 0
-                ? emptyState(state.data.applications.length === 0 ? 'Noch keine Bewerbungen vorhanden.' : 'Keine Bewerbung entspricht den Filtern.')
+                ? emptyState(state.data.applications.length === 0 ? 'Noch keine Bewerbungen vorhanden.' : translate('flzrecruitment', 'Keine Bewerbung entspricht den Filtern.'))
                 : state.applicationView === 'board'
                     ? renderApplicationBoard(applications)
                     : renderApplicationTable(applications))
@@ -1327,18 +1328,18 @@
             updateResult()
         })
         const toolbar = element('div', { className: 'flzrecruitment-workbench__toolbar' }, [
-            field('Bewerbungen durchsuchen', query),
-            field('Nach Stelle filtern', job),
-            field('Nach Status filtern', applicationStatus),
-            field('Nach Bürobereich filtern', applicationArea),
-            field('Nach Zuständigkeit filtern', applicationAssignee),
-            field('Eingang von', receivedFrom),
-            field('Eingang bis', receivedTo),
-            field('Sortierung', applicationSort),
+            field(translate('flzrecruitment', 'Bewerbungen durchsuchen'), query),
+            field(translate('flzrecruitment', 'Nach Stelle filtern'), job),
+            field(translate('flzrecruitment', 'Nach Status filtern'), applicationStatus),
+            field(translate('flzrecruitment', 'Nach Bürobereich filtern'), applicationArea),
+            field(translate('flzrecruitment', 'Nach Zuständigkeit filtern'), applicationAssignee),
+            field(translate('flzrecruitment', 'Eingang von'), receivedFrom),
+            field(translate('flzrecruitment', 'Eingang bis'), receivedTo),
+            field(translate('flzrecruitment', 'Sortierung'), applicationSort),
             viewSwitch,
         ])
         if (state.capabilities.edit_applications) {
-            toolbar.append(field('Bürobereich für Einstellungsfreigaben', moveArea))
+            toolbar.append(field(translate('flzrecruitment', 'Bürobereich für Einstellungsfreigaben'), moveArea))
         }
         updatePressed()
         updateResult()
@@ -1350,13 +1351,13 @@
         const tableWrap = element('div', { className: 'flzrecruitment-table-wrap' })
         const table = element('table')
         table.append(element('thead', {}, element('tr', {}, [
-            element('th', { text: 'Person' }),
-            element('th', { text: 'Stelle' }),
-            element('th', { text: 'Eingang' }),
-            element('th', { text: 'Kanal' }),
-            element('th', { text: 'Wunschstunden' }),
-            element('th', { text: 'Status' }),
-            element('th', { text: 'Aktion' }),
+            element('th', { text: translate('flzrecruitment', 'Person') }),
+            element('th', { text: translate('flzrecruitment', 'Stelle') }),
+            element('th', { text: translate('flzrecruitment', 'Eingang') }),
+            element('th', { text: translate('flzrecruitment', 'Kanal') }),
+            element('th', { text: translate('flzrecruitment', 'Wunschstunden') }),
+            element('th', { text: translate('flzrecruitment', 'Status') }),
+            element('th', { text: translate('flzrecruitment', 'Aktion') }),
         ])))
         const body = element('tbody')
         for (const application of applications) {
@@ -1367,8 +1368,8 @@
             const withdrawal = renderWithdrawalAction(application)
             if (withdrawal) tableActions.append(withdrawal)
             body.append(element('tr', {}, [
-                element('td', { text: person ? `${person.givenName} ${person.familyName}` : 'Unbekannt' }),
-                element('td', { text: job?.internalTitle || 'Unbekannt' }),
+                element('td', { text: person ? `${person.givenName} ${person.familyName}` : translate('flzrecruitment', 'Unbekannt') }),
+                element('td', { text: job?.internalTitle || translate('flzrecruitment', 'Unbekannt') }),
                 element('td', { text: application.receivedOn }),
                 element('td', { text: sourceLabel(application.source) }),
                 element('td', { text: desiredHoursLabel(application.desiredWeeklyHours, application.desiredWeeklyHoursMax) }),
@@ -1392,23 +1393,23 @@
             value,
             label: `${statusLabel(value)}${requiresStatusOverride(application, value) ? ' · Ausnahme' : ''}`,
         })), '', true)
-        const move = button('Status verschieben', 'button', 'flzrecruitment-secondary')
+        const move = button(translate('flzrecruitment', 'Status verschieben'), 'button', 'flzrecruitment-secondary')
         move.addEventListener('click', () => {
             const override = requiresStatusOverride(application, target.value)
-            if (override && !confirm('Dieser Statuswechsel ist im Regelprozess nicht vorgesehen. Als Personalreferentin trotzdem durchführen?')) return
+            if (override && !confirm(translate('flzrecruitment', 'Dieser Statuswechsel ist im Regelprozess nicht vorgesehen. Als Personalreferentin trotzdem durchführen?'))) return
             moveApplication(application, target.value, override)
         })
         return element('div', { className: 'flzrecruitment-card-move' }, [
-            field('Nächster Status', target),
+            field(translate('flzrecruitment', 'Nächster Status'), target),
             move,
         ])
     }
 
     function renderWithdrawalAction(application) {
         if (!state.capabilities.edit_applications || !application.allowedStatuses?.includes('withdrawn')) return null
-        const withdraw = button('Bewerbung zurückziehen', 'button', 'flzrecruitment-danger')
+        const withdraw = button(translate('flzrecruitment', 'Bewerbung zurückziehen'), 'button', 'flzrecruitment-danger')
         withdraw.addEventListener('click', () => {
-            if (!confirm('Bewerbung wirklich zurückziehen?')) return
+            if (!confirm(translate('flzrecruitment', 'Bewerbung wirklich zurückziehen?'))) return
             moveApplication(application, 'withdrawn')
         })
         return withdraw
@@ -1423,14 +1424,14 @@
             for (const application of items) {
                 const { person, job } = applicationReferences(application)
                 const card = element('article', { className: 'flzrecruitment-card flzrecruitment-application-card' }, [
-                    element('h4', { text: person ? `${person.givenName} ${person.familyName}` : 'Unbekannt' }),
-                    element('p', { text: job?.internalTitle || 'Unbekannte Stelle' }),
-                    element('p', { text: `Eingang: ${application.receivedOn}` }),
+                    element('h4', { text: person ? `${person.givenName} ${person.familyName}` : translate('flzrecruitment', 'Unbekannt') }),
+                    element('p', { text: job?.internalTitle || translate('flzrecruitment', 'Unbekannte Stelle') }),
+                    element('p', { text: `${translate('flzrecruitment', 'Eingang:')} ${application.receivedOn}` }),
                     application.desiredWeeklyHours !== null && application.desiredWeeklyHours !== undefined
                         ? element('p', { text: `Wunschstunden: ${desiredHoursLabel(application.desiredWeeklyHours, application.desiredWeeklyHoursMax)}` })
                         : null,
                     element('p', { text: sourceLabel(application.source) }),
-                    application.assigneeUid ? element('p', { text: `Zuständig: ${application.assigneeUid}` }) : null,
+                    application.assigneeUid ? element('p', { text: `${translate('flzrecruitment', 'Zuständig:')} ${application.assigneeUid}` }) : null,
                     applicationOpenButton(application.id),
                 ])
                 if (state.capabilities.edit_applications && application.allowedStatuses?.length) {
@@ -1445,7 +1446,7 @@
                 }
                 cards.append(card)
             }
-            if (items.length === 0) cards.append(element('p', { className: 'flzrecruitment-board__empty', text: 'Keine Bewerbung' }))
+            if (items.length === 0) cards.append(element('p', { className: 'flzrecruitment-board__empty', text: translate('flzrecruitment', 'Keine Bewerbung') }))
             const column = element('section', {
                 className: 'flzrecruitment-board__column',
                 'aria-labelledby': headingId,
@@ -1476,17 +1477,17 @@
     function moveApplication(application, targetStatus, override = false) {
         if (!canMoveApplication(application, targetStatus)
             && !(override && state.capabilities.override_status_transitions === true)) {
-            showError(new Error('Dieser Statuswechsel ist für die Bewerbung nicht zulässig.'))
+            showError(new Error(translate('flzrecruitment', 'Dieser Statuswechsel ist für die Bewerbung nicht zulässig.')))
             return
         }
         const areaKey = targetStatus === 'approved_for_hire' ? state.applicationMoveAreaKey : ''
         if (targetStatus === 'approved_for_hire' && !areaKey) {
-            showError(new Error('Für die Einstellungsfreigabe muss im Kartenarbeitsplatz ein Bürobereich gewählt werden.'))
+            showError(new Error(translate('flzrecruitment', 'Für die Einstellungsfreigabe muss im Kartenarbeitsplatz ein Bürobereich gewählt werden.')))
             return
         }
         run(
             () => api.transitionStatus(application.id, targetStatus, application.version, areaKey, override),
-            'Status wurde geändert.',
+            translate('flzrecruitment', 'Status wurde geändert.'),
         )
     }
 
@@ -1498,7 +1499,7 @@
     }
 
     function applicationOpenButton(applicationId) {
-        const open = button('Detail öffnen', 'button')
+        const open = button(translate('flzrecruitment', 'Detail öffnen'), 'button')
         open.addEventListener('click', () => openApplication(applicationId))
         return open
     }
@@ -1527,25 +1528,25 @@
 
     function renderApplicationDetail(detail) {
         const view = element('section', { className: 'flzrecruitment-panel' })
-        const back = button('← Zurück zu Bewerbungen', 'button', 'flzrecruitment-secondary')
+        const back = button('← ' + translate('flzrecruitment', 'Zurück zu Bewerbungen'), 'button', 'flzrecruitment-secondary')
         back.addEventListener('click', () => showTab('applications'))
         view.append(back, element('h2', {
             text: `${detail.person.givenName} ${detail.person.familyName} · ${detail.job.internalTitle}`,
         }))
         view.append(element('dl', { className: 'flzrecruitment-facts' }, [
-            element('div', {}, [element('dt', { text: 'Status' }), element('dd', { text: statusLabel(detail.application.status) })]),
-            element('div', {}, [element('dt', { text: 'Eingang' }), element('dd', { text: detail.application.receivedOn })]),
-            element('div', {}, [element('dt', { text: 'Kanal' }), element('dd', { text: sourceLabel(detail.application.source) })]),
+            element('div', {}, [element('dt', { text: translate('flzrecruitment', 'Status') }), element('dd', { text: statusLabel(detail.application.status) })]),
+            element('div', {}, [element('dt', { text: translate('flzrecruitment', 'Eingang') }), element('dd', { text: detail.application.receivedOn })]),
+            element('div', {}, [element('dt', { text: translate('flzrecruitment', 'Kanal') }), element('dd', { text: sourceLabel(detail.application.source) })]),
             element('div', {}, [element('dt', { text: 'E-Mail' }), element('dd', {}, contactNode(detail.person.email, 'email'))]),
-            element('div', {}, [element('dt', { text: 'Telefon' }), element('dd', {}, contactNode(detail.person.phone, 'phone'))]),
-            element('div', {}, [element('dt', { text: 'Zuständigkeit' }), element('dd', { text: detail.application.assigneeUid || 'Nicht zugeordnet' })]),
+            element('div', {}, [element('dt', { text: translate('flzrecruitment', 'Telefon') }), element('dd', {}, contactNode(detail.person.phone, 'phone'))]),
+            element('div', {}, [element('dt', { text: translate('flzrecruitment', 'Zuständigkeit') }), element('dd', { text: detail.application.assigneeUid || translate('flzrecruitment', 'Nicht zugeordnet') })]),
             element('div', {}, [
-                element('dt', { text: 'Gewünschte Wochenstunden' }),
+                element('dt', { text: translate('flzrecruitment', 'Gewünschte Wochenstunden') }),
                 element('dd', { text: desiredHoursLabel(detail.application.desiredWeeklyHours, detail.application.desiredWeeklyHoursMax) }),
             ]),
-            element('div', {}, [element('dt', { text: 'Vorerfahrung' }), element('dd', { text: detail.application.previousExperience || 'Nicht erfasst' })]),
-            element('div', {}, [element('dt', { text: 'Deutschniveau' }), element('dd', { text: ({ native: 'Muttersprachlich', not_assessed: 'Nicht bewertet' })[detail.application.germanLanguageLevel] || detail.application.germanLanguageLevel || 'Nicht erfasst' })]),
-            element('div', {}, [element('dt', { text: 'Freier Kommentar' }), element('dd', { text: detail.application.freeComment || 'Nicht erfasst' })]),
+            element('div', {}, [element('dt', { text: translate('flzrecruitment', 'Vorerfahrung') }), element('dd', { text: detail.application.previousExperience || translate('flzrecruitment', 'Nicht erfasst') })]),
+            element('div', {}, [element('dt', { text: translate('flzrecruitment', 'Deutschniveau') }), element('dd', { text: ({ native: translate('flzrecruitment', 'Muttersprachlich'), not_assessed: translate('flzrecruitment', 'Nicht bewertet') })[detail.application.germanLanguageLevel] || detail.application.germanLanguageLevel || translate('flzrecruitment', 'Nicht erfasst') })]),
+            element('div', {}, [element('dt', { text: translate('flzrecruitment', 'Freier Kommentar') }), element('dd', { text: detail.application.freeComment || translate('flzrecruitment', 'Nicht erfasst') })]),
         ]))
 
         const detailStatusTargets = statusTargets(
@@ -1558,10 +1559,10 @@
                     value,
                     label: `${statusLabel(value)}${requiresStatusOverride(detail.application, value) ? ' · Ausnahme' : ''}`,
                 })))
-            const areaSelect = select('areaKey', [{ value: '', label: 'Bürobereich wählen' }].concat(
+            const areaSelect = select('areaKey', [{ value: '', label: translate('flzrecruitment', 'Bürobereich wählen') }].concat(
                 state.areas.map((area) => ({ value: area.key, label: area.label })),
             ))
-            const areaField = field('Bürobereich bei Einstellungsfreigabe', areaSelect)
+            const areaField = field(translate('flzrecruitment', 'Bürobereich bei Einstellungsfreigabe'), areaSelect)
             areaField.hidden = statusSelect.value !== 'approved_for_hire'
             areaSelect.required = !areaField.hidden
             statusSelect.addEventListener('change', () => {
@@ -1569,19 +1570,19 @@
                 areaSelect.required = !areaField.hidden
             })
             const statusForm = element('form', { className: 'flzrecruitment-inline-form flzrecruitment-card' }, [
-                field('Neuer Status', statusSelect),
+                field(translate('flzrecruitment', 'Neuer Status'), statusSelect),
                 areaField,
-                button('Status ändern'),
+                button(translate('flzrecruitment', 'Status ändern')),
             ])
             statusForm.addEventListener('submit', (event) => {
                 event.preventDefault()
                 const formData = new FormData(statusForm)
                 const target = formData.get('status')
                 const override = requiresStatusOverride(detail.application, target)
-                if (override && !confirm('Dieser Statuswechsel ist im Regelprozess nicht vorgesehen. Als Personalreferentin trotzdem durchführen?')) return
+                if (override && !confirm(translate('flzrecruitment', 'Dieser Statuswechsel ist im Regelprozess nicht vorgesehen. Als Personalreferentin trotzdem durchführen?'))) return
                 run(
                     () => api.transitionStatus(detail.application.id, target, detail.application.version, formData.get('areaKey') || '', override),
-                    'Status wurde geändert.',
+                    translate('flzrecruitment', 'Status wurde geändert.'),
                     () => openApplication(detail.application.id),
                 )
             })
@@ -1594,11 +1595,11 @@
             element('h3', { text: 'Eingegangene Bewerbungs-Mails' }),
         ])
         if (!detail.inboxMessages.length) {
-            mailCard.append(emptyState('Dieser Bewerbung ist noch keine Eingangsnachricht zugeordnet.'))
+            mailCard.append(emptyState(translate('flzrecruitment', 'Dieser Bewerbung ist noch keine Eingangsnachricht zugeordnet.')))
         } else {
             for (const message of detail.inboxMessages) {
                 mailCard.append(element('article', { className: 'flzrecruitment-question-editor' }, [
-                    element('h4', { text: message.subject || 'Ohne Betreff' }),
+                    element('h4', { text: message.subject || translate('flzrecruitment', 'Ohne Betreff') }),
                     element('p', {}, [contactNode(message.senderAddress, 'email'), element('span', { text: ` · ${message.receivedAt}` })]),
                     element('pre', { className: 'flzrecruitment-mail-body', text: message.bodyText }),
                     renderMailAttachments(message.attachments, detail.application.id, () => openApplication(detail.application.id)),
@@ -1617,15 +1618,15 @@
             && ['approved_for_hire', 'hired'].includes(detail.application.status)) {
             const enabled = detail.application.firstGuideAccess === true
             const guideCard = element('section', { className: 'flzrecruitment-card' }, [
-                element('h3', { text: 'Erstbegleitung' }),
+                element('h3', { text: translate('flzrecruitment', 'Erstbegleitung') }),
                 element('p', { text: enabled
-                    ? 'Der lesende Aktenzugriff für passende Erstbegleitungen ist aktiv.'
-                    : 'Der Aktenzugriff für Erstbegleitungen ist beendet.' }),
+                    ? translate('flzrecruitment', 'Der lesende Aktenzugriff für passende Erstbegleitungen ist aktiv.')
+                    : translate('flzrecruitment', 'Der Aktenzugriff für Erstbegleitungen ist beendet.') }),
             ])
-            const toggle = button(enabled ? 'Zugriff beenden' : 'Zugriff wieder freigeben', 'button')
+            const toggle = button(enabled ? 'Zugriff beenden' : translate('flzrecruitment', 'Zugriff wieder freigeben'), 'button')
             toggle.addEventListener('click', () => run(
                 () => api.setFirstGuideAccess(detail.application.id, !enabled, detail.application.version),
-                'Erstbegleitungszugriff wurde geändert.',
+                translate('flzrecruitment', 'Erstbegleitungszugriff wurde geändert.'),
                 () => openApplication(detail.application.id),
             ))
             guideCard.append(toggle)
@@ -1634,35 +1635,35 @@
 
         if (state.capabilities.interview && state.data.templates.some((template) => template.active)) {
             const interviewForm = element('form', { className: 'flzrecruitment-inline-form flzrecruitment-card' }, [
-                field('Interviewvorlage', select('templateId', state.data.templates
+                field(translate('flzrecruitment', 'Interviewvorlage'), select('templateId', state.data.templates
                     .filter((template) => template.active)
                     .map((template) => ({ value: template.id, label: `${template.name} (Revision ${template.revision})` })))),
-                button('Interview erzeugen'),
+                button(translate('flzrecruitment', 'Interview erzeugen')),
             ])
             interviewForm.addEventListener('submit', (event) => {
                 event.preventDefault()
                 const templateId = Number(new FormData(interviewForm).get('templateId'))
                 run(
                     () => api.createInterview(detail.application.id, templateId),
-                    'Interview wurde erzeugt.',
+                    translate('flzrecruitment', 'Interview wurde erzeugt.'),
                     () => openApplication(detail.application.id),
                 )
             })
             view.append(interviewForm)
         }
 
-        view.append(element('h3', { text: 'Interviews' }))
+        view.append(element('h3', { text: translate('flzrecruitment', 'Interviews') }))
         if (detail.interviews.length === 0) {
-            view.append(emptyState('Noch kein Interview für diese Bewerbung vorhanden.'))
+            view.append(emptyState(translate('flzrecruitment', 'Noch kein Interview für diese Bewerbung vorhanden.')))
         } else {
             for (const interview of detail.interviews) {
                 view.append(renderInterview(interview, detail.application.id))
             }
         }
 
-        view.append(element('h3', { text: 'Statusverlauf' }))
+        view.append(element('h3', { text: translate('flzrecruitment', 'Statusverlauf') }))
         if (detail.statusHistory.length === 0) {
-            view.append(emptyState('Noch keine Statusänderung protokolliert.'))
+            view.append(emptyState(translate('flzrecruitment', 'Noch keine Statusänderung protokolliert.')))
         } else {
             const list = element('ol', { className: 'flzrecruitment-history' })
             for (const item of detail.statusHistory) {
@@ -1678,7 +1679,7 @@
     function renderInterview(interview, applicationId) {
         const article = element('article', { className: 'flzrecruitment-card flzrecruitment-interview' }, [
             element('h4', { text: `${interview.snapshot.name} · Revision ${interview.templateRevision}` }),
-            element('p', { text: `Status: ${statusLabel(interview.status)}` }),
+            element('p', { text: `${translate('flzrecruitment', 'Status:')} ${statusLabel(interview.status)}` }),
         ])
         const form = element('form', { className: 'flzrecruitment-form' })
         for (const question of interview.snapshot.questions || []) {
@@ -1687,13 +1688,13 @@
         }
         if (interview.status !== 'completed' && state.capabilities.interview) {
             const actions = element('div', { className: 'flzrecruitment-actions' }, [
-                button('Entwurf speichern', 'button', 'flzrecruitment-secondary'),
-                button('Interview abschließen', 'submit'),
+                button(translate('flzrecruitment', 'Entwurf speichern'), 'button', 'flzrecruitment-secondary'),
+                button(translate('flzrecruitment', 'Interview abschließen'), 'submit'),
             ])
             actions.firstElementChild.addEventListener('click', () => {
                 run(
                     () => api.saveDraft(interview.id, collectAnswers(form), interview.version),
-                    'Entwurf wurde gespeichert.',
+                    translate('flzrecruitment', 'Entwurf wurde gespeichert.'),
                     () => openApplication(applicationId),
                 )
             })
@@ -1701,7 +1702,7 @@
                 event.preventDefault()
                 run(
                     () => api.completeInterview(interview.id, collectAnswers(form), interview.version),
-                    'Interview wurde abgeschlossen.',
+                    translate('flzrecruitment', 'Interview wurde abgeschlossen.'),
                     () => openApplication(applicationId),
                 )
             })
@@ -1724,12 +1725,12 @@
             control.textContent = answer || ''
         } else if (question.type === 'boolean') {
             control = select('', [
-                { value: '', label: 'Bitte wählen' },
-                { value: 'yes', label: 'Ja' },
-                { value: 'no', label: 'Nein' },
+                { value: '', label: translate('flzrecruitment', 'Bitte wählen') },
+                { value: 'yes', label: translate('flzrecruitment', 'Ja') },
+                { value: 'no', label: translate('flzrecruitment', 'Nein') },
             ], answer || '', question.required)
         } else if (question.type === 'single_choice') {
-            control = select('', [{ value: '', label: 'Bitte wählen' }].concat(
+            control = select('', [{ value: '', label: translate('flzrecruitment', 'Bitte wählen') }].concat(
                 question.options.map((option) => ({ value: option, label: option })),
             ), answer || '', question.required)
         } else if (question.type === 'multiple_choice') {
@@ -1748,7 +1749,7 @@
         wrapper.append(control)
 
         if (!readonly && ['text', 'textarea'].includes(question.type) && question.bubbles?.length) {
-            const bubbles = element('div', { className: 'flzrecruitment-bubbles', role: 'group', 'aria-label': 'Antwortbausteine' })
+            const bubbles = element('div', { className: 'flzrecruitment-bubbles', role: 'group', 'aria-label': translate('flzrecruitment', 'Antwortbausteine') })
             for (const bubble of question.bubbles.filter((item) => item.active)) {
                 const bubbleButton = button(bubble.label, 'button', 'flzrecruitment-bubble')
                 bubbleButton.addEventListener('click', () => {
@@ -1775,22 +1776,22 @@
     function renderOutgoingMailDrafts(detail) {
         const card = element('section', { className: 'flzrecruitment-card' }, [
             element('h3', { text: 'Ausgehende E-Mails' }),
-            element('p', { text: 'Die Empfängeradresse stammt zunächst aus dem Personendatensatz. Eine Korrektur vor der Freigabe wird getrennt vom ursprünglichen Wert dokumentiert.' }),
+            element('p', { text: translate('flzrecruitment', 'Die Empfängeradresse stammt zunächst aus dem Personendatensatz. Eine Korrektur vor der Freigabe wird getrennt vom ursprünglichen Wert dokumentiert.') }),
         ])
         const drafts = detail.mailDrafts || []
         if (!drafts.length) {
-            card.append(emptyState('Für diese Bewerbung gibt es noch keinen Mailentwurf.'))
+            card.append(emptyState(translate('flzrecruitment', 'Für diese Bewerbung gibt es noch keinen Mailentwurf.')))
             return card
         }
         for (const draft of drafts) {
             const article = element('article', { className: 'flzrecruitment-question-editor' }, [
                 element('h4', { text: `${statusLabel(draft.fromStatus)} → ${statusLabel(draft.toStatus)}` }),
-                element('p', { text: `Ursprüngliche Adresse: ${draft.originalRecipient} · Zustand: ${draft.status}` }),
+                element('p', { text: `${translate('flzrecruitment', 'Ursprüngliche Adresse:')} ${draft.originalRecipient} · Zustand: ${draft.status}` }),
             ])
-            if (draft.testMode) article.append(element('p', { className: 'flzrecruitment-warning', text: `Testmodus: tatsächliche Zustellung an ${draft.deliveryRecipient}` }))
+            if (draft.testMode) article.append(element('p', { className: 'flzrecruitment-warning', text: `${translate('flzrecruitment', 'Testmodus: tatsächliche Zustellung an')} ${draft.deliveryRecipient}` }))
             if (draft.status !== 'draft') {
                 article.append(element('p', { text: `Freigegebene Zieladresse: ${draft.intendedRecipient || draft.originalRecipient}` }))
-                article.append(element('p', { text: draft.scheduledAt ? `Geplant für ${draft.scheduledAt}` : 'Nicht zum Versand geplant.' }))
+                article.append(element('p', { text: draft.scheduledAt ? `Geplant für ${draft.scheduledAt}` : translate('flzrecruitment', 'Nicht zum Versand geplant.') }))
                 article.append(element('strong', { text: draft.subject }), element('div', {
                     className: 'flzrecruitment-mail-body', innerHTML: mailBodyHtml(draft.body, draft.bodyFormat),
                 }))
@@ -1800,16 +1801,16 @@
             const subject = input('subject', 'text', true, draft.subject)
             const recipient = input('recipient', 'email', true, draft.originalRecipient)
             if (state.mailConfiguration?.settings?.testMode) {
-                article.append(element('p', { className: 'flzrecruitment-warning', text: `Aktiver Testmodus: Nach Freigabe erfolgt die tatsächliche Zustellung an ${state.mailConfiguration.settings.testRecipient}.` }))
+                article.append(element('p', { className: 'flzrecruitment-warning', text: `${translate('flzrecruitment', 'Aktiver Testmodus: Nach Freigabe erfolgt die tatsächliche Zustellung an')} ${state.mailConfiguration.settings.testRecipient}.` }))
             }
             const body = mailEditor(draft.body, draft.bodyFormat)
             const form = element('form', { className: 'flzrecruitment-form' }, [
-                field('Empfängeradresse', recipient), field('Betreff', subject), richTextField('Nachricht', body),
+                field(translate('flzrecruitment', 'Empfängeradresse'), recipient), field(translate('flzrecruitment', 'Betreff'), subject), richTextField(translate('flzrecruitment', 'Nachricht'), body),
             ])
             const blocks = (state.mailConfiguration?.textBlocks || []).filter((block) => block.active)
             if (blocks.length) {
-                const blockSelect = select('textBlock', [{ value: '', label: 'Textblock wählen' }].concat(blocks.map((block) => ({ value: block.id, label: block.label }))))
-                const insertBlock = button('Textblock an Cursorposition einfügen', 'button', 'flzrecruitment-secondary')
+                const blockSelect = select('textBlock', [{ value: '', label: translate('flzrecruitment', 'Textblock wählen') }].concat(blocks.map((block) => ({ value: block.id, label: block.label }))))
+                const insertBlock = button(translate('flzrecruitment', 'Textblock an Cursorposition einfügen'), 'button', 'flzrecruitment-secondary')
                 insertBlock.addEventListener('click', () => {
                     const block = blocks.find((item) => String(item.id) === String(blockSelect.value))
                     if (!block) return
@@ -1820,10 +1821,10 @@
             const scheduled = input('scheduledAt', 'datetime-local')
             form.append(field('Freier Versandzeitpunkt', scheduled))
             const actions = element('div', { className: 'flzrecruitment-actions' })
-            const save = button('Entwurf speichern', 'button', 'flzrecruitment-secondary')
+            const save = button(translate('flzrecruitment', 'Entwurf speichern'), 'button', 'flzrecruitment-secondary')
             save.addEventListener('click', () => run(
                 () => api.saveMailDraft(draft.id, { subject: subject.value, body: body.value(), bodyFormat: 'html', version: draft.version }),
-                'Mailentwurf wurde gespeichert.', () => openApplication(detail.application.id),
+                translate('flzrecruitment', 'Mailentwurf wurde gespeichert.'), () => openApplication(detail.application.id),
             ))
             const approve = (label, timing) => {
                 const control = button(label + (draft.defaultTiming === timing ? ' (Voreinstellung)' : ''), 'button')
@@ -1831,16 +1832,16 @@
                     const value = timing === 'scheduled' && scheduled.value ? new Date(scheduled.value).toISOString() : null
                     run(
                         () => api.approveMailDraft(draft.id, { recipient: recipient.value, subject: subject.value, body: body.value(), bodyFormat: 'html', timing, scheduledAt: value, version: draft.version }),
-                        'Mail wurde verbindlich zum Versand eingeplant.', () => openApplication(detail.application.id),
+                        translate('flzrecruitment', 'Mail wurde verbindlich zum Versand eingeplant.'), () => openApplication(detail.application.id),
                     )
                 })
                 return control
             }
-            const cancel = button('Entwurf abbrechen', 'button', 'flzrecruitment-secondary')
+            const cancel = button(translate('flzrecruitment', 'Entwurf abbrechen'), 'button', 'flzrecruitment-secondary')
             cancel.addEventListener('click', () => run(
-                () => api.cancelMailDraft(draft.id, draft.version), 'Mailentwurf wurde abgebrochen.', () => openApplication(detail.application.id),
+                () => api.cancelMailDraft(draft.id, draft.version), translate('flzrecruitment', 'Mailentwurf wurde abgebrochen.'), () => openApplication(detail.application.id),
             ))
-            actions.append(save, approve('Jetzt freigeben', 'immediate'), approve('Kommenden Montag freigeben', 'next_monday'), approve('Zum gewählten Zeitpunkt freigeben', 'scheduled'), cancel)
+            actions.append(save, approve(translate('flzrecruitment', 'Jetzt freigeben'), 'immediate'), approve(translate('flzrecruitment', 'Kommenden Montag freigeben'), 'next_monday'), approve(translate('flzrecruitment', 'Zum gewählten Zeitpunkt freigeben'), 'scheduled'), cancel)
             form.append(actions); article.append(form); card.append(article)
         }
         return card
@@ -1848,16 +1849,16 @@
 
     function renderMailTemplates(target = content, embedded = false) {
         const view = embedded
-            ? settingsPanel('mail-templates', 'Mailvorlagen und Versandregeln')
-            : panel('mail-templates', 'Mailvorlagen und Versandregeln')
+            ? settingsPanel('mail-templates', translate('flzrecruitment', 'Mailvorlagen und Versandregeln'))
+            : panel('mail-templates', translate('flzrecruitment', 'Mailvorlagen und Versandregeln'))
         const configuration = state.mailConfiguration || { templates: [], rules: [], textBlocks: [], settings: {} }
         view.append(element('p', {
             className: 'flzrecruitment-callout',
-            text: `${configuration.rules.length} erlaubte Übergänge sind mit bearbeitbaren Vorlagen vorbereitet. Diese Regel ist zunächst ausgeschaltet. Aktivieren Sie nur die gewünschten Entwürfe.`,
+            text: `${configuration.rules.length} ${translate('flzrecruitment', 'erlaubte Übergänge sind mit bearbeitbaren Vorlagen vorbereitet. Diese Regel ist zunächst ausgeschaltet. Aktivieren Sie nur die gewünschten Entwürfe.')}`,
         }))
         const timingOptions = [
-            { value: 'immediate', label: 'Sofort nach Freigabe' },
-            { value: 'scheduled', label: 'Zeitpunkt im Entwurf wählen' },
+            { value: 'immediate', label: translate('flzrecruitment', 'Sofort nach Freigabe') },
+            { value: 'scheduled', label: translate('flzrecruitment', 'Zeitpunkt im Entwurf wählen') },
             { value: 'next_monday', label: 'Kommenden Montag, 09:00 Uhr' },
         ]
         const renderTemplateEditor = (template) => {
@@ -1866,17 +1867,17 @@
             const body = mailEditor(template.body, template.bodyFormat)
             const active = input('active', 'checkbox'); active.checked = template.active
             const form = element('form', { className: 'flzrecruitment-form flzrecruitment-mail-template-editor' }, [
-                field('Vorlagenname', name), field('Betreff', subject),
-                richTextField('Nachricht', body, 'Formatierung und Platzhalter können bis zum Versand erneut geändert werden.'),
+                field(translate('flzrecruitment', 'Vorlagenname'), name), field(translate('flzrecruitment', 'Betreff'), subject),
+                richTextField(translate('flzrecruitment', 'Nachricht'), body, translate('flzrecruitment', 'Formatierung und Platzhalter können bis zum Versand erneut geändert werden.')),
                 element('p', { text: 'Platzhalter: {{given_name}}, {{family_name}}, {{job_title}}' }),
-                field('Vorlage aktiv', active), button('Vorlage als neue Revision speichern'),
+                field(translate('flzrecruitment', 'Vorlage aktiv'), active), button(translate('flzrecruitment', 'Vorlage als neue Revision speichern')),
             ])
             form.addEventListener('submit', (event) => {
                 event.preventDefault()
                 run(() => api.reviseMailTemplate(template.id, {
                     name: name.value, subject: subject.value, body: body.value(), bodyFormat: 'html',
                     active: active.checked, version: template.version,
-                }), 'Neue Mailvorlagenrevision wurde gespeichert.')
+                }), translate('flzrecruitment', 'Neue Mailvorlagenrevision wurde gespeichert.'))
             })
             return form
         }
@@ -1894,27 +1895,27 @@
                 const timing = select(`timing-${rule.id}`, timingOptions, rule.defaultTiming)
                 const templateChoice = select(`template-${rule.id}`, configuration.templates.filter((item) => item.active || item.id === rule.templateId).map((item) => ({ value: item.id, label: item.name })), rule.templateId, true)
                 const settings = element('form', { className: 'flzrecruitment-mail-transition-settings' }, [
-                    field('Entwurf erzeugen', enabled), field('Mailvorlage', templateChoice), field('Standardplanung', timing), button('Einstellung speichern'),
+                    field(translate('flzrecruitment', 'Entwurf erzeugen'), enabled), field(translate('flzrecruitment', 'Mailvorlage'), templateChoice), field(translate('flzrecruitment', 'Standardplanung'), timing), button(translate('flzrecruitment', 'Einstellung speichern')),
                 ])
                 settings.addEventListener('submit', (event) => {
                     event.preventDefault()
                     run(() => api.saveStatusMailRule({
                         fromStatus, toStatus, templateId: Number(templateChoice.value), enabled: enabled.checked,
                         defaultTiming: timing.value, version: rule.version,
-                    }), 'Statusmail-Regel wurde gespeichert.')
+                    }), translate('flzrecruitment', 'Statusmail-Regel wurde gespeichert.'))
                 })
                 const article = element('article', { className: 'flzrecruitment-card flzrecruitment-mail-transition' }, [
                     element('div', { className: 'flzrecruitment-mail-transition__heading' }, [
                         element('h3', { text: `${statusLabel(fromStatus)} → ${statusLabel(toStatus)}` }),
                         element('span', {
                             className: rule.enabled ? 'flzrecruitment-state flzrecruitment-state--active' : 'flzrecruitment-state',
-                            text: rule.enabled ? 'Aktiv' : 'Aus',
+                            text: rule.enabled ? 'Aktiv' : translate('flzrecruitment', 'Aus'),
                         }),
                     ]),
                     settings,
                 ])
-                const details = element('details', {}, [element('summary', { text: 'Vorlage bearbeiten' })])
-                details.append(template ? renderTemplateEditor(template) : element('p', { className: 'flzrecruitment-warning', text: 'Die zugeordnete Vorlage fehlt.' }))
+                const details = element('details', {}, [element('summary', { text: translate('flzrecruitment', 'Vorlage bearbeiten') })])
+                details.append(template ? renderTemplateEditor(template) : element('p', { className: 'flzrecruitment-warning', text: translate('flzrecruitment', 'Die zugeordnete Vorlage fehlt.') }))
                 article.append(details)
                 section.append(article)
             }
@@ -1925,18 +1926,18 @@
         const unassignedTemplates = configuration.templates.filter((template) => !assignedTemplateIds.has(template.id))
         if (unassignedTemplates.length) {
             const additional = element('details', { className: 'flzrecruitment-card' }, [
-                element('summary', { text: 'Bisher nicht zugeordnete Vorlagen' }),
-                element('p', { text: 'Diese älteren Vorlagen bleiben bearbeitbar, lösen aber aktuell bei keinem Statusübergang einen Entwurf aus.' }),
+                element('summary', { text: translate('flzrecruitment', 'Bisher nicht zugeordnete Vorlagen') }),
+                element('p', { text: translate('flzrecruitment', 'Diese älteren Vorlagen bleiben bearbeitbar, lösen aber aktuell bei keinem Statusübergang einen Entwurf aus.') }),
                 ...unassignedTemplates.map(renderTemplateEditor),
             ])
             view.append(additional)
         }
         const blockForm = element('form', { className: 'flzrecruitment-form flzrecruitment-card' }, [
-            element('h3', { text: 'Textblock' }), field('Bezeichnung', input('label', 'text', true)),
-            field('Einfügetext', element('textarea', { name: 'insertText', rows: 4, required: true })), button('Textblock anlegen'),
+            element('h3', { text: translate('flzrecruitment', 'Textblock') }), field(translate('flzrecruitment', 'Bezeichnung'), input('label', 'text', true)),
+            field(translate('flzrecruitment', 'Einfügetext'), element('textarea', { name: 'insertText', rows: 4, required: true })), button(translate('flzrecruitment', 'Textblock anlegen')),
         ])
         blockForm.addEventListener('submit', (event) => { event.preventDefault(); run(
-            () => api.createMailTextBlock(Object.fromEntries(new FormData(blockForm))), 'Textblock wurde angelegt.',
+            () => api.createMailTextBlock(Object.fromEntries(new FormData(blockForm))), translate('flzrecruitment', 'Textblock wurde angelegt.'),
         ) })
         view.append(blockForm)
         target.replaceChildren(view)
@@ -1944,42 +1945,42 @@
 
     function renderTemplates(target = content, embedded = false) {
         const view = embedded
-            ? settingsPanel('templates', 'Interviewfragen und Vorlagen')
-            : panel('templates', 'Interviewvorlagen')
+            ? settingsPanel('templates', translate('flzrecruitment', 'Interviewfragen und Vorlagen'))
+            : panel('templates', translate('flzrecruitment', 'Interviewvorlagen'))
         if (state.capabilities.manage_catalog) {
             const form = element('form', { className: 'flzrecruitment-form flzrecruitment-card' }, [
-                field('Name', input('name', 'text', true)),
-                field('Interviewtyp', select('type', [
-                    { value: 'questionnaire', label: 'Kurzfragebogen' },
-                    { value: 'phone', label: 'Telefoninterview' },
-                    { value: 'live', label: 'Liveinterview' },
+                field(translate('flzrecruitment', 'Name'), input('name', 'text', true)),
+                field(translate('flzrecruitment', 'Interviewtyp'), select('type', [
+                    { value: 'questionnaire', label: translate('flzrecruitment', 'Kurzfragebogen') },
+                    { value: 'phone', label: translate('flzrecruitment', 'Telefoninterview') },
+                    { value: 'live', label: translate('flzrecruitment', 'Liveinterview') },
                     { value: 'other', label: 'Weiterer Typ' },
                 ])),
-                field('Zielgruppe', select('audience', [
+                field(translate('flzrecruitment', 'Zielgruppe'), select('audience', [
                     { value: 'interviewer', label: 'Interviewer*in' },
-                    { value: 'candidate', label: 'Bewerber*in' },
+                    { value: 'candidate', label: translate('flzrecruitment', 'Bewerber') + '*in' },
                 ])),
-                field('Beschreibung', element('textarea', { name: 'description', rows: 3 })),
-                button('Vorlage anlegen'),
+                field(translate('flzrecruitment', 'Beschreibung'), element('textarea', { name: 'description', rows: 3 })),
+                button(translate('flzrecruitment', 'Vorlage anlegen')),
             ])
             form.addEventListener('submit', (event) => {
                 event.preventDefault()
-                run(() => api.createTemplate(Object.fromEntries(new FormData(form))), 'Vorlage wurde angelegt.')
+                run(() => api.createTemplate(Object.fromEntries(new FormData(form))), translate('flzrecruitment', 'Vorlage wurde angelegt.'))
             })
-            view.append(createFormOverlay('Neue Interviewvorlage', 'Vorlage neu', form))
+            view.append(createFormOverlay(translate('flzrecruitment', 'Neue Interviewvorlage'), translate('flzrecruitment', 'Vorlage neu'), form))
         }
 
         if (state.data.templates.length === 0) {
-            view.append(emptyState('Noch keine Interviewvorlagen vorhanden.'))
+            view.append(emptyState(translate('flzrecruitment', 'Noch keine Interviewvorlagen vorhanden.')))
         } else {
             const list = element('div', { className: 'flzrecruitment-grid' })
             for (const template of state.data.templates) {
-                const open = button('Vorlage bearbeiten', 'button')
+                const open = button(translate('flzrecruitment', 'Vorlage bearbeiten'), 'button')
                 open.addEventListener('click', () => openTemplate(template.id))
                 list.append(element('article', { className: 'flzrecruitment-card' }, [
                     element('h3', { text: template.name }),
                     element('p', { text: `${template.type} · Revision ${template.revision}` }),
-                    element('p', { text: template.active ? 'Aktiv' : 'Deaktiviert' }),
+                    element('p', { text: template.active ? 'Aktiv' : translate('flzrecruitment', 'Deaktiviert') }),
                     open,
                 ]))
             }
@@ -2001,7 +2002,7 @@
 
     function renderTemplateDetail(template) {
         const view = panel('settings', `${template.name} · Revision ${template.revision}`)
-        const back = button('← Zurück zu Vorlagen', 'button', 'flzrecruitment-secondary')
+        const back = button('← ' + translate('flzrecruitment', 'Zurück zu Vorlagen'), 'button', 'flzrecruitment-secondary')
         back.addEventListener('click', () => showSettingsSection('templates', true))
         view.prepend(back)
 
@@ -2011,15 +2012,15 @@
                 event.preventDefault()
                 run(
                     () => api.createQuestion(template.id, questionPayload(form)),
-                    'Frage wurde hinzugefügt.',
+                    translate('flzrecruitment', 'Frage wurde hinzugefügt.'),
                     () => openTemplate(template.id),
                 )
             })
-            view.append(createFormOverlay('Neue Interviewfrage', 'Frage neu', form))
+            view.append(createFormOverlay(translate('flzrecruitment', 'Neue Interviewfrage'), translate('flzrecruitment', 'Frage neu'), form))
         }
 
         if (template.questions.length === 0) {
-            view.append(emptyState('Noch keine Fragen vorhanden.'))
+            view.append(emptyState(translate('flzrecruitment', 'Noch keine Fragen vorhanden.')))
         } else {
             for (const question of template.questions) {
                 view.append(renderQuestionEditor(question, template.id))
@@ -2030,33 +2031,33 @@
 
     function questionForm(question = null) {
         const form = element('form', { className: 'flzrecruitment-form flzrecruitment-card' }, [
-            field('Fragetext', input('prompt', 'text', true, question?.prompt || '')),
-            field('Hinweis', input('hint', 'text', false, question?.hint || '')),
-            field('Fragetyp', select('type', [
+            field(translate('flzrecruitment', 'Fragetext'), input('prompt', 'text', true, question?.prompt || '')),
+            field(translate('flzrecruitment', 'Hinweis'), input('hint', 'text', false, question?.hint || '')),
+            field(translate('flzrecruitment', 'Fragetyp'), select('type', [
                 { value: 'text', label: 'Einzeiliger Freitext' },
                 { value: 'textarea', label: 'Mehrzeiliger Freitext' },
                 { value: 'boolean', label: 'Ja/Nein' },
-                { value: 'single_choice', label: 'Einfachauswahl' },
-                { value: 'multiple_choice', label: 'Mehrfachauswahl' },
-                { value: 'rating', label: 'Bewertung' },
+                { value: 'single_choice', label: translate('flzrecruitment', 'Einfachauswahl') },
+                { value: 'multiple_choice', label: translate('flzrecruitment', 'Mehrfachauswahl') },
+                { value: 'rating', label: translate('flzrecruitment', 'Bewertung') },
             ], question?.type || 'text')),
-            field('Optionen', input('options', 'text', false, question?.options?.join(', ') || ''), 'Für Auswahlfragen kommagetrennt'),
-            field('Reihenfolge', input('sortOrder', 'number', true, question?.sortOrder ?? 10)),
-            field('Sichtbarkeit', select('visibility', [
-                { value: 'internal', label: 'Intern' },
-                { value: 'external', label: 'Extern' },
+            field(translate('flzrecruitment', 'Optionen'), input('options', 'text', false, question?.options?.join(', ') || ''), translate('flzrecruitment', 'Für Auswahlfragen kommagetrennt')),
+            field(translate('flzrecruitment', 'Reihenfolge'), input('sortOrder', 'number', true, question?.sortOrder ?? 10)),
+            field(translate('flzrecruitment', 'Sichtbarkeit'), select('visibility', [
+                { value: 'internal', label: translate('flzrecruitment', 'Intern') },
+                { value: 'external', label: translate('flzrecruitment', 'Extern') },
             ], question?.visibility || 'internal')),
         ])
         const checks = element('div', { className: 'flzrecruitment-checks' })
         const required = input('required', 'checkbox')
         required.checked = question?.required || false
-        checks.append(field('Pflichtfrage', required))
+        checks.append(field(translate('flzrecruitment', 'Pflichtfrage'), required))
         if (question) {
             const active = input('active', 'checkbox')
             active.checked = question.active
-            checks.append(field('Aktiv', active))
+            checks.append(field(translate('flzrecruitment', 'Aktiv'), active))
         }
-        form.append(checks, button(question ? 'Frage speichern' : 'Frage hinzufügen'))
+        form.append(checks, button(question ? 'Frage speichern' : translate('flzrecruitment', 'Frage hinzufügen')))
         return form
     }
 
@@ -2081,7 +2082,7 @@
             event.preventDefault()
             run(
                 () => api.updateQuestion(question.id, questionPayload(form)),
-                'Frage wurde gespeichert.',
+                translate('flzrecruitment', 'Frage wurde gespeichert.'),
                 () => openTemplate(templateId),
             )
         })
@@ -2091,7 +2092,7 @@
             element('h4', { text: 'Antwort-Bubbles' }),
         ])
         if (!['text', 'textarea'].includes(question.type)) {
-            bubbles.append(element('p', { text: 'Für diesen Fragetyp sind keine Antwort-Bubbles möglich.' }))
+            bubbles.append(element('p', { text: translate('flzrecruitment', 'Für diesen Fragetyp sind keine Antwort-Bubbles möglich.') }))
         } else {
             if (question.bubbles.length) {
                 const list = element('ul')
@@ -2101,10 +2102,10 @@
                 bubbles.append(list)
             }
             const bubbleForm = element('form', { className: 'flzrecruitment-form' }, [
-                field('Beschriftung', input('label', 'text', true)),
-                field('Einfügetext', element('textarea', { name: 'insertText', rows: 3, required: true })),
-                field('Reihenfolge', input('sortOrder', 'number', true, 10)),
-                button('Bubble hinzufügen'),
+                field(translate('flzrecruitment', 'Beschriftung'), input('label', 'text', true)),
+                field(translate('flzrecruitment', 'Einfügetext'), element('textarea', { name: 'insertText', rows: 3, required: true })),
+                field(translate('flzrecruitment', 'Reihenfolge'), input('sortOrder', 'number', true, 10)),
+                button(translate('flzrecruitment', 'Bubble hinzufügen')),
             ])
             bubbleForm.addEventListener('submit', (event) => {
                 event.preventDefault()
@@ -2113,11 +2114,11 @@
                 data.active = true
                 run(
                     () => api.createBubble(question.id, data),
-                    'Antwort-Bubble wurde hinzugefügt.',
+                    translate('flzrecruitment', 'Antwort-Bubble wurde hinzugefügt.'),
                     () => openTemplate(templateId),
                 )
             })
-            bubbles.append(createFormOverlay('Neuer Antwortbaustein', 'Antwortbaustein neu', bubbleForm))
+            bubbles.append(createFormOverlay('Neuer Antwortbaustein', translate('flzrecruitment', 'Antwortbaustein neu'), bubbleForm))
         }
         article.append(bubbles)
         return article
@@ -2125,15 +2126,15 @@
 
     function renderHiringData(detail) {
         const card = element('section', { className: 'flzrecruitment-card' }, [
-            element('h3', { text: 'Vertragsbereich' }),
-            element('p', { text: 'Bank-, Steuer-, Sozialversicherungs- und Vertragsangaben werden ausschließlich hier für die Vertragsvorbereitung verarbeitet.' }),
-            element('p', { text: 'Tarifgrundlage: Haustarifvertrag ambulante dienste e.V., bereitgestellte Fassung mit Änderungen 2024. Beträge werden nicht automatisch fortgeschrieben.' }),
+            element('h3', { text: translate('flzrecruitment', 'Vertragsbereich') }),
+            element('p', { text: translate('flzrecruitment', 'Bank-, Steuer-, Sozialversicherungs- und Vertragsangaben werden ausschließlich hier für die Vertragsvorbereitung verarbeitet.') }),
+            element('p', { text: translate('flzrecruitment', 'Tarifgrundlage: Haustarifvertrag ambulante dienste e.V., bereitgestellte Fassung mit Änderungen 2024. Beträge werden nicht automatisch fortgeschrieben.') }),
         ])
         const stored = detail.hiringData
         const facts = hiringFacts(stored.data)
         card.append(facts)
         if (!state.capabilities.edit_hiring_data) return card
-        const edit = button('Vertragsdaten bearbeiten', 'button', 'flzrecruitment-secondary')
+        const edit = button(translate('flzrecruitment', 'Vertragsdaten bearbeiten'), 'button', 'flzrecruitment-secondary')
         card.append(edit)
         edit.addEventListener('click', () => {
             edit.remove()
@@ -2154,7 +2155,7 @@
             if (type === 'number') control.step = '0.01'
             fields.append(field(label, control))
         }
-        form.append(fields, button('Einstellungsstammdaten speichern'))
+        form.append(fields, button(translate('flzrecruitment', 'Einstellungsstammdaten speichern')))
         form.addEventListener('submit', (event) => {
             event.preventDefault()
             const values = Object.fromEntries(new FormData(form))
@@ -2163,7 +2164,7 @@
             }
             run(
                 () => api.saveHiringData(detail.application.id, values, stored.version),
-                'Einstellungsstammdaten wurden gespeichert.',
+                translate('flzrecruitment', 'Einstellungsstammdaten wurden gespeichert.'),
                 () => openApplication(detail.application.id),
             )
         })
@@ -2183,17 +2184,17 @@
                     : element('span', { text: visibleValue })
             facts.append(element('div', {}, [element('dt', { text: label }), element('dd', {}, displayed)]))
         }
-        if (!facts.childElementCount) return emptyState('Noch keine Einstellungsstammdaten erfasst.')
+        if (!facts.childElementCount) return emptyState(translate('flzrecruitment', 'Noch keine Einstellungsstammdaten erfasst.'))
         return facts
     }
 
     function renderPayroll() {
-        const view = panel('payroll', 'Vertragsvorbereitung')
+        const view = panel('payroll', translate('flzrecruitment', 'Vertragsvorbereitung'))
         view.append(element('p', {
-            text: 'Lohn sieht ausschließlich Vertragsstammdaten: bei Assistenz ab BQ-Zuordnung, ansonsten ab Einstellungsfreigabe.',
+            text: translate('flzrecruitment', 'Lohn sieht ausschließlich Vertragsstammdaten: bei Assistenz ab BQ-Zuordnung, ansonsten ab Einstellungsfreigabe.'),
         }))
         if (!state.hiringData.length) {
-            view.append(emptyState('Aktuell liegen keine freigegebenen Einstellungsdaten vor.'))
+            view.append(emptyState(translate('flzrecruitment', 'Aktuell liegen keine freigegebenen Einstellungsdaten vor.')))
         } else {
             for (const item of state.hiringData) {
                 const card = element('article', { className: 'flzrecruitment-card flzrecruitment-hiring-record' }, [
@@ -2204,7 +2205,7 @@
                 const payrollFacts = hiringFacts(item.hiringData)
                 card.append(payrollFacts)
                 if (state.capabilities.edit_payroll_data) {
-                    const edit = button('LoBu-Daten bearbeiten', 'button', 'flzrecruitment-secondary')
+                    const edit = button(translate('flzrecruitment', 'LoBu-Daten bearbeiten'), 'button', 'flzrecruitment-secondary')
                     card.append(edit)
                     edit.addEventListener('click', () => {
                         edit.remove()
@@ -2214,10 +2215,10 @@
                         for (const [name, label, type = 'text'] of payrollOnlyFields) {
                             fields.append(field(label, hiringControl(name, type, item.hiringData[name], hiringChoices[name])))
                         }
-                        form.append(fields, button('LoBu-Daten speichern'))
+                        form.append(fields, button(translate('flzrecruitment', 'LoBu-Daten speichern')))
                         form.addEventListener('submit', (event) => { event.preventDefault(); run(
                             () => api.savePayrollData(item.applicationId, Object.fromEntries(new FormData(form)), item.hiringDataVersion),
-                            'LoBu-Stammdaten wurden gespeichert.', load,
+                            translate('flzrecruitment', 'LoBu-Stammdaten wurden gespeichert.'), load,
                         ) })
                         card.append(form)
                     })
@@ -2229,26 +2230,26 @@
     }
 
     function renderBasisQualifications() {
-        const view = panel('basis-qualifications', 'Basisqualifikationen')
+        const view = panel('basis-qualifications', translate('flzrecruitment', 'Basisqualifikationen'))
         view.append(element('p', {
-            text: 'BQ-Durchläufe gelten ausschließlich für Assistenz-Stellen. Diese lokale Verwaltung bleibt eine Übergangslösung, bis die eigenständige BQ-Planer-App angebunden ist; Bewertungen verwalten vorerst nur Personalreferent*innen.',
+            text: translate('flzrecruitment', 'BQ-Durchläufe gelten ausschließlich für Assistenz-Stellen. Diese lokale Verwaltung bleibt eine Übergangslösung, bis die eigenständige BQ-Planer-App angebunden ist; Bewertungen verwalten vorerst nur Personalreferent') + '*innen.',
         }))
         const form = element('form', { className: 'flzrecruitment-inline-form flzrecruitment-card' }, [
-            field('Beginn', input('startsOn', 'date', true)),
-            field('Ende', input('endsOn', 'date', true)),
-            button('BQ-Durchlauf anlegen'),
+            field(translate('flzrecruitment', 'Beginn'), input('startsOn', 'date', true)),
+            field(translate('flzrecruitment', 'Ende'), input('endsOn', 'date', true)),
+            button(translate('flzrecruitment', 'BQ-Durchlauf anlegen')),
         ])
         form.addEventListener('submit', (event) => {
             event.preventDefault()
             run(
                 () => api.createBasisQualificationRun(Object.fromEntries(new FormData(form))),
-                'BQ-Durchlauf wurde angelegt.',
+                translate('flzrecruitment', 'BQ-Durchlauf wurde angelegt.'),
             )
         })
-        view.append(createFormOverlay('Neuer BQ-Durchlauf', 'BQ-Durchlauf neu', form))
+        view.append(createFormOverlay('Neuer BQ-Durchlauf', translate('flzrecruitment', 'BQ-Durchlauf neu'), form))
 
         if (!state.basisQualificationRuns.length) {
-            view.append(emptyState('Noch kein BQ-Durchlauf angelegt.'))
+            view.append(emptyState(translate('flzrecruitment', 'Noch kein BQ-Durchlauf angelegt.')))
         } else {
             const list = element('div', { className: 'flzrecruitment-grid' })
             for (const run of state.basisQualificationRuns) {
@@ -2264,7 +2265,7 @@
 
     function renderApplicationBasisQualification(detail) {
         const card = element('section', { className: 'flzrecruitment-card' }, [
-            element('h3', { text: 'Basisqualifikation' }),
+            element('h3', { text: translate('flzrecruitment', 'Basisqualifikation') }),
         ])
         const assignments = detail.basisQualifications || []
         if (detail.application.status === 'decision_pending' && state.basisQualificationRuns.length) {
@@ -2283,7 +2284,7 @@
                         Number(new FormData(form).get('runId')),
                         detail.application.version,
                     ),
-                    'Bewerbung wurde der BQ zugeordnet.',
+                    translate('flzrecruitment', 'Bewerbung wurde der BQ zugeordnet.'),
                     () => openApplication(detail.application.id),
                 )
             })
@@ -2291,15 +2292,15 @@
         }
 
         if (!assignments.length) {
-            card.append(emptyState('Noch keine BQ-Zuordnung vorhanden.'))
+            card.append(emptyState(translate('flzrecruitment', 'Noch keine BQ-Zuordnung vorhanden.')))
             return card
         }
         const resultLabels = {
-            pending: 'Bewertung ausstehend',
-            suitable: 'Geeignet',
-            not_suitable: 'Nicht geeignet',
-            cancelled: 'Abgebrochen',
-            no_show: 'Nicht teilgenommen',
+            pending: translate('flzrecruitment', 'Bewertung ausstehend'),
+            suitable: translate('flzrecruitment', 'Geeignet'),
+            not_suitable: translate('flzrecruitment', 'Nicht geeignet'),
+            cancelled: translate('flzrecruitment', 'Abgebrochen'),
+            no_show: translate('flzrecruitment', 'Nicht teilgenommen'),
         }
         for (const assignment of assignments) {
             const article = element('article', { className: 'flzrecruitment-question-editor' }, [
@@ -2309,13 +2310,13 @@
             if (assignment.evaluationNote) article.append(element('p', { text: assignment.evaluationNote }))
             const resultForm = element('form', { className: 'flzrecruitment-form' }, [
                 field('Einfaches Ergebnis', select('result', [
-                    { value: 'suitable', label: 'Geeignet' },
-                    { value: 'not_suitable', label: 'Nicht geeignet' },
-                    { value: 'cancelled', label: 'Abgebrochen' },
-                    { value: 'no_show', label: 'Nicht teilgenommen' },
+                    { value: 'suitable', label: translate('flzrecruitment', 'Geeignet') },
+                    { value: 'not_suitable', label: translate('flzrecruitment', 'Nicht geeignet') },
+                    { value: 'cancelled', label: translate('flzrecruitment', 'Abgebrochen') },
+                    { value: 'no_show', label: translate('flzrecruitment', 'Nicht teilgenommen') },
                 ], assignment.result === 'pending' ? '' : assignment.result, true)),
-                field('Anmerkung', element('textarea', { name: 'note', rows: 3, maxLength: 2000, value: assignment.evaluationNote || '' })),
-                button('BQ-Ergebnis speichern'),
+                field(translate('flzrecruitment', 'Anmerkung'), element('textarea', { name: 'note', rows: 3, maxLength: 2000, value: assignment.evaluationNote || '' })),
+                button(translate('flzrecruitment', 'BQ-Ergebnis speichern')),
             ])
             resultForm.addEventListener('submit', (event) => {
                 event.preventDefault()
@@ -2327,7 +2328,7 @@
                         data.get('note'),
                         assignment.version,
                     ),
-                    'BQ-Ergebnis wurde gespeichert.',
+                    translate('flzrecruitment', 'BQ-Ergebnis wurde gespeichert.'),
                     () => openApplication(detail.application.id),
                 )
             })
@@ -2339,33 +2340,33 @@
 
     function renderPermissions(target = content, embedded = false) {
         const view = embedded
-            ? settingsPanel('permissions', 'Vertretungen und Erstbegleitungen')
-            : panel('permissions', 'Vertretungen und Erstbegleitungen')
+            ? settingsPanel('permissions', translate('flzrecruitment', 'Vertretungen und Erstbegleitungen'))
+            : panel('permissions', translate('flzrecruitment', 'Vertretungen und Erstbegleitungen'))
         const settings = state.permissionSettings
         if (!settings) {
-            view.append(emptyState('Die Berechtigungskonfiguration ist nicht verfügbar.'))
+            view.append(emptyState(translate('flzrecruitment', 'Die Berechtigungskonfiguration ist nicht verfügbar.')))
             target.replaceChildren(view)
             return
         }
         view.append(element('p', {
-            text: 'Berechtigungen werden getrennt von Organigrammrollen vergeben. Vertretungsrechte gelten zusätzlich einzeln nach Fähigkeit und Scope. Änderungen werden versioniert protokolliert.',
+            text: translate('flzrecruitment', 'Berechtigungen werden getrennt von Organigrammrollen vergeben. Vertretungsrechte gelten zusätzlich einzeln nach Fähigkeit und Scope. Änderungen werden versioniert protokolliert.'),
         }))
         if (settings.valid === false) {
             view.append(element('p', {
                 className: 'flzrecruitment-error',
                 role: 'alert',
-                text: 'Die gespeicherte Berechtigungskonfiguration ist ungültig. Bis zum erneuten Speichern bleiben Rollen- und Vertretungsrechte gesperrt.',
+                text: translate('flzrecruitment', 'Die gespeicherte Berechtigungskonfiguration ist ungültig. Bis zum erneuten Speichern bleiben Rollen- und Vertretungsrechte gesperrt.'),
             }))
         }
 
         if (state.capabilities.manage_permission_matrix) {
             const matrixForm = element('form', { className: 'flzrecruitment-form flzrecruitment-card' })
             matrixForm.append(
-                element('h3', { text: 'Rollen und Berechtigungen' }),
-                element('p', { text: 'Datenschutzbeauftragte ordnen die fachlichen Rechte den Rollen aus dem Organigramm zu. Erstbegleitungsakten bleiben auf Einsatzbegleitungen im eigenen Bereich begrenzt.' }),
+                element('h3', { text: translate('flzrecruitment', 'Rollen und Berechtigungen') }),
+                element('p', { text: translate('flzrecruitment', 'Datenschutzbeauftragte ordnen die fachlichen Rechte den Rollen aus dem Organigramm zu. Erstbegleitungsakten bleiben auf Einsatzbegleitungen im eigenen Bereich begrenzt.') }),
             )
             const table = element('table', { className: 'flzrecruitment-permission-matrix' })
-            const head = element('tr', {}, [element('th', { scope: 'col', text: 'Berechtigung' })])
+            const head = element('tr', {}, [element('th', { scope: 'col', text: translate('flzrecruitment', 'Berechtigung') })])
             for (const role of state.organizationRoles) head.append(element('th', { scope: 'col', text: role.label }))
             table.append(element('thead', {}, [head]))
             const body = element('tbody')
@@ -2388,7 +2389,7 @@
                 body.append(row)
             }
             table.append(body)
-            matrixForm.append(element('div', { className: 'flzrecruitment-table-wrap' }, [table]), button('Rollenzuordnung speichern'))
+            matrixForm.append(element('div', { className: 'flzrecruitment-table-wrap' }, [table]), button(translate('flzrecruitment', 'Rollenzuordnung speichern')))
             matrixForm.addEventListener('submit', (event) => {
                 event.preventDefault()
                 const roleCapabilities = Object.fromEntries(state.roleAssignableCapabilities.map((capability) => [
@@ -2399,7 +2400,7 @@
                 ]))
                 run(
                     () => api.saveRoleCapabilities(roleCapabilities, settings.revision),
-                    'Rollenzuordnung wurde gespeichert.',
+                    translate('flzrecruitment', 'Rollenzuordnung wurde gespeichert.'),
                 )
             })
             view.append(matrixForm)
@@ -2414,13 +2415,13 @@
                         representative.areaKeys.length ? `Bereiche: ${representative.areaKeys.join(', ')}` : '',
                         representative.applicationIds.length ? `Bewerbungen: ${representative.applicationIds.join(', ')}` : '',
                     ].filter(Boolean).join(' · ')
-                const remove = button('Vertretung entfernen', 'button', 'flzrecruitment-secondary')
+                const remove = button(translate('flzrecruitment', 'Vertretung entfernen'), 'button', 'flzrecruitment-secondary')
                 remove.addEventListener('click', () => run(
                     () => api.saveRepresentatives(
                         settings.representatives.filter((item) => item.uid !== representative.uid),
                         settings.revision,
                     ),
-                    'Vertretung wurde entfernt.',
+                    translate('flzrecruitment', 'Vertretung wurde entfernt.'),
                 ))
                 list.append(element('article', { className: 'flzrecruitment-card' }, [
                     element('h3', { text: representative.uid }),
@@ -2431,15 +2432,15 @@
             }
             view.append(list)
         } else {
-            view.append(emptyState('Noch keine Vertretungskraft konfiguriert.'))
+            view.append(emptyState(translate('flzrecruitment', 'Noch keine Vertretungskraft konfiguriert.')))
         }
 
         const form = element('form', { className: 'flzrecruitment-form flzrecruitment-card' }, [
-            element('h3', { text: 'Vertretungskraft hinzufügen' }),
+            element('h3', { text: translate('flzrecruitment', 'Vertretungskraft hinzufügen') }),
             field('Nextcloud-Benutzerkennung', input('uid', 'text', true)),
         ])
         const capabilityFieldset = element('fieldset', { className: 'flzrecruitment-question' }, [
-            element('legend', { text: 'Fähigkeiten' }),
+            element('legend', { text: translate('flzrecruitment', 'Fähigkeiten') }),
         ])
         for (const capability of state.delegatableCapabilities) {
             const control = input('capabilities', 'checkbox')
@@ -2452,10 +2453,10 @@
         areaSelect.size = Math.min(6, Math.max(2, state.areas.length))
         form.append(
             capabilityFieldset,
-            field('Globaler Scope', all, 'Wenn aktiv, gelten die gewählten Fähigkeiten für alle Bewerbungen.'),
-            field('Bürobereiche', areaSelect, 'Mehrfachauswahl mit Strg/Cmd möglich.'),
-            field('Einzelne Bewerbungs-IDs', input('applicationIds'), 'Kommagetrennt; mit Bereichen kombinierbar.'),
-            button('Vertretung hinzufügen'),
+            field('Globaler Scope', all, translate('flzrecruitment', 'Wenn aktiv, gelten die gewählten Fähigkeiten für alle Bewerbungen.')),
+            field(translate('flzrecruitment', 'Bürobereiche'), areaSelect, 'Mehrfachauswahl mit Strg/Cmd möglich.'),
+            field('Einzelne Bewerbungs-IDs', input('applicationIds'), translate('flzrecruitment', 'Kommagetrennt; mit Bereichen kombinierbar.')),
+            button(translate('flzrecruitment', 'Vertretung hinzufügen')),
         )
         form.addEventListener('submit', (event) => {
             event.preventDefault()
@@ -2469,7 +2470,7 @@
             }
             run(
                 () => api.saveRepresentatives([...settings.representatives, representative], settings.revision),
-                'Vertretung wurde hinzugefügt.',
+                translate('flzrecruitment', 'Vertretung wurde hinzugefügt.'),
             )
         })
         view.append(form)
@@ -2498,7 +2499,7 @@
             showTab(state.activeTab)
             setReady()
         } catch (error) {
-            content.replaceChildren(emptyState('Filzmann Recruitment konnte nicht geladen werden.'))
+            content.replaceChildren(emptyState(translate('flzrecruitment', 'Filzmann Recruitment konnte nicht geladen werden.')))
             showError(error)
         }
     }

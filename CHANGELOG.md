@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- L10N-Migration (ZM-06): sichtbare Texte über Nextcloud-l10n (deutsche Quelltexte, Kataloge `l10n/en.*` + `l10n/en_GB.*`), inkl. `tests/Ui/L10nCatalogContractTest.php` und `docs/l10n-inventory.md`.
+
 - Der authentifizierte lokale HTTPS-Smoke meldet CLI-Fehler zuverlässig mit
   Exit 1 und datensparsamer Fundstelle statt stillem Exit 0. Die
   Organisationsprobe prüft zusätzlich die öffentliche Serverauflösung.

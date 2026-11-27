@@ -6,6 +6,7 @@ namespace OCA\FlzRecruitment\Service;
 
 use DateTimeImmutable;
 use OCA\FlzRecruitment\Exception\ValidationException;
+use OCP\IL10N;
 
 /** Hält Vorlagenauflösung und Versandfreigabe unabhängig vom Mailtransport. */
 final class StatusMailWorkflow {
@@ -15,7 +16,13 @@ final class StatusMailWorkflow {
 
     private const PLACEHOLDERS = ['given_name', 'family_name', 'job_title'];
 
-    public function __construct(private ?StatusMailBodyService $bodies = null) {}
+    public function __construct(private ?StatusMailBodyService $bodies = null, private ?IL10N $l10n = null) {}
+
+    /** Lokalisierung fachlicher Texte; im Test ohne IL10N identity. */
+    private function t(string $text): string
+    {
+        return $this->l10n?->t($text) ?? $text;
+    }
 
     /**
      * @param array{id?: int, revision?: int, subject?: string, body?: string} $templateRevision
@@ -24,7 +31,7 @@ final class StatusMailWorkflow {
      */
     public function renderDraft(array $templateRevision, array $context, string $recipient): array {
         $recipient = trim($recipient);
-        if ($recipient !== '') $recipient = $this->email($recipient, 'Die Bewerberadresse ist ungültig.');
+        if ($recipient !== '') $recipient = $this->email($recipient, $this->t('Die Bewerberadresse ist ungültig.'));
         $revision = (int)($templateRevision['revision'] ?? 0);
         if ($revision < 1) {
             throw new ValidationException('Die Vorlagenrevision ist ungültig.');
@@ -72,12 +79,12 @@ final class StatusMailWorkflow {
         }
 
         $originalRecipient = trim((string)($draft['originalRecipient'] ?? ''));
-        if ($originalRecipient !== '') $originalRecipient = $this->email($originalRecipient, 'Die Bewerberadresse ist ungültig.');
-        $intendedRecipient = $this->email($intendedRecipient, 'Die freizugebende Empfängeradresse ist ungültig.');
+        if ($originalRecipient !== '') $originalRecipient = $this->email($originalRecipient, $this->t('Die Bewerberadresse ist ungültig.'));
+        $intendedRecipient = $this->email($intendedRecipient, $this->t('Die freizugebende Empfängeradresse ist ungültig.'));
         $testRecipient = trim($testRecipient);
         $deliveryRecipient = $testRecipient === ''
             ? $intendedRecipient
-            : $this->email($testRecipient, 'Die Testempfängeradresse ist ungültig.');
+            : $this->email($testRecipient, $this->t('Die Testempfängeradresse ist ungültig.'));
 
         return [
             ...$draft,

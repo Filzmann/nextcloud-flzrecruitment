@@ -251,6 +251,7 @@ Geplante Erweiterungen stehen in der [Roadmap](ROADMAP.md).
 
 - [Produktprozess](docs/product-process.md)
 - [Architektur](docs/architecture.md)
+- [Lokalisierungsinventar](docs/l10n-inventory.md)
 - [Manuelle Abnahme](docs/manual-acceptance.md)
 - [Drittanbieterhinweise](THIRD_PARTY.md)
 - [Roadmap](ROADMAP.md)

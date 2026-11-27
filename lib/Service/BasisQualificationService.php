@@ -7,9 +7,17 @@ namespace OCA\FlzRecruitment\Service;
 use DateTimeImmutable;
 use OCA\FlzRecruitment\Contract\BasisQualificationStore;
 use OCA\FlzRecruitment\Exception\ValidationException;
+use OCP\IL10N;
 
 /** Fachlogik für lokale BQ-Durchläufe, Zuordnungen und einfache Ergebnisse. */
 final class BasisQualificationService {
+    public function __construct(private ?IL10N $l10n = null) {}
+
+    /** Lokalisierung fachlicher Texte; im Test ohne IL10N identity. */
+    private function t(string $text): string
+    {
+        return $this->l10n?->t($text) ?? $text;
+    }
     public const RESULTS = ['pending', 'suitable', 'not_suitable', 'cancelled', 'no_show'];
     private const FINAL_RESULTS = ['suitable', 'not_suitable', 'cancelled', 'no_show'];
 
@@ -42,7 +50,7 @@ final class BasisQualificationService {
         }
 
         return $store->createBasisQualificationRun([
-            'label' => 'BQ ' . $start->format('m/y'),
+            'label' => $this->t('BQ ') . $start->format('m/y'),
             'startsOn' => $startsOn,
             'endsOn' => $endsOn,
             'actorUid' => trim($actorUid),

@@ -2,6 +2,9 @@
 
 ## Projekt
 
+- Lokalisierung (ZM-06): Sichtbare Texte ausschließlich über Nextcloud-l10n — deutsche Quelltexte via `IL10N::t()`/`window.t('flzrecruitment', …)`, Kataloge `l10n/en.*` und `l10n/en_GB.*` (Englisch); technische IDs bleiben unübersetzt. `tests/Ui/L10nCatalogContractTest.php` erzwingt das Rohtext-Gate (siehe `docs/l10n-inventory.md`).
+
+
 Nextcloud-App `flzrecruitment` für strukturierte Bewerbungs- und Recruitingprozesse.
 
 Lokale App-URL:

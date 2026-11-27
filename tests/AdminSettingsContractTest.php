@@ -30,7 +30,7 @@ TestRunner::test('system configuration lives in the native Nextcloud admin secti
     assertTrue(!str_contains($template, 'recr-admin-first-guide-form'), 'Die fachliche Erstbegleitungsberechtigung steht noch in der technischen Administration.');
     assertTrue(!str_contains($template, 'id="recr-admin-pool-form"'), 'Bewerberpool-Grundkonfiguration steht noch im Nextcloud-Adminbereich.');
     assertTrue(str_contains($navigation, "id: 'candidate-pool'"), 'Bewerberpool-Grundkonfiguration fehlt im operativen Einstellungsmenü.');
-    assertTrue(str_contains($main, "settingsPanel('candidate-pool', 'Datenschutz & Rückstellungen')"));
+    assertTrue(str_contains($main, "settingsPanel('candidate-pool', translate('flzrecruitment', 'Datenschutz & Rückstellungen'))"));
     assertTrue(str_contains($main, 'api.saveCandidatePoolSettings'));
     assertTrue(!str_contains($navigation, "id: 'data-extraction'"), 'Datenextraktion steht noch im operativen Einstellungsmenü.');
     assertTrue(!str_contains($main, "element('h3', { text: 'Mail-Testmodus' })"), 'Mail-Testmodus steht noch bei den PersRef-Mailvorlagen.');

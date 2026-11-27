@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OCA\FlzRecruitment\Service;
 
 use OCA\FlzRecruitment\Contract\PdfTextExtractor;
+use OCP\IL10N;
 
 /** Lokale, KI-freie PDF-Textextraktion ohne Netzwerkzugriff. */
 final class LocalPdfTextExtractor implements PdfTextExtractor {
@@ -12,11 +13,10 @@ final class LocalPdfTextExtractor implements PdfTextExtractor {
     private const TIMEOUT_SECONDS = 15.0;
     private ?string $engine = null;
 
-    public function __construct(
-        private ?string $executable = null,
+    public function __construct(private ?string $executable = null,
         private int $maxTextBytes = self::MAX_TEXT_BYTES,
         private float $timeoutSeconds = self::TIMEOUT_SECONDS,
-    ) {
+        private ?IL10N $l10n = null) {
         $this->maxTextBytes = max(1, $this->maxTextBytes);
         $this->timeoutSeconds = max(0.001, $this->timeoutSeconds);
         if ($this->executable !== null) {
@@ -43,12 +43,18 @@ final class LocalPdfTextExtractor implements PdfTextExtractor {
         }
     }
 
+    /** Lokalisierung fachlicher Texte; im Test ohne IL10N identity. */
+    private function t(string $text): string
+    {
+        return $this->l10n?->t($text) ?? $text;
+    }
+
     public function available(): bool { return $this->executable !== null && function_exists('proc_open'); }
     public function engineLabel(): string {
         return match ($this->engine) {
-            'pdftotext' => 'Poppler pdftotext',
-            'ghostscript' => 'Ghostscript txtwrite',
-            default => 'Nicht verfügbar',
+            'pdftotext' => $this->t('Poppler pdftotext'),
+            'ghostscript' => $this->t('Ghostscript txtwrite'),
+            default => $this->t('Nicht verfügbar'),
         };
     }
 
