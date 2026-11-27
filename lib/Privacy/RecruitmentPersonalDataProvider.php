@@ -34,7 +34,7 @@ final class RecruitmentPersonalDataProvider implements PersonalDataProvider {
     /** Lokalisierung fachlicher Texte; im Test ohne IL10N identity. */
     private function t(string $text): string
     {
-        return $this->l10n?->t($text) ?? $text;
+        return isset($this->l10n) ? $this->l10n->t($text) : $text;
     }
     public function descriptor():ProviderDescriptor{return new ProviderDescriptor(Application::APP_ID,$this->t('Filzmann Recruitment'),'1.0',['nextcloud-user'],['personal-data'],500);}
     public function collect(PersonalDataRequest $request):PersonalDataPage{
