@@ -53,6 +53,7 @@ namespace OCA\FlzRecruitment\AppInfo {
 namespace OCA\FlzRecruitment\Service {
     final class RecruitmentPermissionPolicy {
         public const DELEGATABLE_CAPABILITIES = ['view', 'interview'];
+        public const ROLE_ASSIGNABLE_CAPABILITIES = ['view', 'interview', 'view_first_guide_dossier'];
     }
 
     final class RecruitmentAccessService {
@@ -77,6 +78,7 @@ namespace OCA\FlzRecruitment\Service {
         public array $required = [];
         public bool $isAdmin = false;
         public bool $manageInbox = false;
+        public bool $managePermissionMatrix = false;
         public function require(string $capability, ?array $application = null): void {
             $this->required[] = $capability;
             if (!in_array($capability, $this->allowed, true)) {
@@ -92,6 +94,10 @@ namespace OCA\FlzRecruitment\Service {
         public function requireManageUnassignedInbox(): void {
             $this->required[] = 'manage_unassigned_inbox';
             if (!$this->manageInbox) throw new \OCA\FlzRecruitment\Exception\AccessDeniedException('Keine Berechtigung.');
+        }
+        public function requireManagePermissionMatrix(): void {
+            $this->required[] = 'manage_permission_matrix';
+            if (!$this->managePermissionMatrix) throw new \OCA\FlzRecruitment\Exception\AccessDeniedException('Keine Berechtigung.');
         }
         public function capabilities(): array {
             return [
@@ -111,6 +117,7 @@ namespace OCA\FlzRecruitment\Service {
                 self::MANAGE_CANDIDATE_POOL => in_array(self::MANAGE_CANDIDATE_POOL, $this->allowed, true),
                 self::OVERRIDE_STATUS_TRANSITIONS => in_array(self::OVERRIDE_STATUS_TRANSITIONS, $this->allowed, true),
                 'manage_unassigned_inbox' => $this->manageInbox,
+                'manage_permission_matrix' => $this->managePermissionMatrix,
             ];
         }
         public function filterOverview(array $overview): array { return $overview; }
@@ -118,6 +125,7 @@ namespace OCA\FlzRecruitment\Service {
         public function organization(): object { return new class {
             public function toArray(): array { return ['areas' => []]; }
             public function areaKeys(): array { return []; }
+            public function roles(): array { return ['staff_hr' => ['groupId' => 'flz-HR', 'label' => 'Personalreferat']]; }
         }; }
         public function permissionSettings(): array { return []; }
         public function isNextcloudAdmin(): bool { return $this->isAdmin; }
@@ -169,7 +177,7 @@ namespace OCA\FlzRecruitment\Service {
                 'savePayrollData' => ['data' => $arguments[1], 'version' => $arguments[2] + 1],
                 'setFirstGuideAccess' => ['id' => $arguments[0], 'firstGuideAccess' => $arguments[1]],
                 'saveRepresentatives' => ['representatives' => $arguments[0], 'revision' => $arguments[1] + 1],
-                'saveFirstGuideGroup' => ['firstGuideGroupId' => $arguments[0], 'revision' => $arguments[1] + 1],
+                'saveRoleCapabilities' => ['roleCapabilities' => $arguments[0], 'revision' => $arguments[1] + 1],
                 'assignBasisQualification' => ['id' => 4, 'applicationId' => $arguments[0], 'result' => 'pending'],
                 'recordBasisQualificationResult' => ['id' => $arguments[0], 'result' => $arguments[1]],
                 'setJobBasisQualificationRequired' => ['id' => $arguments[0], 'basisQualificationRequired' => $arguments[1]],
@@ -726,16 +734,18 @@ namespace {
     $assert($candidatePoolSettings->calls === [['save', [true, '2026-08', 12, 30, 0]]], 'Candidate-pool settings use the wrong arguments.');
 
     $useCases->calls = [];
-    $response = $controller->saveFirstGuideGroup('first-guides', 4);
-    $assert($response->getStatus() === Http::STATUS_FORBIDDEN, 'Non-admins can change the structural first-guide group.');
-    $assert($useCases->calls === [], 'Denied structural group change reaches the use case.');
+    $response = $controller->saveRoleCapabilities(['view' => ['staff_hr']], 4);
+    $assert($response->getStatus() === Http::STATUS_FORBIDDEN, 'A user without privacy permission can change the role capability matrix.');
+    $assert($useCases->calls === [], 'Denied role capability change reaches the use case.');
 
-    $access->isAdmin = true;
+    $access->managePermissionMatrix = true;
+    $access->required = [];
     $useCases->calls = [];
-    $response = $controller->saveFirstGuideGroup('first-guides', 4);
-    $assert($response->getData() === ['firstGuideGroupId' => 'first-guides', 'revision' => 5], 'First-guide group is not saved for Nextcloud admins.');
-    $assert($useCases->calls === [['saveFirstGuideGroup', ['first-guides', 4, 'editor-user']]], 'First-guide group arguments are not forwarded.');
-    $access->isAdmin = false;
+    $response = $controller->saveRoleCapabilities(['view' => ['staff_hr']], 4);
+    $assert($response->getData() === ['roleCapabilities' => ['view' => ['staff_hr']], 'revision' => 5], 'Role capability matrix is not saved for privacy officers.');
+    $assert($access->required === ['manage_permission_matrix'], 'Role capability matrix skips the dedicated server-side gate.');
+    $assert($useCases->calls === [['saveRoleCapabilities', [['view' => ['staff_hr']], 4, 'editor-user']]], 'Role capability arguments are not forwarded.');
+    $access->managePermissionMatrix = false;
 
     $response = $controller->saveResumeExtractionSettings('rules', 0);
     $assert($response->getStatus() === Http::STATUS_FORBIDDEN, 'Non-admins can change resume extraction settings.');

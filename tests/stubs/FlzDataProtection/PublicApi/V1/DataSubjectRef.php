@@ -9,10 +9,10 @@ use InvalidArgumentException;
 final class DataSubjectRef {
     public function __construct(private string $subjectType, private string $subjectId) {
         if (!preg_match('/^[a-z][a-z0-9-]{1,63}$/', $subjectType)) {
-            throw new InvalidArgumentException('Invalid subject type.');
+            throw new InvalidArgumentException('Ungültiger Subjekttyp.');
         }
         if ($subjectId === '' || strlen($subjectId) > 255) {
-            throw new InvalidArgumentException('Invalid subject identifier.');
+            throw new InvalidArgumentException('Ungültiger Subjektbezeichner.');
         }
     }
 

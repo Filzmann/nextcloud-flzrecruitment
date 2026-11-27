@@ -8,15 +8,21 @@ use DateTimeImmutable;
 use DateTimeZone;
 use OCA\FlzRecruitment\Exception\ValidationException;
 use OCA\FlzRecruitment\Repository\RecruitmentRepository;
+use OCP\IL10N;
 
 final class StatusMailService {
-    public function __construct(
-        private RecruitmentRepository $repository,
+    public function __construct(private RecruitmentRepository $repository,
         private StatusMailWorkflow $workflow,
         private ApplicationStatusService $statuses,
         private StatusMailSettingsService $settings,
         private StatusMailBodyService $bodies,
-    ) {}
+        private ?IL10N $l10n = null) {}
+
+    /** Lokalisierung fachlicher Texte; im Test ohne IL10N identity. */
+    private function t(string $text): string
+    {
+        return $this->l10n?->t($text) ?? $text;
+    }
 
     public function configuration(): array { return $this->repository->mailConfiguration() + ['settings' => $this->settings->settings()]; }
 
@@ -79,7 +85,7 @@ final class StatusMailService {
         $body = $bodyFormat === 'html' ? $this->bodies->sanitize($body) : trim($body);
         $this->workflow->renderDraft(
             ['id' => 1, 'revision' => 1, 'subject' => $subject, 'body' => $body, 'bodyFormat' => $bodyFormat],
-            ['given_name' => 'Vorname', 'family_name' => 'Nachname', 'job_title' => 'Stelle'],
+            ['given_name' => 'Vorname', 'family_name' => 'Nachname', 'job_title' => $this->t('Stelle')],
             'template-check@example.org',
         );
         return [$body, $bodyFormat];

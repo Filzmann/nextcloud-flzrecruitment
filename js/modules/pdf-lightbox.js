@@ -1,11 +1,12 @@
 (function (root) {
     'use strict'
+    const translate = typeof t === 'function' ? t : (_app, text, params) => Object.entries(params || {}).reduce((s, [k, v]) => s.split('{' + k + '}').join(String(v)), text)
 
     let pdfModulePromise = null
 
     function normalizeRectangles(rectangles, pageBounds) {
         if (!pageBounds || pageBounds.width <= 0 || pageBounds.height <= 0) {
-            throw new Error('Die PDF-Markierung besitzt keine gültige Seitengröße.')
+            throw new Error(translate('flzrecruitment', 'Die PDF-Markierung besitzt keine gültige Seitengröße.'))
         }
         const normalized = []
         for (const rectangle of rectangles || []) {
@@ -16,7 +17,7 @@
             const width = right - left
             const height = bottom - top
             if (![left, top, width, height].every(Number.isFinite) || width <= 0 || height <= 0) {
-                throw new Error('Die PDF-Markierung ist leer oder liegt außerhalb der Seite.')
+                throw new Error(translate('flzrecruitment', 'Die PDF-Markierung ist leer oder liegt außerhalb der Seite.'))
             }
             normalized.push({
                 x: round((left - pageBounds.left) / pageBounds.width),
@@ -25,7 +26,7 @@
                 height: round(height / pageBounds.height),
             })
         }
-        if (normalized.length > 50) throw new Error('Die PDF-Markierung enthält zu viele Teilbereiche.')
+        if (normalized.length > 50) throw new Error(translate('flzrecruitment', 'Die PDF-Markierung enthält zu viele Teilbereiche.'))
         return normalized
     }
 
@@ -34,7 +35,7 @@
     }
 
     function assetUrl(path) {
-        if (!root.OC?.linkTo) throw new Error('Die lokale PDF.js-Adresse konnte nicht erzeugt werden.')
+        if (!root.OC?.linkTo) throw new Error(translate('flzrecruitment', 'Die lokale PDF.js-Adresse konnte nicht erzeugt werden.'))
         return root.OC.linkTo('flzrecruitment', `js/vendor/pdfjs/${path}`)
     }
 
@@ -63,19 +64,19 @@
     async function open({ url, title, sidePanel = null, fieldLinks = [], onSelection = null, onError = null, pdfjs = null }) {
         const document = root.document
         if (!document?.body || typeof document.createElement !== 'function') {
-            throw new Error('Die PDF-Lightbox ist in dieser Umgebung nicht verfügbar.')
+            throw new Error(translate('flzrecruitment', 'Die PDF-Lightbox ist in dieser Umgebung nicht verfügbar.'))
         }
         const dialog = node(document, 'dialog', {
             className: 'flzrecruitment-pdf-lightbox',
-            'aria-label': `PDF-Ansicht: ${title}`,
+            'aria-label': `${translate('flzrecruitment', 'PDF-Ansicht:')} ${title}`,
         })
         const heading = node(document, 'h2', { text: title })
-        const closeButton = node(document, 'button', { type: 'button', text: 'Schließen', className: 'primary' })
-        const zoomOut = node(document, 'button', { type: 'button', text: 'Verkleinern', 'aria-label': 'PDF verkleinern' })
-        const zoomIn = node(document, 'button', { type: 'button', text: 'Vergrößern', 'aria-label': 'PDF vergrößern' })
-        const takeSelection = node(document, 'button', { type: 'button', text: 'Textauswahl übernehmen' })
-        const markArea = node(document, 'button', { type: 'button', text: 'Bereich markieren', 'aria-pressed': 'false' })
-        const status = node(document, 'p', { className: 'flzrecruitment-pdf-status', text: 'PDF wird geladen …', role: 'status' })
+        const closeButton = node(document, 'button', { type: 'button', text: translate('flzrecruitment', 'Schließen'), className: 'primary' })
+        const zoomOut = node(document, 'button', { type: 'button', text: translate('flzrecruitment', 'Verkleinern'), 'aria-label': translate('flzrecruitment', 'PDF verkleinern') })
+        const zoomIn = node(document, 'button', { type: 'button', text: translate('flzrecruitment', 'Vergrößern'), 'aria-label': translate('flzrecruitment', 'PDF vergrößern') })
+        const takeSelection = node(document, 'button', { type: 'button', text: translate('flzrecruitment', 'Textauswahl übernehmen') })
+        const markArea = node(document, 'button', { type: 'button', text: translate('flzrecruitment', 'Bereich markieren'), 'aria-pressed': 'false' })
+        const status = node(document, 'p', { className: 'flzrecruitment-pdf-status', text: translate('flzrecruitment', 'PDF wird geladen') + ' ' + '…', role: 'status' })
         const pages = node(document, 'div', { className: 'flzrecruitment-pdf-pages', tabindex: '0' })
         const toolbar = node(document, 'div', { className: 'flzrecruitment-pdf-toolbar', role: 'toolbar', 'aria-label': 'PDF-Werkzeuge' }, [
             zoomOut, zoomIn, takeSelection, markArea, status, closeButton,
@@ -116,16 +117,16 @@
             markArea.setAttribute('aria-pressed', String(marking))
             pages.classList.toggle('is-marking', marking)
             status.textContent = marking
-                ? 'Ziehen Sie mit dem Zeiger einen Bereich auf genau einer PDF-Seite auf.'
-                : 'Bereichsmarkierung beendet.'
+                ? translate('flzrecruitment', 'Ziehen Sie mit dem Zeiger einen Bereich auf genau einer PDF-Seite auf.')
+                : translate('flzrecruitment', 'Bereichsmarkierung beendet.')
         })
         takeSelection.addEventListener('click', () => {
             if (!lastSelection) {
-                report(new Error('Wählen Sie zuerst Text innerhalb genau einer PDF-Seite aus.'))
+                report(new Error(translate('flzrecruitment', 'Wählen Sie zuerst Text innerhalb genau einer PDF-Seite aus.')))
                 return
             }
             onSelection?.(lastSelection)
-            status.textContent = `Textauswahl auf Seite ${lastSelection.pageNumber} übernommen.`
+            status.textContent = `${translate('flzrecruitment', 'Textauswahl auf Seite')} ${lastSelection.pageNumber} ${translate('flzrecruitment', 'übernommen.')}`
         })
 
         const captureTextSelection = () => {
@@ -143,7 +144,7 @@
                     selectedText: selection.toString().trim(),
                     rectangles,
                 }
-                status.textContent = 'Textauswahl erkannt. Mit „Textauswahl übernehmen“ bestätigen.'
+                status.textContent = translate('flzrecruitment', 'Textauswahl erkannt. Mit') + ' ' + '„' + translate('flzrecruitment', 'Textauswahl übernehmen') + '“ ' + translate('flzrecruitment', 'bestätigen.')
             } catch (error) {
                 report(error)
             }
@@ -178,7 +179,7 @@
                     rectangles: normalizeRectangles([markerBounds], drag.bounds),
                 }
                 onSelection?.(selected)
-                status.textContent = `Bereich auf Seite ${selected.pageNumber} übernommen.`
+                status.textContent = `${translate('flzrecruitment', 'Bereich auf Seite')} ${selected.pageNumber} ${translate('flzrecruitment', 'übernommen.')}`
             } catch (error) {
                 drag.marker.remove()
                 report(error)
@@ -192,7 +193,7 @@
         const render = async () => {
             if (!pdf || destroyed) return
             pages.replaceChildren()
-            status.textContent = `${pdf.numPages} PDF-Seite${pdf.numPages === 1 ? '' : 'n'} werden dargestellt …`
+            status.textContent = `${pdf.numPages} PDF-Seite${pdf.numPages === 1 ? '' : 'n'} ${translate('flzrecruitment', 'werden dargestellt')} …`
             const module = loadedPdfModule || await pdfModule()
             for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber++) {
                 if (destroyed) return
@@ -201,7 +202,7 @@
                 const pageElement = node(document, 'section', {
                     className: 'flzrecruitment-pdf-page',
                     dataset: { pageNumber: String(pageNumber) },
-                    'aria-label': `PDF-Seite ${pageNumber}`,
+                    'aria-label': `${translate('flzrecruitment', 'PDF-Seite')} ${pageNumber}`,
                     tabindex: '0',
                 })
                 pageElement.style.width = `${viewport.width}px`
@@ -297,8 +298,8 @@
 
     function targetLabel(target) {
         return ({
-            previousExperience: 'Vorerfahrung', germanLanguageLevel: 'Deutschniveau',
-            birthDate: 'Geburtsdatum', birthPlace: 'Geburtsort', freeComment: 'Freier Kommentar',
+            previousExperience: translate('flzrecruitment', 'Vorerfahrung'), germanLanguageLevel: translate('flzrecruitment', 'Deutschniveau'),
+            birthDate: translate('flzrecruitment', 'Geburtsdatum'), birthPlace: translate('flzrecruitment', 'Geburtsort'), freeComment: translate('flzrecruitment', 'Freier Kommentar'),
         })[target] || target
     }
 

@@ -1,5 +1,6 @@
 (function (root) {
     'use strict'
+    const translate = typeof t === 'function' ? t : (_app, text, params) => Object.entries(params || {}).reduce((s, [k, v]) => s.split('{' + k + '}').join(String(v)), text)
 
     function currentRequestToken() {
         const token = root._nc_auth_requestToken
@@ -16,7 +17,7 @@
         if (method !== 'GET') {
             const requestToken = currentRequestToken()
             if (requestToken === null) {
-                throw new Error('Der aktuelle CSRF-Token ist nicht verfügbar. Bitte laden Sie die Seite neu.')
+                throw new Error(translate('flzrecruitment', 'Der aktuelle CSRF-Token ist nicht verfügbar. Bitte laden Sie die Seite neu.'))
             }
             headers.requesttoken = requestToken
             headers['X-Requested-With'] = 'XMLHttpRequest'
@@ -30,7 +31,7 @@
         })
         const payload = await response.json().catch(() => ({}))
         if (!response.ok) {
-            const error = new Error(payload.message || 'Die Anfrage ist fehlgeschlagen.')
+            const error = new Error(payload.message || translate('flzrecruitment', 'Die Anfrage ist fehlgeschlagen.'))
             error.status = response.status
             throw error
         }
@@ -81,7 +82,7 @@
         savePayrollData: (id, data, version) => request(`/api/applications/${id}/payroll-data`, 'PUT', { data, version }),
         setFirstGuideAccess: (id, enabled, version) => request(`/api/applications/${id}/first-guide-access`, 'PUT', { enabled, version }),
         saveRepresentatives: (representatives, revision) => request('/api/permissions/representatives', 'PUT', { representatives, revision }),
-        saveFirstGuideGroup: (groupId, revision) => request('/api/permissions/first-guide-group', 'PUT', { groupId, revision }),
+        saveRoleCapabilities: (roleCapabilities, revision) => request('/api/permissions/roles', 'PUT', { roleCapabilities, revision }),
         requestCandidatePool: (applicationId) => request(`/api/applications/${applicationId}/candidate-pool/request`, 'POST', {}),
         grantCandidatePoolConsent: (id, data) => request(`/api/candidate-pool/${id}/consent`, 'POST', data),
         withdrawCandidatePoolConsent: (id) => request(`/api/candidate-pool/${id}/withdraw`, 'POST', {}),

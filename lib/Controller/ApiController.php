@@ -28,6 +28,7 @@ use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\AppFramework\Http\DataDisplayResponse;
+use OCP\IL10N;
 use OCP\IRequest;
 use Psr\Log\LoggerInterface;
 
@@ -35,8 +36,7 @@ use Psr\Log\LoggerInterface;
  * HTTP-Adapter des ersten vertikalen Recruitment-Durchstichs.
  */
 final class ApiController extends Controller {
-    public function __construct(
-        IRequest $request,
+    public function __construct(IRequest $request,
         private RecruitmentAccessService $access,
         private RecruitmentUseCaseService $useCases,
         private MailInboxService $inboxService,
@@ -49,8 +49,14 @@ final class ApiController extends Controller {
         private ?CandidatePoolService $candidatePool = null,
         private ?CandidatePoolSettingsService $candidatePoolSettings = null,
         private ?ResumeExtractionSettingsService $resumeExtractionSettings = null,
-    ) {
+        private ?IL10N $l10n = null) {
         parent::__construct(Application::APP_ID, $request);
+    }
+
+    /** Lokalisierung fachlicher Texte; im Test ohne IL10N identity. */
+    private function t(string $text): string
+    {
+        return $this->l10n?->t($text) ?? $text;
     }
 
     #[NoAdminRequired]
@@ -258,8 +264,17 @@ final class ApiController extends Controller {
             if ($capabilities[RecruitmentAccessService::MANAGE_CATALOG] ?? false) {
                 $payload['jobResponsibilityGroups'] = $this->jobResponsibilities->allGroups();
             }
-            if ($capabilities[RecruitmentAccessService::MANAGE_DELEGATIONS] ?? false) {
+            if (($capabilities[RecruitmentAccessService::MANAGE_DELEGATIONS] ?? false)
+                || ($capabilities['manage_permission_matrix'] ?? false)) {
                 $payload['permissionSettings'] = $this->access->permissionSettings();
+                $payload['organizationRoles'] = array_map(
+                    static fn(string $key, array $role): array => ['key' => $key, 'label' => $role['label']],
+                    array_keys($this->access->organization()->roles()),
+                    array_values($this->access->organization()->roles()),
+                );
+                $payload['roleAssignableCapabilities'] = RecruitmentPermissionPolicy::ROLE_ASSIGNABLE_CAPABILITIES;
+            }
+            if ($capabilities[RecruitmentAccessService::MANAGE_DELEGATIONS] ?? false) {
                 $payload['delegatableCapabilities'] = RecruitmentPermissionPolicy::DELEGATABLE_CAPABILITIES;
             }
             if (($capabilities[RecruitmentAccessService::MANAGE_MAIL_TEMPLATES] ?? false)
@@ -755,10 +770,10 @@ final class ApiController extends Controller {
     }
 
     #[NoAdminRequired]
-    public function saveFirstGuideGroup(string $groupId, int $revision): JSONResponse {
-        return $this->respond(function () use ($groupId, $revision): array {
-            if (!$this->access->isNextcloudAdmin()) throw new AccessDeniedException();
-            return $this->useCases->saveFirstGuideGroup($groupId, $revision, $this->access->currentUid());
+    public function saveRoleCapabilities(array $roleCapabilities, int $revision): JSONResponse {
+        return $this->respond(function () use ($roleCapabilities, $revision): array {
+            $this->access->requireManagePermissionMatrix();
+            return $this->useCases->saveRoleCapabilities($roleCapabilities, $revision, $this->access->currentUid());
         });
     }
 
@@ -852,20 +867,20 @@ final class ApiController extends Controller {
 
     private function errorResponse(\Throwable $error): JSONResponse {
         if ($error instanceof AccessDeniedException) {
-            return new JSONResponse(['message' => $error->getMessage()], Http::STATUS_FORBIDDEN);
+            return new JSONResponse(['message' => $this->t($error->getMessage())], Http::STATUS_FORBIDDEN);
         }
         if ($error instanceof NotFoundException) {
-            return new JSONResponse(['message' => $error->getMessage()], Http::STATUS_NOT_FOUND);
+            return new JSONResponse(['message' => $this->t($error->getMessage())], Http::STATUS_NOT_FOUND);
         }
         if ($error instanceof ConflictException) {
-            return new JSONResponse(['message' => $error->getMessage()], Http::STATUS_CONFLICT);
+            return new JSONResponse(['message' => $this->t($error->getMessage())], Http::STATUS_CONFLICT);
         }
         if ($error instanceof ValidationException) {
-            return new JSONResponse(['message' => $error->getMessage()], Http::STATUS_UNPROCESSABLE_ENTITY);
+            return new JSONResponse(['message' => $this->t($error->getMessage())], Http::STATUS_UNPROCESSABLE_ENTITY);
         }
         $this->logger->error('Filzmann-Recruitment-Anfrage fehlgeschlagen.', ['exceptionClass' => $error::class]);
         return new JSONResponse(
-            ['message' => 'Die Anfrage konnte technisch nicht verarbeitet werden.'],
+            ['message' => $this->t('Die Anfrage konnte technisch nicht verarbeitet werden.')],
             Http::STATUS_INTERNAL_SERVER_ERROR,
         );
     }

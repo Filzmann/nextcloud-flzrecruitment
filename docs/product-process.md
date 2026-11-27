@@ -199,9 +199,9 @@ Der Kurzfragebogen ist ein regulär überspringbarer Prozessschritt. Die
 angebotenen Folgestati erlauben deshalb auch den direkten Wechsel von der
 Vorprüfung beziehungsweise einem noch offenen Kurzfragebogen zu Telefon,
 Vorstellung, Entscheidung oder Ablehnung. Personalreferat und
-Nextcloud-Administration dürfen ausschließlich über das Status-Dropdown nach
+berechtigte Recruitment-Konten dürfen ausschließlich über das Status-Dropdown nach
 einer ausdrücklichen Sicherheitsabfrage weitere Prozesssprünge ausführen. Die
-dafür erforderliche Fähigkeit ist nicht delegierbar, wird serverseitig erneut
+dafür erforderliche Fähigkeit `override_status_transitions` wird serverseitig erneut
 geprüft und der Ausnahmeweg gesondert auditiert. Drag-and-drop bleibt auf
 reguläre Kanten beschränkt. Unbekannte und identische Stati, eine Einstellung
 ohne vorherige Einstellungsfreigabe sowie eine Einstellungsfreigabe trotz
@@ -221,8 +221,10 @@ bleibt serverseitig kontrolliert und auditiert.
 
 Der Vertragsbereich ist von der Bewerbungsakte fachlich getrennt. Bankdaten,
 Steuer-ID, Krankenkasse und Sozialversicherungsnummer werden erst ab
-`approved_for_hire` für LoBu sichtbar und ausschließlich dort bearbeitet.
-Personalreferat und BQ sehen diese Felder vorher nicht. Familienstand gehört
+`approved_for_hire` für Konten mit dem app-eigenen Lohnbearbeitungsrecht
+sichtbar und bearbeitbar. Personalreferat erhält dieses Recht standardmäßig;
+weitere Organigrammrollen nur durch ausdrückliche Zuordnung. BQ sieht diese
+Felder vorher nicht. Familienstand gehört
 weder zum Bewerbungsprozess noch zur aktiven Vertragsdatenerfassung.
 
 Die Stelle ist die kanonische Quelle für Vertragsdauer, Entgeltgruppe,
@@ -397,8 +399,9 @@ Bürobereich zugeordnet. Dadurch werden die zuständigen Erstbegleitungen
 ermittelt. Die Freigabe aktiviert deren lesenden Zugriff; das Ende erfolgt
 vorerst manuell.
 
-LoBu erhält für alle Berufsgruppen erst ab der Einstellungsfreigabe lesenden
-und für LoBu-only Felder schreibenden Zugriff auf die für die
+Eine ausdrücklich mit den app-eigenen Lohnrechten versehene LoBu-Rolle erhält
+für alle Berufsgruppen erst ab der Einstellungsfreigabe lesenden und für
+LoBu-only Felder schreibenden Zugriff auf die für die
 Vertragserstellung vorgesehene Projektion. Vertragsdauer, Arbeitszeitmodell,
 Entgeltgruppe, Stunden, Urlaub und Arbeitsort werden aus der Stelle abgeleitet.
 LoBu erhält dadurch keinen
@@ -558,7 +561,7 @@ Der Adminbereich bündelt mindestens:
   Zuordnungen, solange kein separates BQ-Modul angebunden ist,
 - Felder und Extraktionszuordnungen für Stammdaten,
 - granulare Fähigkeiten und Vertretungsscope,
-- Erstbegleitungsgruppe und später deren automatische Endregeln,
+- getrennte Erstbegleitungsberechtigung und später deren automatische Endregeln,
 - Aufbewahrungs-, Archivierungs- und Löschregeln; fachliche
   Datenschutzkonfiguration ist dabei ausschließlich der Nextcloud-Gruppe
   `Datenschutzbeauftragte` vorbehalten,
@@ -603,12 +606,11 @@ gruppierte Karten und grundlegende Filter. Anlageformulare öffnen über
 Buttons in Dialog-Overlays; Bewerber*innen und Bewerbungen sind dort
 ausdrücklich als manuelle Ausnahme gekennzeichnet.
 Interviewfragen und -vorlagen, Mailvorlagen, Bewerberpool-Grundkonfiguration
-sowie die Verwaltung von Vertretungsrechten sind als gelegentliche
-PersRef-Pflegeaufgaben unter einem
+sowie Rollenmatrix und Vertretungsrechte sind als gelegentliche fachliche
+Pflegeaufgaben unter einem
 capability-gebundenen Einstellungsmenü zusammengefasst und belegen keine
 eigenen Haupttabs mehr. Ausschließlich systemweite Grundkonfigurationen für
-Mail-Testmodus, Datenextraktion und strukturelle
-Erstbegleitungsgruppe liegen im nativen, nur für Nextcloud-Admins sichtbaren
+Mail-Testmodus und Datenextraktion liegen im nativen, nur für Nextcloud-Admins sichtbaren
 Adminabschnitt `Filzmann Recruitment`.
 
 Ebenfalls umgesetzt ist ein erster privater Posteingang für bereits

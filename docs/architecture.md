@@ -36,7 +36,7 @@ Er ist idempotent, importiert keine fremden Daten und überschreibt keine
 bereits bearbeiteten Demo-Zustände.
 
 Die Stellenmaske bezieht ihre auswählbaren Beteiligungsgruppen aus den
-Rollen des öffentlichen LocalBase-Organisationsvertrags V1 und begrenzt sie
+Rollen des öffentlichen V1-Organisationsvertrags von `flz_organization` und begrenzt sie
 app-lokal je Berufsgruppe. Ein app-lokaler Adapter löst den Provider erst nach
 Installations-, Aktivierungs-, Klassen- und Versionsprüfung über den
 Nextcloud-Container auf. Die Personensuche verwendet ausschließlich die
@@ -79,19 +79,23 @@ weder Snapshot noch Antworten bestehender Interviews.
 
 ## Berechtigungen
 
-Recruitment konsumiert `OCA\\LocalBase\\PublicApi\\V1` ausschließlich über
+Recruitment konsumiert `OCA\\FlzOrganization\\PublicApi\\V1` ausschließlich über
 seinen app-lokalen `OrganizationSnapshotService`. Nur Vertragsversion `1.0`
 mit gültigem Snapshot liefert Rollen und Bereiche. Fehlende, deaktivierte,
 alte, inkompatible, ungültige oder vorübergehend nicht verfügbare Provider
 werden unterscheidbar, aber jeweils mit leeren Organisationsabbildungen
-projiziert. Es gibt keinen direkten Zugriff auf interne LocalBase-Klassen,
-AppConfig oder Persistenz.
+projiziert. Es gibt keinen direkten Zugriff auf interne Providerklassen,
+AppConfig oder Persistenz und keinen LocalBase-Fallback.
 
-Die LocalBase-Rolle `staff_hr` besitzt die fachlichen App-Rechte.
+Die sechzehn operativen App-Rechte sind eine app-eigene, versionierte
+Berechtigungsmatrix und standardmäßig der Organigrammrolle `staff_hr`
+zugeordnet. Organigrammrollen sind nur auswählbare Subjekte und erteilen ohne
+app-eigene Zuordnung keine Aktion. Ausschließlich `Datenschutzbeauftragte`
+ändern diese Rollenmatrix.
 Nextcloud-Admins erhalten fachlichen Vollzugriff nur mit einer aktiven,
 app-lokalen, höchstens 24 Stunden gültigen Freigabe; nativer Adminstatus allein
 genügt nicht.
-Ausschließlich Mitglieder der nativen Gruppe `Datenschutzbeauftragte` dürfen
+Mitglieder von `staff_hr` und der nativen Gruppe `Datenschutzbeauftragte` dürfen
 die Freigabehistorie lesen und Freigaben für aktuelle native
 Administrationskonten in der Recruitment-Fachoberfläche erteilen oder
 widerrufen. Die authentifizierten Endpunkte sind deshalb nicht an die native
@@ -100,28 +104,21 @@ Zielkonto und Dauer serverseitig. Rollenverlust, ungültige Ziele,
 Persistenzfehler, Ablauf und Verlust des nativen Adminstatus verweigern ohne
 zusätzliche Fachrechte. Ein fehlender Vollzugriff wird ausschließlich dem
 betroffenen Administrationskonto angezeigt; der direkte Sprung zur Steuerung
-erscheint nur beim selben Konto mit zusätzlicher Datenschutzrolle.
-`finance` erhält keine Recruitment-Rechte. `payroll` darf für
-`approved_for_hire` und `hired` sowie während einer laufenden BQ mit
-ausstehendem oder geeignetem Ergebnis ausschließlich die Vertragsstammdaten
-lesen; Bewerberakte, Interviews, Anmerkungen und BQ-Bewertungen gehören nicht
-zu dieser Projektion. `not_suitable`, `cancelled` und `no_show` beenden den
-BQ-begründeten Zugriff sofort. Zunächst gilt der Zuordnungszeitpunkt; später
-kann eine konfigurierbare Regel den Beginn auf das Startdatum des
-BQ-Durchlaufs verschieben. Der Erstbegleitungszugriff bleibt bis zur
-Einstellungsfreigabe gesperrt.
+erscheint nur beim selben Konto mit zusätzlicher Freigabeberechtigung.
+`finance` und `payroll` erhalten allein aus ihrer Organigrammrolle keine
+Recruitment-Rechte. Wird `payroll` ausdrücklich das Lese- oder
+Lohnbearbeitungsrecht zugeordnet, bleibt die Projektion auf
+`approved_for_hire` und `hired` begrenzt; Bewerberakte, Interviews,
+Anmerkungen und BQ-Bewertungen gehören nicht dazu. Der
+Erstbegleitungszugriff bleibt bis zur Einstellungsfreigabe gesperrt.
 
-Die nicht delegierbare Fähigkeit `manage_basis_qualification` ist nur für
-Personalreferat und Nextcloud-Admins verfügbar. Sie schützt Durchlauf-,
-Zuordnungs- und Bewertungsendpunkte vor jedem Objektzugriff.
-
-Personalreferent*innen konfigurieren Vertretungskräfte nach einzelnen
-Fähigkeiten und festen LocalBase-Bürobereichen. Die Verwaltung weiterer
-Vertretungen ist selbst nicht delegierbar. Die bestehende technische
-Möglichkeit globaler oder einzelbewerbungsbezogener Grants muss vor der
-fachlichen Freigabe auf diesen Zielvertrag migriert und mit Allow-, Deny- und
-Fremdobjekttests abgesichert werden. Nur Nextcloud-Admins mit aktiver
-app-lokaler Freigabe ändern die strukturelle Erstbegleitungsgruppe.
+Personalreferent*innen und `Datenschutzbeauftragte` konfigurieren individuelle
+Vertretungen nach fünfzehn delegierbaren operativen Fähigkeiten und globalem,
+Bereichs- oder Einzelbewerbungsscope. `manage_delegations` bleibt zum Schutz
+vor rekursiver Rechteausweitung selbst nicht delegierbar und kann in der
+Rollenmatrix nur `staff_hr` zugeordnet werden. Globale Funktionen verlangen
+weiterhin einen globalen Scope. Ungültige Rollen, Fähigkeiten, Bereiche und
+Akten-IDs werden vor jeder Persistenz abgewiesen.
 
 Die fachliche Verantwortung für Bewerbungsakten, Pool und Auswahl liegt bei
 Personalreferent*innen und den von ihnen ausdrücklich benannten Vertretungen
@@ -176,10 +173,10 @@ ausschließlich serverseitig für Mitglieder der Nextcloud-Gruppe
 aber ausdrücklich nur als Übergangsimplementierung bis zum versionierten
 Capability-/Event-Vertrag einer eigenständigen BQ-Planer-App.
 
-Erstbegleitungen benötigen zugleich die LocalBase-Rolle `eb`, Mitgliedschaft
-in der konfigurierten Erstbegleitungsgruppe und Mitgliedschaft im Bereich der
+Erstbegleitungen benötigen zugleich die Organigrammrolle `eb`, das getrennte
+app-eigene Recht `view_first_guide_dossier` und Mitgliedschaft im Bereich der
 Bewerbung. Sie lesen ausschließlich freigegebene Akten ihres Bereichs. Ein
-fehlender oder nicht gültiger LocalBase-V1-Snapshot sperrt sämtliche daraus
+fehlender oder nicht gültiger `flz_organization`-V1-Snapshot sperrt sämtliche daraus
 abgeleiteten HR-, Lohn-, Erstbegleitungs- und Bereichsrechte. Davon
 unabhängige aktive app-lokale Adminfreigaben sowie globale oder
 einzelaktenbezogene Vertretungsfreigaben bleiben erhalten;
@@ -332,8 +329,9 @@ Vorlagenänderungen verändern vorhandene Snapshots nicht.
 
 Reguläre Statuskanten können den optionalen Kurzfragebogen überspringen. Ein
 darüber hinausgehender Prozesssprung verlangt neben `edit_applications` die
-nicht delegierbare Fähigkeit `override_status_transitions`, die ausschließlich
-Personalreferat und Nextcloud-Administration erhalten. Der Server prüft diese
+getrennte Fähigkeit `override_status_transitions`. Sie ist standardmäßig
+`staff_hr` zugeordnet und kann wie die übrigen operativen Rechte ausdrücklich
+delegiert werden. Der Server prüft diese
 Grenze unabhängig von der bestätigenden Dropdown-Oberfläche und schreibt das
 Auditereignis `status_transition_overridden` in derselben Transaktion. Die
 fachlichen Schutzgrenzen für BQ, Einstellungsfreigabe, gültigen Bürobereich,

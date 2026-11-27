@@ -1,8 +1,10 @@
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import vm from 'node:vm'
+import { fileURLToPath } from 'node:url'
 
-const source = readFileSync(new URL('../js/modules/rich-text-editor.js', import.meta.url), 'utf8')
+const filename = fileURLToPath(new URL('../js/modules/rich-text-editor.js', import.meta.url))
+const source = readFileSync(filename, 'utf8')
 const commands = []
 
 class FakeElement {
@@ -27,7 +29,7 @@ const document = {
 }
 const window = { document, prompt: () => 'https://example.invalid/info' }
 window.window = window
-vm.runInContext(source, vm.createContext({ window, document }))
+vm.runInContext(source, vm.createContext({ window, document }), { filename })
 
 const editor = window.RecruitmentRichTextEditor.create({ name: 'body', html: '<p>Hallo</p>' })
 assert.equal(editor.value(), '<p>Hallo</p>')

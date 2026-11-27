@@ -28,6 +28,9 @@ final class RecruitmentAccessService {
     public const MANAGE_CANDIDATE_POOL = RecruitmentPermissionPolicy::MANAGE_CANDIDATE_POOL;
     public const MANAGE_DELEGATIONS = RecruitmentPermissionPolicy::MANAGE_DELEGATIONS;
     public const OVERRIDE_STATUS_TRANSITIONS = RecruitmentPermissionPolicy::OVERRIDE_STATUS_TRANSITIONS;
+    public const MANAGE_TEMPORARY_ADMIN_ACCESS = RecruitmentPermissionPolicy::MANAGE_TEMPORARY_ADMIN_ACCESS;
+    public const VIEW_FIRST_GUIDE_DOSSIER = RecruitmentPermissionPolicy::VIEW_FIRST_GUIDE_DOSSIER;
+    private const PRIVACY_OFFICER_GROUP = 'Datenschutzbeauftragte';
 
     public function __construct(
         private IUserSession $session,
@@ -74,23 +77,23 @@ final class RecruitmentAccessService {
         if (!$this->canManageUnassignedInbox()) throw new AccessDeniedException();
     }
 
+    public function requireManagePermissionMatrix(): void {
+        if (!$this->policy()->canManagePermissionMatrix($this->actor())) throw new AccessDeniedException();
+    }
+
     /** @return array<string, bool> */
     public function capabilities(): array {
         $actor = $this->actor();
         $policy = $this->policy();
         $result = [];
         foreach ([
-            ...RecruitmentPermissionPolicy::DELEGATABLE_CAPABILITIES,
-            self::MANAGE_BASIS_QUALIFICATION,
-            self::EDIT_PAYROLL_DATA,
-            self::MANAGE_MAIL_TEMPLATES,
-            self::MANAGE_CANDIDATE_POOL,
-            self::MANAGE_DELEGATIONS,
-            self::OVERRIDE_STATUS_TRANSITIONS,
+            ...RecruitmentPermissionPolicy::ACTION_CAPABILITIES,
+            self::VIEW_FIRST_GUIDE_DOSSIER,
         ] as $capability) {
             $result[$capability] = $policy->canSomewhere($actor, $capability);
         }
-        $result['manage_unassigned_inbox'] = $policy->canManageUnassignedInbox($actor);
+        $result['manage_permission_matrix'] = $policy->canManagePermissionMatrix($actor);
+        $result[self::MANAGE_TEMPORARY_ADMIN_ACCESS] = $policy->canSomewhere($actor, self::MANAGE_TEMPORARY_ADMIN_ACCESS);
         return $result;
     }
 
@@ -136,10 +139,10 @@ final class RecruitmentAccessService {
     /** @return array<string, mixed> */
     public function permissionSettings(): array { return $this->settings->settings(); }
 
-    /** @return array{uid: string, isAdmin: bool, groupIds: list<string>} */
+    /** @return array{uid: string, isAdmin: bool, isPrivacyOfficer: bool, groupIds: list<string>} */
     private function actor(): array {
         $user = $this->currentUser();
-        if ($user === null) return ['uid' => '', 'isAdmin' => false, 'groupIds' => []];
+        if ($user === null) return ['uid' => '', 'isAdmin' => false, 'isPrivacyOfficer' => false, 'groupIds' => []];
         $snapshot = $this->organization->snapshot();
         $candidateGroups = [];
         foreach ($snapshot->roleKeys() as $roleKey) {
@@ -150,12 +153,16 @@ final class RecruitmentAccessService {
             $groupId = $snapshot->areaGroupId($areaKey);
             if ($groupId !== null) $candidateGroups[] = $groupId;
         }
-        $candidateGroups[] = (string)$this->settings->settings()['firstGuideGroupId'];
         $groupIds = [];
         foreach (array_values(array_unique($candidateGroups)) as $groupId) {
             if ($groupId !== '' && $this->groups->get($groupId)?->inGroup($user) === true) $groupIds[] = $groupId;
         }
-        return ['uid' => $user->getUID(), 'isAdmin' => $this->groups->isAdmin($user->getUID()) && $this->temporaryAdminAccess->hasActiveGrant($user->getUID()), 'groupIds' => $groupIds];
+        return [
+            'uid' => $user->getUID(),
+            'isAdmin' => $this->groups->isAdmin($user->getUID()) && $this->temporaryAdminAccess->hasActiveGrant($user->getUID()),
+            'isPrivacyOfficer' => $this->groups->get(self::PRIVACY_OFFICER_GROUP)?->inGroup($user) === true,
+            'groupIds' => $groupIds,
+        ];
     }
 
     private function policy(): RecruitmentPermissionPolicy {

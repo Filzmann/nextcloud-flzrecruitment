@@ -18,13 +18,13 @@ final class PersonalDataProviderRegistry {
         $appId = $descriptor->appId();
 
         if ($descriptor->contractVersion() !== self::CONTRACT_VERSION) {
-            throw new DomainException('Incompatible provider contract version.');
+            throw new DomainException('Inkompatible Provider-Vertragsversion.');
         }
         if (!in_array('personal-data', $descriptor->capabilities(), true)) {
-            throw new DomainException('Personal-data capability is missing.');
+            throw new DomainException('Die Fähigkeit für personenbezogene Daten fehlt.');
         }
         if (isset($this->providers[$appId])) {
-            throw new DomainException('Duplicate provider app ID.');
+            throw new DomainException('Doppelte Provider-App-ID.');
         }
 
         $this->providers[$appId] = $provider;

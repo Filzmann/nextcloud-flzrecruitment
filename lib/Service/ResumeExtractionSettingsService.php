@@ -9,12 +9,19 @@ use OCA\FlzRecruitment\Exception\ConflictException;
 use OCA\FlzRecruitment\Exception\ValidationException;
 use OCP\IAppConfig;
 use OCA\FlzRecruitment\Contract\PdfTextExtractor;
+use OCP\IL10N;
 
 final class ResumeExtractionSettingsService {
     public const RULES = 'rules';
     public const LOCAL_MODEL = 'local_model';
 
-    public function __construct(private IAppConfig $config, private PdfTextExtractor $pdfTextExtractor) {}
+    public function __construct(private IAppConfig $config, private PdfTextExtractor $pdfTextExtractor, private ?IL10N $l10n = null) {}
+
+    /** Lokalisierung fachlicher Texte; im Test ohne IL10N identity. */
+    private function t(string $text): string
+    {
+        return $this->l10n?->t($text) ?? $text;
+    }
 
     /** @return array{method:string,revision:int,options:list<array{value:string,label:string,available:bool}>} */
     public function settings(): array {
@@ -22,8 +29,8 @@ final class ResumeExtractionSettingsService {
             'method' => $this->config->getValueString(Application::APP_ID, 'resume_extraction_method', self::RULES),
             'revision' => (int)$this->config->getValueString(Application::APP_ID, 'resume_extraction_revision', '0'),
             'options' => [
-                ['value' => self::RULES, 'label' => 'Lokale Stichworterkennung', 'available' => true],
-                ['value' => self::LOCAL_MODEL, 'label' => 'Lokales Server-Modell', 'available' => false],
+                ['value' => self::RULES, 'label' => $this->t('Lokale Stichworterkennung'), 'available' => true],
+                ['value' => self::LOCAL_MODEL, 'label' => $this->t('Lokales Server-Modell'), 'available' => false],
             ],
             'runtime' => [
                 'pdfTextAvailable' => $this->pdfTextExtractor->available(),

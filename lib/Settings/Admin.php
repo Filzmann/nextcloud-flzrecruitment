@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace OCA\FlzRecruitment\Settings;
 
 use OCA\FlzRecruitment\AppInfo\Application;
-use OCA\FlzRecruitment\Service\RecruitmentPermissionSettingsService;
 use OCA\FlzRecruitment\Service\ResumeExtractionSettingsService;
 use OCA\FlzRecruitment\Service\StatusMailSettingsService;
 use OCP\AppFramework\Http\TemplateResponse;
@@ -16,14 +15,12 @@ final class Admin implements ISettings {
     public function __construct(
         private StatusMailSettingsService $mailSettings,
         private ResumeExtractionSettingsService $resumeExtractionSettings,
-        private RecruitmentPermissionSettingsService $permissionSettings,
     ) {}
 
     public function getForm(): TemplateResponse {
         return new TemplateResponse(Application::APP_ID, 'admin', [
             'mailSettings' => $this->mailSettings->settings(),
             'resumeExtractionSettings' => $this->resumeExtractionSettings->settings(),
-            'permissionSettings' => $this->permissionSettings->settings(),
         ]);
     }
 

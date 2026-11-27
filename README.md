@@ -4,8 +4,13 @@
 
 - Nextcloud 33 bis 35
 - PHP 8.3 oder neuer innerhalb des von Nextcloud 33 bis 35 unterstützten Bereichs
-- Laufzeitbasis: `localbase`; `orgsuite` ist ab zwei FLZ-Fachprodukten optional aktiv
+- Laufzeitbasis: `localbase` und `flz_organization`; `orgsuite` ist ab zwei FLZ-Fachprodukten optional aktiv
 - App-ID und Installationsordner: `flzrecruitment`
+
+Für Entwicklung und Staging müssen `localbase` und `flz_organization`
+aktiviert sein. Das Produktbundle `flz-product-flzrecruitment-<release>.tar.gz`
+darf erst wieder ausgeliefert werden, wenn sein Installer beide Laufzeit-Apps
+prüft und installiert; der heutige Installer deckt nur LocalBase ab.
 
 `flzrecruitment` ist eine eigenständige Nextcloud-App für einen strukturierten,
 nachvollziehbaren Bewerbungsprozess. Der vorhandene vertikale Ausschnitt
@@ -37,8 +42,10 @@ capability-abhängig gemeinsam unter `Einstellungen` und sind dort über eine
 tastaturbedienbare Unter-Navigation erreichbar.
 Systemweite Grundkonfigurationen liegen getrennt unter
 `Nextcloud-Einstellungen → Verwaltung → Filzmann Recruitment`: Mail-Testmodus,
-Lebenslaufextraktion sowie die strukturelle Erstbegleitungsgruppe. Dieser
-Abschnitt ist ausschließlich für Nextcloud-Admins sichtbar.
+und Lebenslaufextraktion. Dieser Abschnitt ist ausschließlich für
+Nextcloud-Admins sichtbar. Fachliche Rollen- und Berechtigungszuordnungen
+liegen dagegen im Recruitment-Einstellungstab und werden ausschließlich durch
+`Datenschutzbeauftragte` gepflegt.
 
 Personalreferent*innen verwalten versionierte Mailvorlagen, Textblöcke und
 ein- oder ausschaltbare Regeln je Statusübergang. Ein Statuswechsel erzeugt
@@ -88,15 +95,17 @@ geeignet“, „abgebrochen“ und „nicht teilgenommen“.
 Diese lokale BQ-Verwaltung ist eine Übergangslösung, bis die eigenständige
 BQ-Planer-App über einen kleinen versionierten Vertrag angebunden ist.
 
-Die Berechtigungen stammen aus dem öffentlichen LocalBase-
-Organisationsvertrag V1, den Recruitment erst nach Installations-,
-Aktivierungs- und Versionsprüfung lazy auflöst. Personalreferent*innen besitzen
-operativen Vollzugriff, sehen und bearbeiten vor der Einstellungsfreigabe aber
-keine LoBu-only Abrechnungsdaten. LoBu sieht ab der Einstellungsfreigabe
-ausschließlich die für die Vertragserstellung bestimmten Stammdaten.
-Vertretungen werden nach Fähigkeit sowie globalem, Bereichs- oder
-Einzelbewerbungsscope konfiguriert. Erstbegleitungen benötigen EB-Rolle,
-Erstbegleitungsgruppe und denselben Bürobereich wie die freigegebene Bewerbung.
+Die Berechtigungen stammen aus dem öffentlichen V1-Organisationsvertrag von
+`flz_organization`, den Recruitment erst nach Installations-,
+Aktivierungs- und Versionsprüfung lazy auflöst. Die sechzehn operativen Rechte
+sind davon getrennte app-eigene Fähigkeiten und standardmäßig `staff_hr`
+zugeordnet. Weitere Organigrammrollen erhalten ohne ausdrückliche Zuordnung
+keine Aktion. Vertretungen werden durch Personalreferat oder
+`Datenschutzbeauftragte` nach fünfzehn delegierbaren Fähigkeiten sowie
+globalem, Bereichs- oder Einzelbewerbungsscope konfiguriert. Die Verwaltung
+weiterer Vertretungen ist selbst nicht delegierbar. Erstbegleitungen benötigen die EB-Rolle,
+das getrennte Recht `Erstbegleitungsakte lesen`, denselben Bürobereich wie die
+freigegebene Bewerbung und deren aktive Erstbegleitungsfreigabe.
 Fehlende, deaktivierte, inkompatible, ungültige oder nicht verfügbare
 Organisationsprovider erteilen keine dieser organisationsabgeleiteten Rechte;
 unabhängige globale und einzelaktenbezogene Recruitment-Freigaben bleiben
@@ -104,13 +113,14 @@ davon unberührt.
 
 Beim Upgrade wird die bisherige kombinierte Bestandsgruppe sicher der Rolle
 Finanzen zugeordnet. Lohn-Mitarbeitende müssen durch die Administration
-bewusst in die neue LocalBase-Lohn-Gruppe übernommen werden; Mitgliedschaften
+bewusst in die neue Organigramm-Lohn-Gruppe übernommen werden; Mitgliedschaften
 werden wegen der sensiblen Vertragsstammdaten nicht automatisch kopiert.
 
 Die App bleibt eigenständig installierbar. Ab zwei aktivierten FLZ-Fachprodukten
 ersetzt OrgSuite den einzelnen Nextcloud-Einstieg durch das gemeinsame FLZ-Menü.
 Filzmann Recruitment ist Bestandteil des vollständigen Filzmann Nextcloud Plugins-Pakets und wird
-zusätzlich als eigenes Produktpaket mit LocalBase und OrgSuite gebaut.
+zusätzlich als eigenes Produktpaket mit LocalBase, `flz_organization` und
+OrgSuite gebaut.
 
 ## Lokale Entwicklung
 
@@ -212,7 +222,7 @@ stehen in `docs/architecture.md`.
 
 ## Zeitlich begrenzter Admin-Vollzugriff
 
-Ein Nextcloud-Administrationskonto erhält nicht automatisch Zugriff auf Bewerbungsakten. Ausschließlich Mitglieder der nativen Nextcloud-Gruppe `Datenschutzbeauftragte` können in der Recruitment-Fachoberfläche die Freigabehistorie lesen und aktuellen Administrationskonten für 1, 4, 8 oder höchstens 24 Stunden fachlichen Vollzugriff erteilen oder ihn vorzeitig widerrufen. Native Administration allein genügt nicht. Beginn, geplantes Ende, Freigabe und Widerruf werden app-lokal protokolliert und in Datenschutz- sowie Berechtigungsprovider einbezogen. Ein fehlender Vollzugriff wird dem betroffenen Administrationskonto sicher angezeigt; der Direktlink zur Steuerung erscheint nur, wenn dasselbe Konto zugleich Datenschutzbeauftragte*r ist. Technische Systemeinstellungen bleiben davon getrennt im Nextcloud-Adminbereich.
+Ein Nextcloud-Administrationskonto erhält nicht automatisch Zugriff auf Bewerbungsakten. Mitglieder der Organigrammrolle `staff_hr` und der nativen Nextcloud-Gruppe `Datenschutzbeauftragte` können in der Recruitment-Fachoberfläche die Freigabehistorie lesen und aktuellen Administrationskonten für 1, 4, 8 oder höchstens 24 Stunden fachlichen Vollzugriff erteilen oder ihn vorzeitig widerrufen. Native Administration allein genügt nicht. Beginn, geplantes Ende, Freigabe und Widerruf werden app-lokal protokolliert und in Datenschutz- sowie Berechtigungsprovider einbezogen. Ein fehlender Vollzugriff wird dem betroffenen Administrationskonto sicher angezeigt; der Direktlink zur Steuerung erscheint nur bei zusätzlicher Berechtigung zur Freigabesteuerung. Technische Systemeinstellungen bleiben davon getrennt im Nextcloud-Adminbereich.
 
 ## Datenschutz
 
@@ -241,6 +251,7 @@ Geplante Erweiterungen stehen in der [Roadmap](ROADMAP.md).
 
 - [Produktprozess](docs/product-process.md)
 - [Architektur](docs/architecture.md)
+- [Lokalisierungsinventar](docs/l10n-inventory.md)
 - [Manuelle Abnahme](docs/manual-acceptance.md)
 - [Drittanbieterhinweise](THIRD_PARTY.md)
 - [Roadmap](ROADMAP.md)

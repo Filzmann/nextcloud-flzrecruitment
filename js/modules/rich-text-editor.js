@@ -1,13 +1,14 @@
 (function (root) {
     'use strict'
+    const translate = typeof t === 'function' ? t : (_app, text, params) => Object.entries(params || {}).reduce((s, [k, v]) => s.split('{' + k + '}').join(String(v)), text)
 
     const controls = [
-        ['bold', 'Fett', 'B'],
-        ['italic', 'Kursiv', 'I'],
-        ['insertUnorderedList', 'Aufzählung', '• Liste'],
-        ['insertOrderedList', 'Nummerierte Liste', '1. Liste'],
-        ['createLink', 'Link einfügen', 'Link'],
-        ['removeFormat', 'Formatierung entfernen', 'Format löschen'],
+        ['bold', translate('flzrecruitment', 'Fett'), 'B'],
+        ['italic', translate('flzrecruitment', 'Kursiv'), 'I'],
+        ['insertUnorderedList', translate('flzrecruitment', 'Aufzählung'), '• ' + translate('flzrecruitment', 'Liste')],
+        ['insertOrderedList', translate('flzrecruitment', 'Nummerierte Liste'), '1. Liste'],
+        ['createLink', translate('flzrecruitment', 'Link einfügen'), translate('flzrecruitment', 'Link')],
+        ['removeFormat', translate('flzrecruitment', 'Formatierung entfernen'), translate('flzrecruitment', 'Format löschen')],
     ]
 
     function create({ name = 'body', html = '' } = {}) {
@@ -16,7 +17,7 @@
         const toolbar = root.document.createElement('div')
         toolbar.className = 'flzrecruitment-rte__toolbar'
         toolbar.setAttribute('role', 'toolbar')
-        toolbar.setAttribute('aria-label', 'Text formatieren')
+        toolbar.setAttribute('aria-label', translate('flzrecruitment', 'Text formatieren'))
         const editable = root.document.createElement('div')
         editable.className = 'flzrecruitment-rte__content'
         editable.contentEditable = 'true'

@@ -5,9 +5,17 @@ declare(strict_types=1);
 namespace OCA\FlzRecruitment\Service;
 
 use OCA\FlzRecruitment\Exception\ValidationException;
+use OCP\IL10N;
 
 /** Kanonische Normalisierung der aus mehreren Quellen befüllbaren Bewerbungsfelder. */
 final class ApplicationFieldValueService {
+    public function __construct(private ?IL10N $l10n = null) {}
+
+    /** Lokalisierung fachlicher Texte; im Test ohne IL10N identity. */
+    private function t(string $text): string
+    {
+        return $this->l10n?->t($text) ?? $text;
+    }
     public const FIELDS = ['previousExperience', 'germanLanguageLevel'];
     public const GERMAN_LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2', 'native', 'not_assessed'];
 
@@ -25,7 +33,7 @@ final class ApplicationFieldValueService {
 
         $normalized = match (strtolower($normalized)) {
             'muttersprachlich', 'native' => 'native',
-            'nicht bewertet', 'not_assessed' => 'not_assessed',
+            $this->t('nicht bewertet'), 'not_assessed' => 'not_assessed',
             default => strtoupper($normalized),
         };
         if (!in_array($normalized, self::GERMAN_LEVELS, true)) {

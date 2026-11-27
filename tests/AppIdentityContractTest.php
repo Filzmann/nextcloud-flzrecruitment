@@ -37,7 +37,8 @@ TestRunner::test('technical app identity is consistently flzrecruitment', static
     assertTrue(str_contains($template, "Util::addStyle('flzrecruitment', 'style');"), 'Template assets use the old app ID');
     assertTrue(str_contains($api, "generateUrl('/apps/flzrecruitment' + path)"), 'API client uses the old app route');
     assertTrue(str_contains($access, 'OrganizationSnapshotService'), 'Access does not consume the app-local Organization V1 adapter');
-    assertTrue(str_contains($organizationAdapter, 'OCA\\LocalBase\\PublicApi\\V1'), 'Organization adapter bypasses the public LocalBase V1 boundary');
+    assertTrue(str_contains($organizationAdapter, 'OCA\\FlzOrganization\\PublicApi\\V1'), 'Organization adapter bypasses the public flz_organization V1 boundary');
+    assertTrue(!str_contains($organizationAdapter, 'OCA\\LocalBase'), 'Organization adapter retains a second LocalBase source');
     assertTrue(!str_contains($access, 'OCA\\LocalBase\\Organization'), 'Access still consumes internal LocalBase organization classes');
     assertTrue(!str_contains($access, "'flzrecruitment-admin'"), 'Access still maintains a parallel app-specific role hierarchy');
 });

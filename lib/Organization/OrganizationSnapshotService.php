@@ -5,16 +5,22 @@ declare(strict_types=1);
 namespace OCA\FlzRecruitment\Organization;
 
 use InvalidArgumentException;
-use OCA\LocalBase\PublicApi\V1\OrganizationSnapshot as ProviderSnapshot;
-use OCA\LocalBase\PublicApi\V1\OrganizationSnapshotService as ProviderSnapshotService;
+use OCA\FlzOrganization\PublicApi\V1\Contract;
+use OCA\FlzOrganization\PublicApi\V1\OrganizationSnapshot as ProviderSnapshot;
+use OCA\FlzOrganization\PublicApi\V1\OrganizationSnapshotService as ProviderSnapshotService;
 use OCP\App\IAppManager;
 use OCP\Server;
 use Psr\Log\LoggerInterface;
 use UnexpectedValueException;
 
-/** Resolves LocalBase Organization V1 lazily and fails closed at the runtime-app boundary. */
+/**
+ * Resolves the standalone organization V1 contract lazily and fail-closed.
+ *
+ * LocalBase is deliberately not a fallback: flz_organization owns the
+ * canonical organization state and is the only supported runtime provider.
+ */
 class OrganizationSnapshotService {
-    private const PROVIDER_APP_ID = 'localbase';
+    private const PROVIDER_APP_ID = 'flz_organization';
     private const SUPPORTED_CONTRACT_VERSION = '1.0';
 
     public function __construct(
@@ -24,7 +30,8 @@ class OrganizationSnapshotService {
 
     public function snapshot(): OrganizationSnapshot {
         try {
-            if (!array_key_exists(self::PROVIDER_APP_ID, $this->apps->getAppInstalledVersions(false))) {
+            $installed = array_key_exists(self::PROVIDER_APP_ID, $this->apps->getAppInstalledVersions(false));
+            if (!$installed) {
                 return OrganizationSnapshot::unavailable(OrganizationSnapshot::MISSING);
             }
             if (!in_array(self::PROVIDER_APP_ID, $this->apps->getEnabledApps(), true)) {
@@ -34,13 +41,13 @@ class OrganizationSnapshotService {
             return $this->providerFailure($error);
         }
 
-        if (!$this->providerContractAvailable()) {
+        if (!$this->isContractCompatible()) {
             return OrganizationSnapshot::unavailable(OrganizationSnapshot::INCOMPATIBLE);
         }
 
         try {
             $provider = $this->readProviderSnapshot();
-            $contractVersion = $this->providerContractVersion($provider);
+            $contractVersion = $provider->contractVersion();
             $definitionVersion = $provider->definitionVersion();
             $checksum = $provider->checksum();
         } catch (InvalidArgumentException|UnexpectedValueException) {
@@ -52,9 +59,9 @@ class OrganizationSnapshotService {
         if ($contractVersion !== self::SUPPORTED_CONTRACT_VERSION) {
             return OrganizationSnapshot::unavailable(
                 OrganizationSnapshot::INCOMPATIBLE,
-                $contractVersion,
-                $definitionVersion,
-                $checksum,
+                is_string($contractVersion) ? $contractVersion : '',
+                is_int($definitionVersion) ? $definitionVersion : 0,
+                is_string($checksum) ? $checksum : '',
             );
         }
         if (!$provider->isValid()) {
@@ -75,27 +82,26 @@ class OrganizationSnapshotService {
         );
     }
 
-    protected function providerContractAvailable(): bool {
-        return class_exists(ProviderSnapshot::class) && class_exists(ProviderSnapshotService::class);
+    protected function isContractCompatible(): bool {
+        return class_exists(Contract::class)
+            && Contract::supports(self::SUPPORTED_CONTRACT_VERSION)
+            && class_exists(ProviderSnapshot::class)
+            && class_exists(ProviderSnapshotService::class);
     }
 
     protected function readProviderSnapshot(): ProviderSnapshot {
         $provider = Server::get(ProviderSnapshotService::class);
         if (!$provider instanceof ProviderSnapshotService) {
-            throw new UnexpectedValueException('LocalBase Organization V1 service is not resolvable.');
+            throw new UnexpectedValueException('Organization V1 service is not resolvable.');
         }
         return $provider->snapshot();
-    }
-
-    protected function providerContractVersion(ProviderSnapshot $snapshot): string {
-        return $snapshot->contractVersion();
     }
 
     private function providerFailure(\Throwable $error): OrganizationSnapshot {
         $this->logger->warning('Recruitment organization snapshot unavailable', [
             'app' => 'flzrecruitment',
             'provider' => self::PROVIDER_APP_ID,
-            'exception' => $error,
+            'exceptionClass' => $error::class,
         ]);
         return OrganizationSnapshot::unavailable(OrganizationSnapshot::UNAVAILABLE);
     }

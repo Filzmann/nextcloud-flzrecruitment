@@ -2,6 +2,9 @@
 
 ## Projekt
 
+- Lokalisierung (ZM-06): Sichtbare Texte ausschließlich über Nextcloud-l10n — deutsche Quelltexte via `IL10N::t()`/`window.t('flzrecruitment', …)`, Kataloge `l10n/en.*` und `l10n/en_GB.*` (Englisch); technische IDs bleiben unübersetzt. `tests/Ui/L10nCatalogContractTest.php` erzwingt das Rohtext-Gate (siehe `docs/l10n-inventory.md`).
+
+
 Nextcloud-App `flzrecruitment` für strukturierte Bewerbungs- und Recruitingprozesse.
 
 Lokale App-URL:
@@ -94,21 +97,32 @@ Bewerbermanagement orientierten Prozess innerhalb der Filzmann Nextcloud Plugins
   OrgSuite-Menüposition aus dem versionierten LocalBase-Produktkatalog. Der
   wirkungslose OrgSuite-Host lädt keine fremden Assets direkt; sichtbare
   Navigation erteilt keine Fachberechtigung.
-- Native Nextcloud-Administration erteilt keinen fachlichen Recruitment-Vollzugriff. Er setzt pro Administrationskonto eine aktive, app-lokale Freigabe von höchstens 24 Stunden voraus; Beginn, geplantes Ende und Widerruf bleiben historisch protokolliert. Ausschließlich Mitglieder der nativen Gruppe `Datenschutzbeauftragte` lesen die Historie und erteilen oder widerrufen Freigaben in der Recruitment-Fachoberfläche.
-- Technische Systemeinstellungen bleiben native Administration. Ein fehlender Vollzugriff wird nur dem betroffenen Administrationskonto angezeigt; ein direkter Link zur Freigabesteuerung erscheint ausschließlich, wenn dasselbe Konto zugleich Mitglied von `Datenschutzbeauftragte` ist. Änderungen an Freigabehistorie oder Recruitment-Rechten werden gleichzeitig im PersonalDataProvider und PermissionProvider nachgeführt.
+- Native Nextcloud-Administration erteilt keinen fachlichen Recruitment-Vollzugriff. Er setzt pro Administrationskonto eine aktive, app-lokale Freigabe von höchstens 24 Stunden voraus; Beginn, geplantes Ende und Widerruf bleiben historisch protokolliert. Mitglieder der Organigrammrolle `staff_hr` und der nativen Gruppe `Datenschutzbeauftragte` lesen die Historie und erteilen oder widerrufen Freigaben in der Recruitment-Fachoberfläche.
+- Technische Systemeinstellungen bleiben native Administration. Ein fehlender Vollzugriff wird nur dem betroffenen Administrationskonto angezeigt; ein direkter Link zur Freigabesteuerung erscheint ausschließlich, wenn dasselbe Konto zugleich `staff_hr` oder Mitglied von `Datenschutzbeauftragte` ist. Die app-eigene Rollenmatrix wird ausschließlich durch `Datenschutzbeauftragte` gepflegt. Änderungen an Freigabehistorie oder Recruitment-Rechten werden gleichzeitig im PersonalDataProvider und PermissionProvider nachgeführt.
 - Controller bleiben dünn. Fachregeln liegen in Services, Datenzugriff im `RecruitmentRepository`, Berechtigungen im `RecruitmentAccessService` und Browserlogik in getrennten JavaScript-Modulen.
 - Rechte werden serverseitig und deny by default über eine gegebenenfalls
-  aktive app-lokale Adminfreigabe, den unveränderlichen LocalBase-
+  aktive app-lokale Adminfreigabe, den unveränderlichen `flz_organization`-
   Organisationssnapshot und app-eigene granulare Vertretungsfreigaben
   geprüft. Der Organisationssnapshot wird ausschließlich lazy über den
-  öffentlichen LocalBase-Vertrag `OCA\\LocalBase\\PublicApi\\V1` konsumiert;
-  Recruitment greift weder auf interne LocalBase-Services noch auf deren
-  AppConfig zu. Der native Adminstatus allein genügt nicht. Ein fehlender,
+  öffentlichen Vertrag `OCA\\FlzOrganization\\PublicApi\\V1` konsumiert;
+  Recruitment greift weder auf interne Provider-Services noch auf deren
+  AppConfig zu. LocalBase ist keine zweite Organisationsquelle. Der native
+  Adminstatus allein genügt nicht. Ein fehlender,
   deaktivierter, inkompatibler, ungültiger oder nicht verfügbarer Provider
   erteilt keine organisationsabgeleiteten Rechte. Davon unabhängige aktive
   app-lokale Adminfreigaben sowie globale oder einzelaktenbezogene
   Vertretungsfreigaben bleiben wirksam; bereichsgebundene Freigaben benötigen
   einen gültigen Organisationssnapshot. UI-Sichtbarkeit erteilt keine Rechte.
+- Die sechzehn operativen Recruitment-Rechte sind app-eigene Fähigkeiten und
+  standardmäßig der Organigrammrolle `staff_hr` zugeordnet. Organigrammrollen
+  erteilen ohne diese Zuordnung keine Aktion. Das getrennte Recht
+  `view_first_guide_dossier` ist standardmäßig `eb` zugeordnet und bleibt
+  zusätzlich auf freigegebene Erstbegleitungsakten im eigenen Bereich
+  begrenzt. Fünfzehn operative Rechte können durch `staff_hr` oder
+  `Datenschutzbeauftragte` individuell mit explizitem Scope delegiert werden.
+  Die Verwaltung weiterer Vertretungsfreigaben bleibt selbst nicht
+  delegierbar und ausschließlich `staff_hr`, `Datenschutzbeauftragte` sowie
+  einer aktiven app-lokalen Adminfreigabe vorbehalten.
 - Personenbezogene Inhalte, Interviewantworten, Dokumentnamen und E-Mail-Inhalte werden nicht in technische Logs geschrieben.
 - Der erste Posteingangs-Durchstich speichert normalisierte Original-Mailtexte
   in der App-Datenbank und ausschließlich validierte PDF-Anhänge unter

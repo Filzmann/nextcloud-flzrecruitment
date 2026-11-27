@@ -337,11 +337,13 @@ final class RecruitmentUseCaseService {
         return $saved;
     }
 
-    /** @return array<string,mixed> */
-    public function saveFirstGuideGroup(string $groupId, int $revision, string $actorUid): array {
-        $saved = $this->permissionSettings->saveFirstGuideGroup($groupId, $revision, $actorUid);
-        $this->repository->recordPermissionAudit($actorUid, 'first_guide_group_saved', '', null, [
-            'groupId' => $saved['firstGuideGroupId'],
+    /** @param array<string,mixed> $roleCapabilities
+     *  @return array<string,mixed>
+     */
+    public function saveRoleCapabilities(array $roleCapabilities, int $revision, string $actorUid): array {
+        $saved = $this->permissionSettings->saveRoleCapabilities($roleCapabilities, $revision, $actorUid);
+        $this->repository->recordPermissionAudit($actorUid, 'role_capabilities_saved', '', null, [
+            'roleCapabilities' => $saved['roleCapabilities'],
             'revision' => $saved['revision'],
         ]);
         return $saved;

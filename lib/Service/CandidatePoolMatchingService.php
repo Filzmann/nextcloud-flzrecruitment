@@ -5,20 +5,28 @@ declare(strict_types=1);
 namespace OCA\FlzRecruitment\Service;
 
 use OCA\FlzRecruitment\Contract\CandidatePoolStore;
+use OCP\IL10N;
 
 final class CandidatePoolMatchingService {
+    public function __construct(private ?IL10N $l10n = null) {}
+
+    /** Lokalisierung fachlicher Texte; im Test ohne IL10N identity. */
+    private function t(string $text): string
+    {
+        return $this->l10n?->t($text) ?? $text;
+    }
     /** @param array<string,mixed> $entry @param list<array<string,mixed>> $jobs @return list<array{jobId:int,reasons:list<string>}> */
     public function suggestionsFor(array $entry, array $jobs): array {
         if (($entry['status'] ?? '') !== 'active') return [];
         $result = [];
         foreach ($jobs as $job) {
             if (($job['active'] ?? false) !== true || ($job['professionCategory'] ?? '') !== ($entry['professionCategory'] ?? '')) continue;
-            $reasons = ['Berufsgruppe stimmt überein.'];
+            $reasons = [$this->t('Berufsgruppe stimmt überein.')];
             $entryMin = $entry['desiredWeeklyHours'] ?? null; $entryMax = $entry['desiredWeeklyHoursMax'] ?? $entryMin;
             $jobMin = $job['weeklyHoursMin'] ?? null; $jobMax = $job['weeklyHoursMax'] ?? $jobMin;
             if ($entryMin !== null && $jobMin !== null) {
                 if ((float)$entryMin > (float)$jobMax || (float)$jobMin > (float)$entryMax) continue;
-                $reasons[] = 'Gewünschter Stundenumfang überschneidet sich.';
+                $reasons[] = $this->t('Gewünschter Stundenumfang überschneidet sich.');
             }
             $result[] = ['jobId' => (int)$job['id'], 'reasons' => $reasons];
         }

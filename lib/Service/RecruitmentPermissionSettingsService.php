@@ -4,13 +4,11 @@ declare(strict_types=1);
 
 namespace OCA\FlzRecruitment\Service;
 
-use DateTimeImmutable;
-use DateTimeZone;
 use OCA\FlzRecruitment\AppInfo\Application;
 use OCA\FlzRecruitment\Exception\ConflictException;
 use OCA\FlzRecruitment\Exception\ValidationException;
+use OCA\FlzRecruitment\Organization\OrganizationSnapshotService;
 use OCP\IAppConfig;
-use OCP\IGroupManager;
 use OCP\IUserManager;
 
 /** Persistiert delegierte Fähigkeiten versioniert in der app-eigenen Nextcloud-Konfiguration. */
@@ -20,10 +18,10 @@ final class RecruitmentPermissionSettingsService {
     public function __construct(
         private IAppConfig $config,
         private IUserManager $users,
-        private IGroupManager $groups,
+        private OrganizationSnapshotService $organization,
     ) {}
 
-    /** @return array{version: int, revision: int, firstGuideGroupId: string, representatives: list<array<string, mixed>>, updatedBy: string, updatedAt: string} */
+    /** @return array{version: int, revision: int, valid: bool, roleCapabilities: array<string,list<string>>, representatives: list<array<string, mixed>>} */
     public function settings(): array {
         $raw = $this->config->getValueString(Application::APP_ID, self::KEY, '');
         if ($raw === '') {
@@ -31,19 +29,18 @@ final class RecruitmentPermissionSettingsService {
         }
         try {
             $decoded = json_decode($raw, true, 32, JSON_THROW_ON_ERROR);
-            if (!is_array($decoded) || ($decoded['version'] ?? null) !== 1 || !is_array($decoded['representatives'] ?? null)) {
+            if (!is_array($decoded) || ($decoded['version'] ?? null) !== 2 || !is_array($decoded['representatives'] ?? null) || !is_array($decoded['roleCapabilities'] ?? null)) {
                 throw new ValidationException('Die Berechtigungskonfiguration ist ungültig.');
             }
             return [
-                'version' => 1,
+                'version' => 2,
                 'revision' => max(0, (int)($decoded['revision'] ?? 0)),
-                'firstGuideGroupId' => $this->identifier($decoded['firstGuideGroupId'] ?? ''),
+                'valid' => true,
+                'roleCapabilities' => $this->roleCapabilities($decoded['roleCapabilities'], null),
                 'representatives' => $this->representatives($decoded['representatives'], null),
-                'updatedBy' => trim((string)($decoded['updatedBy'] ?? '')),
-                'updatedAt' => trim((string)($decoded['updatedAt'] ?? '')),
             ];
         } catch (\Throwable) {
-            return $this->defaults();
+            return $this->deniedSettings();
         }
     }
 
@@ -58,15 +55,17 @@ final class RecruitmentPermissionSettingsService {
         return $this->persist($current, $actorUid);
     }
 
-    /** @return array<string, mixed> */
-    public function saveFirstGuideGroup(string $groupId, int $expectedRevision, string $actorUid): array {
+    /** @param array<string,mixed> $roleCapabilities
+     *  @return array<string,mixed>
+     */
+    public function saveRoleCapabilities(array $roleCapabilities, int $expectedRevision, string $actorUid): array {
         $current = $this->settings();
         $this->assertRevision($current, $expectedRevision);
-        $groupId = $this->identifier($groupId);
-        if ($this->groups->get($groupId) === null) {
-            throw new ValidationException('Die ausgewählte Erstbegleitungsgruppe existiert nicht in Nextcloud.');
+        $snapshot = $this->organization->snapshot();
+        if (!$snapshot->isValid()) {
+            throw new ValidationException('Das Organigramm ist nicht verfügbar. Die Berechtigungsmatrix wurde nicht geändert.');
         }
-        $current['firstGuideGroupId'] = $groupId;
+        $current['roleCapabilities'] = $this->roleCapabilities($roleCapabilities, $snapshot->roleKeys());
         return $this->persist($current, $actorUid);
     }
 
@@ -81,10 +80,9 @@ final class RecruitmentPermissionSettingsService {
      *  @return array<string, mixed>
      */
     private function persist(array $settings, string $actorUid): array {
-        $settings['version'] = 1;
+        $settings['version'] = 2;
         $settings['revision'] = (int)$settings['revision'] + 1;
-        $settings['updatedBy'] = $this->identifier($actorUid);
-        $settings['updatedAt'] = (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format(DATE_ATOM);
+        $settings['valid'] = true;
         $this->config->setValueString(
             Application::APP_ID,
             self::KEY,
@@ -144,6 +142,40 @@ final class RecruitmentPermissionSettingsService {
         return $result;
     }
 
+    /** @param array<string,mixed> $configured
+     *  @param list<string>|null $validRoleKeys
+     *  @return array<string,list<string>>
+     */
+    private function roleCapabilities(array $configured, ?array $validRoleKeys): array {
+        if (array_diff(array_keys($configured), RecruitmentPermissionPolicy::ROLE_ASSIGNABLE_CAPABILITIES) !== []) {
+            throw new ValidationException('Eine unbekannte Recruitment-Berechtigung wurde angefordert.');
+        }
+        $result = [];
+        foreach (RecruitmentPermissionPolicy::ROLE_ASSIGNABLE_CAPABILITIES as $capability) {
+            $requested = $configured[$capability] ?? [];
+            if (!is_array($requested)) {
+                throw new ValidationException('Die Rollenzuordnung einer Recruitment-Berechtigung ist ungültig.');
+            }
+            $roleKeys = array_values(array_unique(array_map(fn(mixed $roleKey): string => $this->identifier($roleKey), $requested)));
+            if ($validRoleKeys !== null && array_diff($roleKeys, $validRoleKeys) !== []) {
+                throw new ValidationException('Die Berechtigungsmatrix enthält eine unbekannte Organigrammrolle.');
+            }
+            if ($capability === RecruitmentPermissionPolicy::VIEW_FIRST_GUIDE_DOSSIER
+                && array_diff($roleKeys, ['eb']) !== []) {
+                throw new ValidationException('Erstbegleitungsakten dürfen ausschließlich der Organigrammrolle Einsatzbegleitung zugeordnet werden.');
+            }
+            if ($capability === RecruitmentPermissionPolicy::MANAGE_DELEGATIONS
+                && array_diff($roleKeys, ['staff_hr']) !== []) {
+                throw new ValidationException('Vertretungsfreigaben dürfen ausschließlich durch das Personalreferat und Datenschutzbeauftragte verwaltet werden.');
+            }
+            if ($validRoleKeys !== null) {
+                $roleKeys = array_values(array_filter($validRoleKeys, static fn(string $roleKey): bool => in_array($roleKey, $roleKeys, true)));
+            }
+            $result[$capability] = $roleKeys;
+        }
+        return $result;
+    }
+
     private function identifier(mixed $value): string {
         $value = trim((string)$value);
         if ($value === '' || strlen($value) > 255 || preg_match('/[\x00-\x1F\x7F]/', $value) === 1) {
@@ -152,15 +184,29 @@ final class RecruitmentPermissionSettingsService {
         return $value;
     }
 
-    /** @return array{version: int, revision: int, firstGuideGroupId: string, representatives: list<array<string, mixed>>, updatedBy: string, updatedAt: string} */
+    /** @return array{version: int, revision: int, valid: bool, roleCapabilities: array<string,list<string>>, representatives: list<array<string, mixed>>} */
     private function defaults(): array {
         return [
-            'version' => 1,
+            'version' => 2,
             'revision' => 0,
-            'firstGuideGroupId' => 'flzrecruitment-first-guides',
+            'valid' => true,
+            'roleCapabilities' => [
+                ...array_fill_keys(RecruitmentPermissionPolicy::ACTION_CAPABILITIES, ['staff_hr']),
+                RecruitmentPermissionPolicy::VIEW_FIRST_GUIDE_DOSSIER => ['eb'],
+            ],
             'representatives' => [],
-            'updatedBy' => '',
-            'updatedAt' => '',
         ];
     }
+
+    /** @return array{version: int, revision: int, valid: bool, roleCapabilities: array<string,list<string>>, representatives: list<array<string, mixed>>} */
+    private function deniedSettings(): array {
+        return [
+            'version' => 2,
+            'revision' => 0,
+            'valid' => false,
+            'roleCapabilities' => array_fill_keys(RecruitmentPermissionPolicy::ROLE_ASSIGNABLE_CAPABILITIES, []),
+            'representatives' => [],
+        ];
+    }
+
 }

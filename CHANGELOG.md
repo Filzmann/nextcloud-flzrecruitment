@@ -2,6 +2,25 @@
 
 ## Unreleased
 
+- L10N-Migration (ZM-06): sichtbare Texte über Nextcloud-l10n (deutsche Quelltexte, Kataloge `l10n/en.*` + `l10n/en_GB.*`), inkl. `tests/Ui/L10nCatalogContractTest.php` und `docs/l10n-inventory.md`.
+
+- Der authentifizierte lokale HTTPS-Smoke meldet CLI-Fehler zuverlässig mit
+  Exit 1 und datensparsamer Fundstelle statt stillem Exit 0. Die
+  Organisationsprobe prüft zusätzlich die öffentliche Serverauflösung.
+- Die vier isolierten VM-Smokes verwenden ihre absoluten JavaScript-Quellpfade
+  auch als VM-Dateinamen, damit c8 die ausgeführten Dateien eindeutig zuordnet.
+- Organigrammrollen und Recruitment-Berechtigungen getrennt: sechzehn
+  operative Rechte sind standardmäßig `staff_hr` zugeordnet und durch
+  `Datenschutzbeauftragte` über eine zugängliche Checkbox-Matrix konfigurierbar.
+  Das neue Recht `Erstbegleitungsakte lesen` bleibt zusätzlich auf EB,
+  eigenen Bereich, freigegebene Akte und aktive Erstbegleitungsfreigabe
+  begrenzt. Die frühere technische Erstbegleitungsgruppe entfällt.
+- Individuelle Vertretungen können durch Personalreferat und
+  `Datenschutzbeauftragte` für fünfzehn operative Rechte mit explizitem Scope
+  gepflegt werden. Die Verwaltung weiterer Vertretungen bleibt als Schutz vor
+  rekursiver Rechteausweitung selbst nicht delegierbar. Beide Rollen verwalten außerdem den zeitlich
+  begrenzten Admin-Vollzugriff; native Administration allein erteilt weiterhin
+  keine Fachrechte.
 - Nextcloud 35.0.1 durch Fresh Install, Upgrade 34→35 sowie Provider-,
   Berechtigungs-, Runtime-, UI-/API- und Asset-Smokes nachgewiesen und den
   unterstützten Bereich auf die lückenlosen Hauptversionen 33 bis 35
@@ -9,11 +28,13 @@
   öffentlichen `IEventListener`-Vertrag; die Berechtigungssemantik bleibt
   unverändert. Nextcloud 36 bleibt ungeprüft.
 - Den internen LocalBase-Organisationsservice durch einen app-lokalen, lazy
-  aufgelösten Consumer des öffentlichen Organization-V1-Vertrags ersetzt.
-  Fehlende, deaktivierte, alte, inkompatible, ungültige und fehlerhafte
-  Provider liefern keine Organisationsrechte; unabhängige aktive
-  Adminfreigaben sowie globale und einzelaktenbezogene Vertretungen bleiben
-  erhalten, während Bereichsrechte fail-closed bleiben.
+  aufgelösten Consumer des öffentlichen `flz_organization`-V1-Vertrags ersetzt.
+  LocalBase ist keine zweite Organisationsquelle. Fehlende, deaktivierte, alte,
+  inkompatible, ungültige und fehlerhafte Provider liefern keine
+  Organisationsrechte; unabhängige aktive Adminfreigaben sowie globale und
+  einzelaktenbezogene Vertretungen bleiben erhalten, während Bereichsrechte
+  fail-closed bleiben. Der Runtime-Smoke konsumiert dieselbe öffentliche
+  Providergrenze und verändert keine fremde Organisationskonfiguration.
 - Die app-lokale Admin-Vollzugriffssteuerung aus dem technischen Adminbereich
   in die rollenabhängige Recruitment-Fachoberfläche verschoben. Nur
   `Datenschutzbeauftragte` können Historie lesen sowie Freigaben für aktuelle

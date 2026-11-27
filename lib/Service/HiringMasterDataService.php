@@ -6,9 +6,17 @@ namespace OCA\FlzRecruitment\Service;
 
 use DateTimeImmutable;
 use OCA\FlzRecruitment\Exception\ValidationException;
+use OCP\IL10N;
 
 /** Validiert und projiziert ausschließlich die für die Vertragsvorbereitung freigegebenen Stammdaten. */
 final class HiringMasterDataService {
+    public function __construct(private ?IL10N $l10n = null) {}
+
+    /** Lokalisierung fachlicher Texte; im Test ohne IL10N identity. */
+    private function t(string $text): string
+    {
+        return $this->l10n?->t($text) ?? $text;
+    }
     public const LOBU_ONLY_FIELDS = ['iban', 'bic', 'accountHolder', 'healthInsurance', 'healthInsuranceType', 'socialSecurityNumber', 'taxId', 'taxClass'];
     public const JOB_DERIVED_FIELDS = ['contractTerm', 'workingTimeModel', 'workLocation', 'payGrade', 'weeklyHours', 'vacationDays'];
     public const PERSONNEL_FIELDS = ['salutation', 'title', 'birthName', 'birthDate', 'birthPlace', 'street', 'houseNumber', 'postalCode', 'city', 'country', 'nationality', 'privateEmail', 'privatePhone', 'plannedStartDate', 'contractType', 'positionTitle', 'payStep', 'contractEndDate'];
@@ -81,15 +89,15 @@ final class HiringMasterDataService {
         if ((string)$data['privateEmail'] !== '' && filter_var($data['privateEmail'], FILTER_VALIDATE_EMAIL) === false) {
             throw new ValidationException('Die private E-Mail-Adresse ist ungültig.');
         }
-        $this->assertChoice((string)$data['salutation'], self::SALUTATIONS, 'Die Anrede ist ungültig.');
-        $this->assertChoice((string)$data['title'], self::TITLES, 'Der Titel ist ungültig.');
-        $this->assertChoice((string)$data['healthInsuranceType'], self::HEALTH_INSURANCE_TYPES, 'Die Versicherungsart ist ungültig.');
-        $this->assertChoice((string)$data['taxClass'], self::TAX_CLASSES, 'Die Steuerklasse ist ungültig.');
-        $this->assertChoice((string)$data['contractType'], self::CONTRACT_TYPES, 'Die Beschäftigungsform ist ungültig.');
-        $this->assertChoice((string)$data['contractTerm'], self::CONTRACT_TERMS, 'Die Vertragsdauer ist ungültig.');
-        $this->assertChoice((string)$data['workingTimeModel'], self::WORKING_TIME_MODELS, 'Das Arbeitszeitmodell ist ungültig.');
-        $this->assertChoice((string)$data['payGrade'], self::PAY_GRADES, 'Die Entgeltgruppe ist ungültig.');
-        $this->assertChoice((string)$data['payStep'], self::PAY_STEPS, 'Die Tarifstufe ist ungültig.');
+        $this->assertChoice((string)$data['salutation'], self::SALUTATIONS, $this->t('Die Anrede ist ungültig.'));
+        $this->assertChoice((string)$data['title'], self::TITLES, $this->t('Der Titel ist ungültig.'));
+        $this->assertChoice((string)$data['healthInsuranceType'], self::HEALTH_INSURANCE_TYPES, $this->t('Die Versicherungsart ist ungültig.'));
+        $this->assertChoice((string)$data['taxClass'], self::TAX_CLASSES, $this->t('Die Steuerklasse ist ungültig.'));
+        $this->assertChoice((string)$data['contractType'], self::CONTRACT_TYPES, $this->t('Die Beschäftigungsform ist ungültig.'));
+        $this->assertChoice((string)$data['contractTerm'], self::CONTRACT_TERMS, $this->t('Die Vertragsdauer ist ungültig.'));
+        $this->assertChoice((string)$data['workingTimeModel'], self::WORKING_TIME_MODELS, $this->t('Das Arbeitszeitmodell ist ungültig.'));
+        $this->assertChoice((string)$data['payGrade'], self::PAY_GRADES, $this->t('Die Entgeltgruppe ist ungültig.'));
+        $this->assertChoice((string)$data['payStep'], self::PAY_STEPS, $this->t('Die Tarifstufe ist ungültig.'));
         $data['iban'] = strtoupper((string)$data['iban']);
         $data['iban'] = str_replace(' ', '', $data['iban']);
         if ($data['iban'] !== '' && !$this->validIban((string)$data['iban'])) {
@@ -114,8 +122,8 @@ final class HiringMasterDataService {
      */
     public function normalizeStored(array $stored): array {
         unset($stored['maritalStatus']);
-        $stored['salutation'] = ['Frau' => 'female', 'Herr' => 'male', 'Divers' => 'diverse', 'Keine Anrede' => 'neutral'][$stored['salutation'] ?? ''] ?? ($stored['salutation'] ?? '');
-        $stored['title'] = ['Dr.' => 'dr', 'Prof.' => 'prof', 'Prof. Dr.' => 'prof_dr'][$stored['title'] ?? ''] ?? ($stored['title'] ?? '');
+        $stored['salutation'] = ['Frau' => 'female', 'Herr' => 'male', 'Divers' => 'diverse', $this->t('Keine Anrede') => 'neutral'][$stored['salutation'] ?? ''] ?? ($stored['salutation'] ?? '');
+        $stored['title'] = ['Dr.' => 'dr', 'Prof.' => 'prof', $this->t('Prof. Dr.') => 'prof_dr'][$stored['title'] ?? ''] ?? ($stored['title'] ?? '');
         $stored['healthInsuranceType'] = ['Gesetzlich' => 'statutory', 'Privat' => 'private', 'Sonstige' => 'other'][$stored['healthInsuranceType'] ?? ''] ?? ($stored['healthInsuranceType'] ?? '');
         $legacyContractType = trim((string)($stored['contractType'] ?? ''));
         if ($legacyContractType === 'Unbefristet') {
@@ -136,13 +144,13 @@ final class HiringMasterDataService {
     }
 
     public function validatePersonnelInput(array $input): array {
-        $this->assertAllowedInput($input, self::PERSONNEL_FIELDS, 'Die Personalreferenz darf dieses Stammdatenfeld nicht bearbeiten.');
+        $this->assertAllowedInput($input, self::PERSONNEL_FIELDS, $this->t('Die Personalreferenz darf dieses Stammdatenfeld nicht bearbeiten.'));
         $normalized = $this->validate($input);
         return array_intersect_key($normalized, array_flip(array_keys($input)));
     }
 
     public function validatePayrollInput(array $input): array {
-        $this->assertAllowedInput($input, self::LOBU_ONLY_FIELDS, 'Die LoBu darf dieses Stammdatenfeld nicht bearbeiten.');
+        $this->assertAllowedInput($input, self::LOBU_ONLY_FIELDS, $this->t('Die LoBu darf dieses Stammdatenfeld nicht bearbeiten.'));
         $normalized = $this->validate($input);
         return array_intersect_key($normalized, array_flip(array_keys($input)));
     }
@@ -153,7 +161,7 @@ final class HiringMasterDataService {
     public function mailDefaults(array $suggestions): array {
         $value = static fn(string $field): string => trim((string)($suggestions[$field]['value'] ?? ''));
         $defaults = [];
-        $salutations = ['frau' => 'female', 'herr' => 'male', 'divers' => 'diverse', 'keine anrede' => 'neutral'];
+        $salutations = ['frau' => 'female', 'herr' => 'male', 'divers' => 'diverse', $this->t('keine anrede') => 'neutral'];
         $salutation = strtolower($value('salutation'));
         if (isset($salutations[$salutation])) $defaults['salutation'] = $salutations[$salutation];
         $titles = ['dr' => 'dr', 'prof' => 'prof', 'profdr' => 'prof_dr'];

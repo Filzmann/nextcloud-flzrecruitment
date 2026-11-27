@@ -6,6 +6,7 @@ namespace OCA\FlzRecruitment\Service;
 
 use InvalidArgumentException;
 use OCA\FlzRecruitment\Repository\TemporaryAdminAccessRepositoryInterface;
+use OCA\FlzRecruitment\Organization\OrganizationSnapshotService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IGroupManager;
 use OCP\IUserSession;
@@ -23,10 +24,11 @@ final class TemporaryAdminAccessService implements TemporaryAdminAccessChecker {
         private TemporaryAdminAccessRepositoryInterface $repository,
         private ITimeFactory $clock,
         private LoggerInterface $logger,
+        private OrganizationSnapshotService $organization,
     ) {}
 
     public function activate(string $targetUid, int $durationMinutes): array {
-        $actorUid = $this->requirePrivacyOfficer();
+        $actorUid = $this->requireManager();
         $targetUid = trim($targetUid);
         if ($targetUid === '' || !$this->groups->isAdmin($targetUid)) {
             throw new InvalidArgumentException('Zielkonto ist keine aktuelle Nextcloud-Administration.');
@@ -43,7 +45,7 @@ final class TemporaryAdminAccessService implements TemporaryAdminAccessChecker {
     }
 
     public function revoke(string $targetUid): bool {
-        $actorUid = $this->requirePrivacyOfficer();
+        $actorUid = $this->requireManager();
         $targetUid = trim($targetUid);
         if ($targetUid === '' || !$this->groups->isAdmin($targetUid)) {
             throw new InvalidArgumentException('Zielkonto ist keine aktuelle Nextcloud-Administration.');
@@ -69,13 +71,18 @@ final class TemporaryAdminAccessService implements TemporaryAdminAccessChecker {
     }
 
     public function state(): array {
-        $this->requirePrivacyOfficer();
+        $this->requireManager();
         return ['maxDurationMinutes' => self::MAX_DURATION_MINUTES, 'history' => $this->repository->history()];
     }
 
     public function canManage(): bool {
         $user = $this->session->getUser();
-        return $user !== null && $this->groups->get(self::PRIVACY_OFFICER_GROUP)?->inGroup($user) === true;
+        if ($user === null) return false;
+        if ($this->groups->get(self::PRIVACY_OFFICER_GROUP)?->inGroup($user) === true) return true;
+        $snapshot = $this->organization->snapshot();
+        if (!$snapshot->isValid()) return false;
+        $staffHrGroup = $snapshot->roleGroupId('staff_hr');
+        return $staffHrGroup !== null && $this->groups->get($staffHrGroup)?->inGroup($user) === true;
     }
 
     public function currentAdminNeedsGrant(): bool {
@@ -83,7 +90,7 @@ final class TemporaryAdminAccessService implements TemporaryAdminAccessChecker {
         return $uid !== '' && $this->groups->isAdmin($uid) && !$this->hasActiveGrant($uid);
     }
 
-    private function requirePrivacyOfficer(): string {
+    private function requireManager(): string {
         $user = $this->session->getUser();
         if ($user === null || !$this->canManage()) {
             throw new TemporaryAdminAccessDeniedException('Zugriff verweigert.');

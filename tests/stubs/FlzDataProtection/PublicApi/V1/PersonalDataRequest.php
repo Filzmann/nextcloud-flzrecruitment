@@ -20,7 +20,7 @@ final class PersonalDataRequest {
         private array $providerCursors,
     ) {
         if ($language === '' || $purpose === '' || $pageLimit < 1 || $pageLimit > 1000) {
-            throw new InvalidArgumentException('Invalid personal data request.');
+            throw new InvalidArgumentException('Ungültige personenbezogene Datenanfrage.');
         }
         foreach ($providerCursors as $appId => $cursor) {
             if (
@@ -30,7 +30,7 @@ final class PersonalDataRequest {
                 || $cursor === ''
                 || strlen($cursor) > 1024
             ) {
-                throw new InvalidArgumentException('Invalid provider cursor.');
+                throw new InvalidArgumentException('Ungültiger Provider-Cursor.');
             }
         }
     }

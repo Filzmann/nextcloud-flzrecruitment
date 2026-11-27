@@ -50,7 +50,7 @@ return ['routes' => [
     ['name' => 'api#savePayrollData', 'url' => '/api/applications/{id}/payroll-data', 'verb' => 'PUT'],
     ['name' => 'api#setFirstGuideAccess', 'url' => '/api/applications/{id}/first-guide-access', 'verb' => 'PUT'],
     ['name' => 'api#saveRepresentatives', 'url' => '/api/permissions/representatives', 'verb' => 'PUT'],
-    ['name' => 'api#saveFirstGuideGroup', 'url' => '/api/permissions/first-guide-group', 'verb' => 'PUT'],
+    ['name' => 'api#saveRoleCapabilities', 'url' => '/api/permissions/roles', 'verb' => 'PUT'],
     ['name' => 'api#candidatePool', 'url' => '/api/candidate-pool', 'verb' => 'GET'],
     ['name' => 'api#requestCandidatePool', 'url' => '/api/applications/{id}/candidate-pool/request', 'verb' => 'POST'],
     ['name' => 'api#grantCandidatePoolConsent', 'url' => '/api/candidate-pool/{id}/consent', 'verb' => 'POST'],

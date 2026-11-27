@@ -8,8 +8,16 @@ use DateTimeImmutable;
 use OCA\FlzRecruitment\Contract\CandidatePoolStore;
 use OCA\FlzRecruitment\Exception\ConflictException;
 use OCA\FlzRecruitment\Exception\ValidationException;
+use OCP\IL10N;
 
 final class CandidatePoolService {
+    public function __construct(private ?IL10N $l10n = null) {}
+
+    /** Lokalisierung fachlicher Texte; im Test ohne IL10N identity. */
+    private function t(string $text): string
+    {
+        return $this->l10n?->t($text) ?? $text;
+    }
     private const SOURCE_STATUSES = ['rejected', 'withdrawn', 'archived'];
 
     /** @param array<string,mixed> $settings @return array<string,mixed> */

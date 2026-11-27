@@ -20,26 +20,26 @@ final class PersonalDataPage {
         private ?string $nextCursor = null,
     ) {
         if (!in_array($status, self::STATUSES, true)) {
-            throw new InvalidArgumentException('Invalid provider page status.');
+            throw new InvalidArgumentException('Ungültiger Provider-Seitenstatus.');
         }
         foreach ($entries as $entry) {
             if (!$entry instanceof PersonalDataEntry) {
-                throw new InvalidArgumentException('Invalid personal data entry.');
+                throw new InvalidArgumentException('Ungültiger personenbezogener Dateneintrag.');
             }
         }
         foreach ($restrictions as $restriction) {
             if (!is_string($restriction) || trim($restriction) === '') {
-                throw new InvalidArgumentException('Invalid provider restriction.');
+                throw new InvalidArgumentException('Ungültige Provider-Einschränkung.');
             }
         }
         if ($status === 'partial' && $restrictions === []) {
-            throw new InvalidArgumentException('Partial provider pages require a restriction.');
+            throw new InvalidArgumentException('Teil-Provider-Seiten erfordern eine Einschränkung.');
         }
         if ($status === 'not_applicable' && ($entries !== [] || $nextCursor !== null)) {
-            throw new InvalidArgumentException('Not-applicable provider pages cannot contain data or a cursor.');
+            throw new InvalidArgumentException('Nicht zutreffende Provider-Seiten dürfen weder Daten noch einen Cursor enthalten.');
         }
         if ($nextCursor !== null && ($nextCursor === '' || strlen($nextCursor) > 1024)) {
-            throw new InvalidArgumentException('Invalid provider cursor.');
+            throw new InvalidArgumentException('Ungültiger Provider-Cursor.');
         }
     }
 
