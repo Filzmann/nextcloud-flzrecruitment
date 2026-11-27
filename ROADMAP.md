@@ -19,6 +19,8 @@ geltende Architektur in `docs/architecture.md`.
 
 ### RECR-POOL-ACTIVATION – Bewerberpool produktiv aktivieren
 
+Status: **freigegeben 27.11.2026** (Parent `docs/change-report-2026-11-27.md`). Bestätigte Eckwerte: Default-Löschfrist 12 Monate (konfigurierbar, Pflege nur durch Gruppe „Datenschutzbeauftragte“), externer Self-Service beschränkt auf Erteilung/Erneuerung/Widerruf der eigenen versionierten Einwilligung, keine Bearbeitung fremder Daten, nicht-wertende Regelvorschläge nur auf Berufsgruppe/Stundenkorridor/Region mit manueller Bestätigung.
+
 - Versionierten Datenschutzhinweis freigeben.
 - Den konfigurierbaren Zwölfmonats-Standardwert, seine ausschließlich der
   Nextcloud-Gruppe `Datenschutzbeauftragte` erlaubte Pflege, die rückwirkende
