@@ -1,6 +1,10 @@
 OC.L10N.register(
     "flzrecruitment",
     {
+  "Ungültige Actor-UID.":"Invalid actor UID.",
+  "Ungültiger Bereichsschlüssel.":"Invalid area key.",
+  "Ungültiger Ausgangsstatus.":"Invalid source status.",
+  "Ungültige Bewerbungs-ID.":"Invalid application ID.",
     "Recruitment" : "Recruitment",
     " Uhr" : "",
     "; Dateiinhalte werden nicht untersucht" : "; file contents are not examined",
