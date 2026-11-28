@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace OCA\FlzRecruitment\Service;
 
+use DateTimeImmutable;
 use OCA\FlzRecruitment\Contract\ApplicationStatusStore;
 use OCA\FlzRecruitment\Exception\ValidationException;
+use OCA\FlzRecruitment\PublicApi\V1\ApplicationHiredEvent;
+use OCP\EventDispatcher\IEventDispatcher;
 
 /**
  * Einzige fachliche Instanz für zulässige Bewerbungsstatus-Übergänge.
@@ -30,7 +33,10 @@ final class ApplicationStatusService {
         'archived' => [],
     ];
 
-    public function __construct(private ?StatusMailWorkflow $mailWorkflow = null) {
+    public function __construct(
+        private ?StatusMailWorkflow $mailWorkflow = null,
+        private ?IEventDispatcher $dispatcher = null,
+    ) {
     }
 
     public function targetStatus(string $currentStatus, string $targetStatus, bool $override = false): string {
@@ -121,7 +127,7 @@ final class ApplicationStatusService {
             ];
         }
 
-        return $store->transitionStatus(
+        $changed = $store->transitionStatus(
             $applicationId,
             $currentStatus,
             $targetStatus,
@@ -132,5 +138,15 @@ final class ApplicationStatusService {
             $mailDraft,
             $override,
         );
+        if ($targetStatus === 'hired' && $this->dispatcher !== null) {
+            $this->dispatcher->dispatchTyped(new ApplicationHiredEvent(
+                $applicationId,
+                $currentStatus,
+                (string)($application['areaKey'] ?? ''),
+                $actorUid,
+                new DateTimeImmutable(),
+            ));
+        }
+        return $changed;
     }
 }
