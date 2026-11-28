@@ -1,6 +1,7 @@
 OC.L10N.register(
     "flzrecruitment",
     {
+    "Recruitment" : "Recruitment",
     " Uhr" : "",
     "; Dateiinhalte werden nicht untersucht" : "; file contents are not examined",
     "Ein gültiger Organisations-Snapshot erfordert Provider-Zuordnungen." : "A valid organization snapshot requires provider mappings.",
