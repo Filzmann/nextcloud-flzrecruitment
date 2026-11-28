@@ -33,7 +33,8 @@ TestRunner::test('technical app identity is consistently flzrecruitment', static
     assertTrue(!str_contains($info, '<navigations>'), 'Static navigation would bypass the standalone/suite contract');
     assertTrue(str_contains($application, "public const APP_ID = 'flzrecruitment';"), 'Bootstrap app ID is not flzrecruitment');
     assertTrue(str_contains($application, 'LoadAdditionalEntriesEvent::class'), 'Standalone navigation listener is not registered');
-    assertTrue(str_contains($listener, "addCatalogProductWhenStandalone('flzrecruitment'"), 'Standalone navigation does not consume the product catalog');
+    assertTrue(str_contains($listener, "linkToRoute('flzrecruitment.page.index')"), 'Standalone navigation is not app-local');
+    assertTrue(!str_contains($listener, 'LocalBase'), 'Standalone navigation must not consume LocalBase');
     assertTrue(str_contains($template, "Util::addStyle('flzrecruitment', 'style');"), 'Template assets use the old app ID');
     assertTrue(str_contains($api, "generateUrl('/apps/flzrecruitment' + path)"), 'API client uses the old app route');
     assertTrue(str_contains($access, 'OrganizationSnapshotService'), 'Access does not consume the app-local Organization V1 adapter');
